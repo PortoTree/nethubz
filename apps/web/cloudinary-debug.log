@@ -25,3 +25,15 @@ Cloudinary delete result: {"result":"ok"}
 Attempting to delete publicId: uajc7l8nuedsp3jkgwjq with type: image
 Config keys present? name: true, key: true, secret: true
 Cloudinary delete result: {"result":"ok"}
+Attempting to delete publicId: ujzeznxw5r1rdh5rzvic with type: image
+Config keys present? name: true, key: true, secret: true
+Cloudinary delete result: {"result":"ok"}
+Attempting to delete publicId: vcrtiav43zcyyvpmmqcl with type: image
+Config keys present? name: true, key: true, secret: true
+Cloudinary delete result: {"result":"ok"}
+Attempting to delete publicId: a656xlxzbst066qis6sj with type: image
+Config keys present? name: true, key: true, secret: true
+Cloudinary delete result: {"result":"ok"}
+Attempting to delete publicId: jp8bcgvjjcwzyrnnosiy with type: image
+Config keys present? name: true, key: true, secret: true
+Cloudinary delete result: {"result":"ok"}

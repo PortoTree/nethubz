@@ -187,8 +187,10 @@ export default function ProjectFormModal({
             {initial ? t("project.editProject") : t("project.addProject")}
           </h2>
           <button 
+            type="button"
             onClick={onClose} 
-            className="absolute right-4 w-9 h-9 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-[#4E4F50] transition-colors text-gray-600 dark:text-[#B0B3B8]"
+            disabled={isSubmitting}
+            className="absolute right-4 w-9 h-9 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-[#4E4F50] transition-colors text-gray-600 dark:text-[#B0B3B8] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100 dark:disabled:hover:bg-[#3A3B3C]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -237,18 +239,20 @@ export default function ProjectFormModal({
                 <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.coverImage")}</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2">
                   {coverPreviews.map((preview, idx) => (
-                    <div key={idx} className="relative w-full aspect-video rounded-xl border border-gray-200 dark:border-[#4E4F50] overflow-hidden group">
+                    <div key={idx} className={`relative w-full aspect-video rounded-xl border border-gray-200 dark:border-[#4E4F50] overflow-hidden group ${isSubmitting ? "opacity-50" : ""}`}>
                       <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setCoverFiles(prev => prev.filter((_, i) => i !== idx));
-                          setCoverPreviews(prev => prev.filter((_, i) => i !== idx));
-                        }}
-                        className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                      </button>
+                      {!isSubmitting && (
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setCoverFiles(prev => prev.filter((_, i) => i !== idx));
+                            setCoverPreviews(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                        </button>
+                      )}
                     </div>
                   ))}
                   {coverPreviews.length < 5 && (

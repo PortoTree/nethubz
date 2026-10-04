@@ -23,7 +23,7 @@ import { createProject, getUserProjects, deleteProject, updateProject } from "@/
 import CreatePostModal from "@/components/CreatePostModal";
 import ProjectFormModal, { ProjectDraft } from "@/components/ProjectFormModal";
 
-import { profileCache, connectionCache, galleryCache, notifyConnectionChanged } from "@/utils/profileCache";
+import { profileCache, connectionCache, galleryCache, projectsCache, notifyConnectionChanged } from "@/utils/profileCache";
 
 function ProfilePageContent({
   params,
@@ -107,23 +107,32 @@ function ProfilePageContent({
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const [projects, setProjects] = useState<any[]>(() => projectsCache.get(id) || []);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(() => !projectsCache.has(id));
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      if (!projectsCache.has(id)) {
+        setIsLoadingProjects(true);
+      }
       const res = await getUserProjects(id);
       if (!cancelled) {
-        setProjects(res.projects || []);
+        const loadedProjects = res.projects || [];
+        projectsCache.set(id, loadedProjects);
+        setProjects(loadedProjects);
         setIsLoadingProjects(false);
       }
     };
     load();
-    window.addEventListener("refresh_projects", load);
+    const handleRefresh = () => {
+      projectsCache.delete(id);
+      load();
+    };
+    window.addEventListener("refresh_projects", handleRefresh);
     return () => {
       cancelled = true;
-      window.removeEventListener("refresh_projects", load);
+      window.removeEventListener("refresh_projects", handleRefresh);
     };
   }, [id]);
   const [startWithGalleryModal, setStartWithGalleryModal] = useState(false);

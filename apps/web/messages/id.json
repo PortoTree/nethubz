@@ -318,7 +318,8 @@
     "moveGallery": "Pindah gallery...",
     "deleteMedia": "Hapus media",
     "setAsCover": "Jadikan cover",
-    "deleteMediaConfirmText": "Media ini akan terhapus di postingan"
+    "deleteMediaConfirmText": "Media ini akan terhapus di postingan",
+    "delete": "Hapus"
   },
   "filter": {
     "favorite": "Favorit",

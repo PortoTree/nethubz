@@ -318,7 +318,8 @@
     "moveGallery": "Move gallery...",
     "deleteMedia": "Delete media",
     "setAsCover": "Set as cover",
-    "deleteMediaConfirmText": "This media will be deleted from the post"
+    "deleteMediaConfirmText": "This media will be deleted from the post",
+    "delete": "Delete"
   },
   "filter": {
     "favorite": "Favorites",
