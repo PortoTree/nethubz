@@ -17,7 +17,7 @@ type State = NonNullable<Awaited<ReturnType<typeof getGiveawayState>>["state"]>;
 
 const PLATFORM_LABEL: Record<string, string> = {
   instagram: "Instagram", tiktok: "TikTok", x: "X / Twitter", youtube: "YouTube",
-  facebook: "Facebook", threads: "Threads", telegram: "Telegram", discord: "Discord", other: "Link",
+  facebook: "Facebook", threads: "Threads", telegram: "Telegram", whatsapp: "WhatsApp", discord: "Discord", other: "Link",
 };
 
 const PLATFORM_ICON: Record<string, string> = {
@@ -27,6 +27,7 @@ const PLATFORM_ICON: Record<string, string> = {
   youtube: "/sosmed/youtube.webp",
   facebook: "/sosmed/facebook.webp",
   telegram: "/sosmed/telegram.webp",
+  whatsapp: "/sosmed/whatsapp.webp",
   threads: "/sosmed/Threads.webp",
 };
 
@@ -219,8 +220,11 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
         </div>
 
         {/* Requirements */}
+        {((giveaway.requirements && giveaway.requirements.length > 0) || giveaway.notes) && (
         <div className="px-4 py-3 flex flex-col gap-2">
-          <p className="text-[12px] font-bold uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">{t("requirementsSection")}</p>
+          {giveaway.requirements && giveaway.requirements.length > 0 && (
+            <p className="text-[12px] font-bold uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">{t("requirementsSection")}</p>
+          )}
           {(giveaway.requirements || []).map((req: any) => {
             const st = reqStatus(req.id);
             const met = !!st?.met;
@@ -282,6 +286,7 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
             <p className="mt-1 text-[13px] text-amber-900 dark:text-amber-100/90 whitespace-pre-wrap break-words">{giveaway.notes}</p>
           )}
         </div>
+        )}
 
         {/* Footer */}
         <div className="px-4 pb-4">

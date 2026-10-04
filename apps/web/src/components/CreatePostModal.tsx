@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { createPost, updatePost } from "@/app/actions/posts";
@@ -565,14 +565,71 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
             </div>
           </div>
 
-          {/* Textarea */}
-          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative">
-            <textarea 
-              placeholder={t("feed.whatsOnYourMind", { name: currentUser?.profile?.displayName || currentUser?.displayName || currentUser?.username })}
-              className="w-full bg-transparent border-none outline-none text-[24px] text-black dark:text-[#E4E6EB] placeholder-gray-500 min-h-[120px] resize-none"
-              value={postContent}
-              onChange={handleContentChange}
-            />
+          {/* Textarea Layered Preview */}
+          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative" onScroll={(e) => {
+            const preview = e.currentTarget.querySelector('.preview-layer') as HTMLDivElement;
+            const textarea = e.currentTarget.querySelector('.textarea-layer') as HTMLTextAreaElement;
+            if (preview && textarea) {
+              preview.scrollTop = textarea.scrollTop;
+            }
+          }}>
+            <div className="relative min-h-[120px]">
+              {/* Background preview */}
+              <div 
+                className="preview-layer absolute inset-0 w-full h-full text-[16px] p-0 m-0 pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-black dark:text-[#E4E6EB]"
+              >
+                {postContent ? (() => {
+                  const renderTextFormatting = (text: string, keyPrefix = ''): React.ReactNode => {
+                    if (!text) return null;
+                    const match = text.match(/(\*[^\*\n]+\*|_[^_\n]+_|~[^~\n]+~)/);
+                    if (!match || match.index === undefined) return text;
+                    
+                    const index = match.index;
+                    const matchedStr = match[0];
+                    const before = text.slice(0, index);
+                    const after = text.slice(index + matchedStr.length);
+                    
+                    const char = matchedStr[0];
+                    const innerText = matchedStr.slice(1, -1);
+                    
+                    let formattedInner;
+                    if (char === '*') {
+                      formattedInner = <b key={keyPrefix + 'b'}><span className="text-gray-400 font-normal">*</span>{renderTextFormatting(innerText, keyPrefix + 'in')}<span className="text-gray-400 font-normal">*</span></b>;
+                    } else if (char === '_') {
+                      formattedInner = <i key={keyPrefix + 'i'}><span className="text-gray-400 font-normal not-italic">_</span>{renderTextFormatting(innerText, keyPrefix + 'in')}<span className="text-gray-400 font-normal not-italic">_</span></i>;
+                    } else if (char === '~') {
+                      formattedInner = <del key={keyPrefix + 'd'}><span className="text-gray-400 font-normal no-underline">~</span>{renderTextFormatting(innerText, keyPrefix + 'in')}<span className="text-gray-400 font-normal no-underline">~</span></del>;
+                    }
+
+                    return (
+                      <Fragment key={keyPrefix + 'frag'}>
+                        {before}
+                        {formattedInner}
+                        {renderTextFormatting(after, keyPrefix + 'after')}
+                      </Fragment>
+                    );
+                  };
+                  return renderTextFormatting(postContent);
+                })() : (
+                  <span className="text-gray-500">{t("feed.whatsOnYourMind", { name: currentUser?.profile?.displayName || currentUser?.displayName || currentUser?.username })}</span>
+                )}
+                {/* trailing space to force newline render */}
+                {postContent.endsWith('\n') && <br/>}
+              </div>
+              
+              {/* Foreground textarea */}
+              <textarea 
+                className="textarea-layer w-full h-full bg-transparent p-0 m-0 border-none outline-none text-[16px] placeholder-transparent min-h-[120px] resize-none overflow-y-hidden z-10 relative caret-black dark:caret-[#E4E6EB]"
+                style={{ color: 'transparent' }}
+                value={postContent}
+                onChange={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                  handleContentChange(e);
+                }}
+                spellCheck={false}
+              />
+            </div>
             {mentionQuery && (
               <div 
                 className="fixed z-[999999] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-xl shadow-xl w-[250px] max-h-48 overflow-y-auto"

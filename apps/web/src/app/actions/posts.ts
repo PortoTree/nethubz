@@ -40,7 +40,7 @@ function validateGiveaway(g: GiveawayInput): string | null {
   if (isNaN(end.getTime()) || end.getTime() <= Date.now() + 5 * 60 * 1000) return "End time must be at least 5 minutes from now";
   if (g.mode === "RANDOM_DRAW" && (!g.winnerCount || g.winnerCount < 1)) return "Winner count is required";
   if (g.maxParticipants != null && g.maxParticipants < 1) return "Invalid participant limit";
-  if (!g.requirements || g.requirements.length === 0) return "At least one requirement is required";
+  if (!g.title && !g.notes) return "Title or description required";
   for (const r of g.requirements) {
     if (r.type === "EXTERNAL_SOCIAL" && !/^https?:\/\/\S+$/i.test(r.url?.trim() || "")) return "Invalid social media link";
     if (r.type === "FOLLOW_USER" && !r.targetId) return "Invalid follow target";

@@ -34,6 +34,7 @@ export function detectPlatform(url: string): string {
   if (u.includes("youtube.com") || u.includes("youtu.be")) return "youtube";
   if (u.includes("facebook.com") || u.includes("fb.com")) return "facebook";
   if (u.includes("threads.net")) return "threads";
+  if (u.includes("whatsapp.com") || u.includes("wa.me")) return "whatsapp";
   if (u.includes("t.me") || u.includes("telegram")) return "telegram";
   if (u.includes("discord")) return "discord";
   return "other";
@@ -41,7 +42,7 @@ export function detectPlatform(url: string): string {
 
 const PLATFORM_LABEL: Record<string, string> = {
   instagram: "Instagram", tiktok: "TikTok", x: "X (Twitter)", youtube: "YouTube",
-  facebook: "Facebook", threads: "Threads", telegram: "Telegram"
+  facebook: "Facebook", threads: "Threads", telegram: "Telegram", whatsapp: "WhatsApp"
 };
 
 const PLATFORM_ICON: Record<string, string> = {
@@ -51,6 +52,7 @@ const PLATFORM_ICON: Record<string, string> = {
   youtube: "/sosmed/youtube.webp",
   facebook: "/sosmed/facebook.webp",
   telegram: "/sosmed/telegram.webp",
+  whatsapp: "/sosmed/whatsapp.webp",
   threads: "/sosmed/Threads.webp",
 };
 
@@ -152,7 +154,7 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
       const ext = initial.requirements.filter(r => r.type === "EXTERNAL_SOCIAL");
       setExternalOn(ext.length > 0);
       setExternalAccounts(ext.length ? ext.map(r => {
-        const username = r.url?.split('/').pop()?.replace(/^@/, "") || "";
+        const username = r.platform === "whatsapp" ? (r.url || "") : (r.url?.split('/').pop()?.replace(/^@/, "") || "");
         return { platform: r.platform || "instagram", username };
       }) : [{ platform: "instagram", username: "" }]);
       setMode(initial.mode);
@@ -203,8 +205,16 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
     if (externalOn) {
       const validAccounts = externalAccounts.filter(a => a.username.trim());
       if (validAccounts.length === 0) return setError(t("errExternal"));
+      let waBad = false;
       validAccounts.forEach(acc => {
         const u = acc.username.replace(/^@/, "").trim();
+        if (acc.platform === "whatsapp") {
+          const raw = acc.username.trim();
+          const full = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+          if (!/^https:\/\/(chat\.whatsapp\.com|whatsapp\.com|wa\.me)\/\S+$/i.test(full)) { waBad = true; return; }
+          requirements.push({ type: "EXTERNAL_SOCIAL", url: full, platform: "whatsapp" });
+          return;
+        }
         let url = "";
         switch(acc.platform) {
           case 'instagram': url = `https://instagram.com/${u}`; break;
@@ -218,8 +228,8 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
         }
         requirements.push({ type: "EXTERNAL_SOCIAL", url, platform: acc.platform });
       });
+      if (waBad) return setError(t("errWhatsappUrl"));
     }
-    if (requirements.length === 0) return setError(t("errReq"));
     if (mode === "RANDOM_DRAW" && (!winnerCount || winnerCount < 1)) return setError(t("errWinner"));
     if (!unlimited && (!maxParticipants || maxParticipants < 1)) return setError(t("errLimit"));
 
@@ -356,7 +366,7 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
                       type="text" 
                       value={acc.username} 
                       onChange={e => setExternalAccounts(prev => prev.map((p, idx) => (idx === i ? { ...p, username: e.target.value } : p)))} 
-                      placeholder={t("reqExternalUrlPlaceholder")} 
+                      placeholder={acc.platform === "whatsapp" ? t("reqWhatsappPlaceholder") : t("reqExternalUrlPlaceholder")} 
                       className={inputCls} 
                     />
                     {externalAccounts.length > 1 && (
@@ -407,20 +417,22 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
             </div>
           </section>
 
-          {/* End date */}
-          <section>
-            <h3 className={sectionTitle}>{t("endSection")}</h3>
-            <input id="giveaway-ends-at" type="datetime-local" value={endsAtLocal} min={toLocalInput(new Date())} onChange={e => setEndsAtLocal(e.target.value)} className={`${inputCls} dark:[color-scheme:dark]`} />
-          </section>
+          <div className="flex gap-4">
+            {/* End date */}
+            <section className="flex-1">
+              <h3 className={sectionTitle}>{t("endSection")}</h3>
+              <input id="giveaway-ends-at" type="datetime-local" value={endsAtLocal} min={toLocalInput(new Date())} onChange={e => setEndsAtLocal(e.target.value)} className={`${inputCls} dark:[color-scheme:dark]`} />
+            </section>
 
-          {/* Min account age */}
-          <section>
-            <h3 className={sectionTitle}>{t("minAgeSection")}</h3>
-            <select value={minAge} onChange={e => setMinAge(parseInt(e.target.value))} className={inputCls}>
-              <option value={0}>{t("minAgeOff")}</option>
-              {[1, 3, 7, 14, 30].map(d => <option key={d} value={d}>{t("minAgeDays", { days: d })}</option>)}
-            </select>
-          </section>
+            {/* Min account age */}
+            <section className="flex-1">
+              <h3 className={sectionTitle}>{t("minAgeSection")}</h3>
+              <select value={minAge} onChange={e => setMinAge(parseInt(e.target.value))} className={inputCls}>
+                <option value={0}>{t("minAgeOff")}</option>
+                {[1, 3, 7, 14, 30].map(d => <option key={d} value={d}>{t("minAgeDays", { days: d })}</option>)}
+              </select>
+            </section>
+          </div>
 
           {/* Notes */}
           <section>

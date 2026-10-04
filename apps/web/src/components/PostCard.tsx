@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/actions/posts";
@@ -124,7 +124,38 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
           </span>
         );
       }
-      return <span key={i}>{part}</span>;
+      const renderTextFormatting = (raw: string, keyPrefix = ''): React.ReactNode => {
+        if (!raw) return null;
+        const match = raw.match(/(\*[^\*\n]+\*|_[^_\n]+_|~[^~\n]+~)/);
+        if (!match || match.index === undefined) return raw;
+        
+        const index = match.index;
+        const matchedStr = match[0];
+        const before = raw.slice(0, index);
+        const after = raw.slice(index + matchedStr.length);
+        
+        const char = matchedStr[0];
+        const innerText = matchedStr.slice(1, -1);
+        
+        let formattedInner;
+        if (char === '*') {
+          formattedInner = <b key={keyPrefix + 'b'}>{renderTextFormatting(innerText, keyPrefix + 'in')}</b>;
+        } else if (char === '_') {
+          formattedInner = <i key={keyPrefix + 'i'}>{renderTextFormatting(innerText, keyPrefix + 'in')}</i>;
+        } else if (char === '~') {
+          formattedInner = <del key={keyPrefix + 'd'}>{renderTextFormatting(innerText, keyPrefix + 'in')}</del>;
+        }
+
+        return (
+          <Fragment key={keyPrefix + 'frag'}>
+            {before}
+            {formattedInner}
+            {renderTextFormatting(after, keyPrefix + 'after')}
+          </Fragment>
+        );
+      };
+      
+      return <span key={i}>{renderTextFormatting(part)}</span>;
     });
   };
 
