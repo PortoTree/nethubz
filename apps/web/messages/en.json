@@ -17,7 +17,7 @@
     "comingSoon": "Coming soon",
     "reqExternal": "Follow other social media",
     "reqExternalAdd": "Add social media",
-    "reqExternalUrlPlaceholder": "https://instagram.com/yourname",
+    "reqExternalUrlPlaceholder": "Your username",
     "reqExternalHint": "Participants must open the link and enter their username. You can double-check winners manually.",
     "modeSection": "Winner selection",
     "modeAll": "Everyone eligible",
@@ -62,6 +62,7 @@
     "viewParticipants": "View participants",
     "openLink": "Open link",
     "yourUsername": "Your username on this platform",
+    "yourUsernamePlatform": "Write your {platform} username here...",
     "claimReward": "Get reward",
     "rewardTitle": "Your reward",
     "copy": "Copy",
@@ -434,7 +435,13 @@
     "timeHours": "{hour} hours ago",
     "timeYesterday": "Yesterday",
     "typeFriendNow": "You are now friends.",
-    "typePostTag": "tagged you in a post. Click to view."
+    "typePostTag": "tagged you in a post. Click to view.",
+    "typeGiveawayJoined": "is hosting a giveaway that you successfully joined.",
+    "typeGiveawayWon": "chose you as a giveaway winner! 🎉",
+    "typeGiveawayEnded": "Your giveaway has ended and winners have been selected.",
+    "typeGiveawayReward": "sent you a giveaway reward.",
+    "typePostShare": "shared your post.",
+    "typeCommentReply": "replied to your comment."
   },
   "product": {
     "buy_now": "Buy Now",

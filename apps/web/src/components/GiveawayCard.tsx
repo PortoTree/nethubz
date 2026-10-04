@@ -10,12 +10,23 @@ import {
   getGiveawayReward,
   getGiveawayParticipants,
 } from "@/app/actions/giveaways";
+import { toggleFollow } from "@/app/actions/connections";
 
 type State = NonNullable<Awaited<ReturnType<typeof getGiveawayState>>["state"]>;
 
 const PLATFORM_LABEL: Record<string, string> = {
   instagram: "Instagram", tiktok: "TikTok", x: "X / Twitter", youtube: "YouTube",
   facebook: "Facebook", threads: "Threads", telegram: "Telegram", discord: "Discord", other: "Link",
+};
+
+const PLATFORM_ICON: Record<string, string> = {
+  instagram: "/sosmed/instagram.webp",
+  tiktok: "/sosmed/tiktok.webp",
+  x: "/sosmed/twiter.webp",
+  youtube: "/sosmed/youtube.webp",
+  facebook: "/sosmed/facebook.webp",
+  telegram: "/sosmed/telegram.webp",
+  threads: "/sosmed/Threads.webp",
 };
 
 function useCountdown(endsAt: string) {
@@ -39,6 +50,7 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
   const [state, setState] = useState<State | null>(null);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [busyReqId, setBusyReqId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reward, setReward] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -81,6 +93,27 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
     if (!currentUser?.id) return;
     await trackGiveawayLinkClick(giveaway.id, currentUser.id, req.id);
     refresh();
+  };
+
+  const handleFollowUser = async (req: any, targetId: string) => {
+    if (!currentUser?.id) return;
+    const token = localStorage.getItem("token") || "";
+    setBusyReqId(req.id);
+
+    // Optimistic UI update for instant feedback
+    setState(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        requirementStatuses: prev.requirementStatuses.map(r =>
+          r.id === req.id ? { ...r, met: true } : r
+        ),
+      };
+    });
+
+    const res = await toggleFollow(token, currentUser.id, targetId);
+    setBusyReqId(null);
+    if (res?.success) refresh(); // Sync in background
   };
 
   const handleJoin = async () => {
@@ -200,7 +233,13 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
                     Follow <b>@{u?.username || "…"}</b>
                   </span>
                   {!met && canInteract && u && (
-                    <a href={`/${locale}/p/${u.username}/${u.id}`} target="_blank" rel="noopener noreferrer" className="text-[12px] font-semibold px-2.5 py-1 rounded-md bg-[#1877F2] text-white hover:bg-[#166FE5]">{t("followNow")}</a>
+                    <button
+                      onClick={() => handleFollowUser(req, u.id)}
+                      disabled={busyReqId === req.id}
+                      className="text-[12px] font-semibold px-2.5 py-1 rounded-md bg-[#1877F2] text-white hover:bg-[#166FE5] disabled:opacity-50"
+                    >
+                      {busyReqId === req.id ? "..." : t("followNow")}
+                    </button>
                   )}
                 </div>
               );
@@ -210,6 +249,9 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
                 <div key={req.id} className="bg-white/70 dark:bg-[#242526]/70 rounded-lg px-3 py-2 flex flex-col gap-2">
                   <div className="flex items-center gap-2.5">
                     {icon}
+                    {PLATFORM_ICON[req.platform] && (
+                      <img src={PLATFORM_ICON[req.platform]} alt="" className="w-6 h-6 object-contain drop-shadow-sm" />
+                    )}
                     <span className="flex-1 min-w-0 truncate text-[14px] text-black dark:text-[#E4E6EB]">
                       Follow <b>{PLATFORM_LABEL[req.platform] || "Link"}</b>
                     </span>
@@ -221,7 +263,7 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
                     <input
                       value={usernames[req.id] || ""}
                       onChange={e => setUsernames(prev => ({ ...prev, [req.id]: e.target.value }))}
-                      placeholder={t("yourUsername")}
+                      placeholder={t("yourUsernamePlatform", { platform: PLATFORM_LABEL[req.platform] || "Platform" })}
                       maxLength={100}
                       className="w-full bg-[#F0F2F5] dark:bg-[#3A3B3C] rounded-md px-2.5 py-1.5 text-[13px] text-black dark:text-[#E4E6EB] placeholder-gray-500 dark:placeholder-[#8A8D91] outline-none border border-transparent focus:border-[#1877F2]"
                     />

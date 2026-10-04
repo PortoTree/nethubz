@@ -1008,7 +1008,7 @@ export default function Navbar({
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative shrink-0">
-                      <img src={notif.sender?.profile?.avatarUrl || "/default-avatar.svg"} className="w-14 h-14 rounded-full border border-gray-200 dark:border-[#3E4042] object-cover" />
+                      <img src={notif.sender ? (notif.sender.profile?.avatarUrl || "/default-avatar.svg") : "/navigasi/giveaway.svg"} className="w-14 h-14 rounded-full border border-gray-200 dark:border-[#3E4042] object-cover p-2 bg-gray-100 dark:bg-[#3A3B3C]" />
                       <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526] ${
                         notif.type === "FOLLOW" ? "bg-emerald-500" :
                         notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
@@ -1028,11 +1028,23 @@ export default function Navbar({
                         {notif.type === "POST_TAG" && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" /></svg>
                         )}
+                        {(notif.type === "GIVEAWAY_JOINED" || notif.type === "GIVEAWAY_WON" || notif.type === "GIVEAWAY_REWARD" || notif.type === "GIVEAWAY_ENDED") && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
+                            <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                          </svg>
+                        )}
+                        {notif.type === "POST_SHARE" && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
+                        )}
+                        {notif.type === "COMMENT_REPLY" && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                        )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <p className="text-[14px] text-black dark:text-[#E4E6EB] leading-snug">
-                        <span className="font-semibold">{notif.sender?.profile?.displayName || notif.sender?.username}</span>
+                        {notif.sender && <span className="font-semibold">{notif.sender?.profile?.displayName || notif.sender?.username}</span>}
                         {notif.type === "FOLLOW" && ` ${t("notif.typeFollow")}`}
                         {notif.type === "FRIEND_REQUEST" && ` ${t("notif.typeFriendRequest")}`}
                         {notif.type === "FRIEND_ACCEPT" && ` ${t("notif.typeFriendAccept")}`}
@@ -1040,6 +1052,12 @@ export default function Navbar({
                         {notif.type === "POST_LIKE" && ` ${t("notif.typePostLike")}`}
                         {notif.type === "POST_COMMENT" && ` ${t("notif.typePostComment")}`}
                         {notif.type === "POST_TAG" && ` ${t("notif.typePostTag")}`}
+                        {notif.type === "COMMENT_REPLY" && ` ${t("notif.typeCommentReply")}`}
+                        {notif.type === "POST_SHARE" && ` ${t("notif.typePostShare")}`}
+                        {notif.type === "GIVEAWAY_JOINED" && ` ${t("notif.typeGiveawayJoined")}`}
+                        {notif.type === "GIVEAWAY_WON" && ` ${t("notif.typeGiveawayWon")}`}
+                        {notif.type === "GIVEAWAY_REWARD" && ` ${t("notif.typeGiveawayReward")}`}
+                        {notif.type === "GIVEAWAY_ENDED" && t("notif.typeGiveawayEnded")}
                       </p>
                       <p className="text-[12px] text-gray-500 dark:text-[#B0B3B8] font-semibold mt-1">
                         {formatTimeAgo(notif.createdAt)}

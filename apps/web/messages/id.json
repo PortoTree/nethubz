@@ -17,7 +17,7 @@
     "comingSoon": "Segera hadir",
     "reqExternal": "Follow sosmed lain",
     "reqExternalAdd": "Tambah sosmed",
-    "reqExternalUrlPlaceholder": "https://instagram.com/namakamu",
+    "reqExternalUrlPlaceholder": "Username kamu",
     "reqExternalHint": "Peserta wajib membuka link dan mengisi username mereka. Kamu bisa cek ulang pemenang secara manual.",
     "modeSection": "Penentuan pemenang",
     "modeAll": "Semua yang memenuhi syarat",
@@ -62,6 +62,7 @@
     "viewParticipants": "Lihat peserta",
     "openLink": "Buka link",
     "yourUsername": "Username kamu di platform ini",
+    "yourUsernamePlatform": "Tulis username {platform} kamu disini...",
     "claimReward": "Ambil hadiah",
     "rewardTitle": "Hadiah kamu",
     "copy": "Salin",
@@ -440,7 +441,13 @@
     "timeHours": "{hour} jam yang lalu",
     "timeYesterday": "Kemarin",
     "typeFriendNow": "Kamu sekarang berteman.",
-    "typePostTag": "telah menandai Anda dalam postingan. Klik untuk melihat."
+    "typePostTag": "telah menandai Anda dalam postingan. Klik untuk melihat.",
+    "typeGiveawayJoined": "mengadakan giveaway yang berhasil kamu ikuti.",
+    "typeGiveawayWon": "telah memilih kamu sebagai pemenang giveaway! 🎉",
+    "typeGiveawayEnded": "Giveaway kamu telah berakhir dan pemenang sudah ditentukan.",
+    "typeGiveawayReward": "mengirimkan hadiah giveaway ke kamu.",
+    "typePostShare": "membagikan postingan kamu.",
+    "typeCommentReply": "membalas komentar kamu."
   },
   "product": {
     "buy_now": "Beli Sekarang",

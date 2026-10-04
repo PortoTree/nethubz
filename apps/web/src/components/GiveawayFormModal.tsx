@@ -39,6 +39,69 @@ export function detectPlatform(url: string): string {
   return "other";
 }
 
+const PLATFORM_LABEL: Record<string, string> = {
+  instagram: "Instagram", tiktok: "TikTok", x: "X (Twitter)", youtube: "YouTube",
+  facebook: "Facebook", threads: "Threads", telegram: "Telegram"
+};
+
+const PLATFORM_ICON: Record<string, string> = {
+  instagram: "/sosmed/instagram.webp",
+  tiktok: "/sosmed/tiktok.webp",
+  x: "/sosmed/twiter.webp",
+  youtube: "/sosmed/youtube.webp",
+  facebook: "/sosmed/facebook.webp",
+  telegram: "/sosmed/telegram.webp",
+  threads: "/sosmed/Threads.webp",
+};
+
+const CustomCheckbox = ({ checked, onChange, disabled }: { checked: boolean, onChange?: (c: boolean) => void, disabled?: boolean }) => (
+  <button
+    type="button"
+    disabled={disabled}
+    onClick={() => onChange && onChange(!checked)}
+    className={`w-5 h-5 shrink-0 rounded flex items-center justify-center transition-colors ${
+      disabled ? "bg-gray-200 dark:bg-[#4E4F50] cursor-not-allowed" :
+      checked ? "bg-[#1877F2]" : "border-2 border-gray-400 dark:border-gray-500 hover:border-gray-500"
+    }`}
+  >
+    {checked && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+  </button>
+);
+
+function PlatformDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false); }}>
+      <button 
+        type="button" 
+        onClick={() => setOpen(!open)}
+        className="w-[140px] shrink-0 h-[42px] bg-[#F0F2F5] dark:bg-[#3A3B3C] border border-transparent focus:border-[#1877F2] rounded-lg px-3 flex items-center justify-between text-[14px] text-black dark:text-[#E4E6EB] outline-none transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {PLATFORM_ICON[value] && <img src={PLATFORM_ICON[value]} alt="" className="w-5 h-5 object-contain" />}
+          <span className="font-medium">{PLATFORM_LABEL[value] || value}</span>
+        </div>
+        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-[180px] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-lg shadow-xl z-20 py-1 overflow-hidden">
+          {Object.entries(PLATFORM_LABEL).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => { onChange(key); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#4E4F50] text-left transition-colors"
+            >
+              {PLATFORM_ICON[key] ? <img src={PLATFORM_ICON[key]} alt="" className="w-5 h-5 object-contain" /> : <div className="w-5 h-5" />}
+              <span className="text-[14px] font-medium text-black dark:text-[#E4E6EB]">{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const URL_RE = /^https?:\/\/\S+$/i;
 
 function toLocalInput(d: Date) {
@@ -63,7 +126,7 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
   const [followMe, setFollowMe] = useState(true);
   const [otherFollows, setOtherFollows] = useState<GiveawayRequirementDraft[]>([]);
   const [externalOn, setExternalOn] = useState(false);
-  const [externalUrls, setExternalUrls] = useState<string[]>([""]);
+  const [externalAccounts, setExternalAccounts] = useState<{platform: string; username: string}[]>([{platform: "instagram", username: ""}]);
   const [mode, setMode] = useState<GiveawayDraft["mode"]>("ALL_ELIGIBLE");
   const [winnerCount, setWinnerCount] = useState<number>(1);
   const [unlimited, setUnlimited] = useState(false);
@@ -88,7 +151,10 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
       setOtherFollows(initial.requirements.filter(r => r.type === "FOLLOW_USER" && r.targetId !== currentUser?.id));
       const ext = initial.requirements.filter(r => r.type === "EXTERNAL_SOCIAL");
       setExternalOn(ext.length > 0);
-      setExternalUrls(ext.length ? ext.map(r => r.url || "") : [""]);
+      setExternalAccounts(ext.length ? ext.map(r => {
+        const username = r.url?.split('/').pop()?.replace(/^@/, "") || "";
+        return { platform: r.platform || "instagram", username };
+      }) : [{ platform: "instagram", username: "" }]);
       setMode(initial.mode);
       setWinnerCount(initial.winnerCount || 1);
       setUnlimited(initial.maxParticipants == null);
@@ -135,9 +201,23 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
     }
     requirements.push(...otherFollows);
     if (externalOn) {
-      const urls = externalUrls.map(u => u.trim()).filter(Boolean);
-      if (urls.length === 0 || urls.some(u => !URL_RE.test(u))) return setError(t("errExternal"));
-      urls.forEach(url => requirements.push({ type: "EXTERNAL_SOCIAL", url, platform: detectPlatform(url) }));
+      const validAccounts = externalAccounts.filter(a => a.username.trim());
+      if (validAccounts.length === 0) return setError(t("errExternal"));
+      validAccounts.forEach(acc => {
+        const u = acc.username.replace(/^@/, "").trim();
+        let url = "";
+        switch(acc.platform) {
+          case 'instagram': url = `https://instagram.com/${u}`; break;
+          case 'tiktok': url = `https://tiktok.com/@${u}`; break;
+          case 'x': url = `https://x.com/${u}`; break;
+          case 'youtube': url = `https://youtube.com/@${u}`; break;
+          case 'facebook': url = `https://facebook.com/${u}`; break;
+          case 'threads': url = `https://threads.net/@${u}`; break;
+          case 'telegram': url = `https://t.me/${u}`; break;
+          default: url = `https://${acc.platform}.com/${u}`;
+        }
+        requirements.push({ type: "EXTERNAL_SOCIAL", url, platform: acc.platform });
+      });
     }
     if (requirements.length === 0) return setError(t("errReq"));
     if (mode === "RANDOM_DRAW" && (!winnerCount || winnerCount < 1)) return setError(t("errWinner"));
@@ -214,11 +294,11 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
           {/* Requirements */}
           <section>
             <h3 className={sectionTitle}>{t("requirementsSection")}</h3>
-            <label className={checkRow}>
-              <input type="checkbox" className={checkbox} checked={followMe} onChange={e => setFollowMe(e.target.checked)} />
+            <div className={checkRow} onClick={() => setFollowMe(!followMe)}>
+              <CustomCheckbox checked={followMe} onChange={setFollowMe} />
               <img src={currentUser?.profile?.avatarUrl || "/default-avatar.svg"} alt="" className="w-7 h-7 rounded-full object-cover" />
               <span className="text-[14px] font-medium text-black dark:text-[#E4E6EB]">{t("reqFollowMe")}</span>
-            </label>
+            </div>
 
             {/* Follow other accounts */}
             <div className="p-2.5">
@@ -255,29 +335,39 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
             </div>
 
             <div className={`${checkRow} opacity-50 cursor-not-allowed`}>
-              <input type="checkbox" className={checkbox} disabled />
+              <CustomCheckbox checked={false} disabled />
               <span className="text-[14px] font-medium text-black dark:text-[#E4E6EB]">{t("reqJoinGroup")}</span>
               <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-gray-200 dark:bg-[#4E4F50] text-gray-600 dark:text-[#E4E6EB]">{t("comingSoon")}</span>
             </div>
 
-            <label className={checkRow}>
-              <input type="checkbox" className={checkbox} checked={externalOn} onChange={e => setExternalOn(e.target.checked)} />
+            <div className={checkRow} onClick={() => setExternalOn(!externalOn)}>
+              <CustomCheckbox checked={externalOn} onChange={setExternalOn} />
               <span className="text-[14px] font-medium text-black dark:text-[#E4E6EB]">{t("reqExternal")}</span>
-            </label>
+            </div>
             {externalOn && (
               <div className="pl-9 pr-2.5 flex flex-col gap-2">
-                {externalUrls.map((url, i) => (
+                {externalAccounts.map((acc, i) => (
                   <div key={i} className="flex gap-2">
-                    <input type="url" value={url} onChange={e => setExternalUrls(prev => prev.map((p, idx) => (idx === i ? e.target.value : p)))} placeholder={t("reqExternalUrlPlaceholder")} className={inputCls} />
-                    {externalUrls.length > 1 && (
-                      <button type="button" onClick={() => setExternalUrls(prev => prev.filter((_, idx) => idx !== i))} className="px-2 text-gray-500 dark:text-[#B0B3B8] hover:text-red-500" aria-label={t("remove")}>
+                    <PlatformDropdown
+                      value={acc.platform}
+                      onChange={(v) => setExternalAccounts(prev => prev.map((p, idx) => (idx === i ? { ...p, platform: v } : p)))}
+                    />
+                    <input 
+                      type="text" 
+                      value={acc.username} 
+                      onChange={e => setExternalAccounts(prev => prev.map((p, idx) => (idx === i ? { ...p, username: e.target.value } : p)))} 
+                      placeholder={t("reqExternalUrlPlaceholder")} 
+                      className={inputCls} 
+                    />
+                    {externalAccounts.length > 1 && (
+                      <button type="button" onClick={() => setExternalAccounts(prev => prev.filter((_, idx) => idx !== i))} className="px-2 text-gray-500 dark:text-[#B0B3B8] hover:text-red-500" aria-label={t("remove")}>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     )}
                   </div>
                 ))}
-                {externalUrls.length < 5 && (
-                  <button type="button" onClick={() => setExternalUrls(prev => [...prev, ""])} className="self-start text-[13px] font-semibold text-[#1877F2] dark:text-[#4599FF] hover:underline">+ {t("reqExternalAdd")}</button>
+                {externalAccounts.length < 5 && (
+                  <button type="button" onClick={() => setExternalAccounts(prev => [...prev, {platform: "instagram", username: ""}])} className="self-start text-[13px] font-semibold text-[#1877F2] dark:text-[#4599FF] hover:underline">+ {t("reqExternalAdd")}</button>
                 )}
                 <p className="text-[12px] text-gray-500 dark:text-[#B0B3B8]">{t("reqExternalHint")}</p>
               </div>
