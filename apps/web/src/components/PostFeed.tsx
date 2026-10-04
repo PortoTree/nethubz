@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, Suspense, useRef } from "react";
 import { getFeedPosts, getPostById } from "@/app/actions/posts";
 import PostCard from "./PostCard";
 import { useTranslations } from "next-intl";
@@ -19,18 +19,22 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   // Simple global cache for stale-while-revalidate
   const cacheKey = targetProfileId ? `profile_${targetProfileId}` : (currentUser?.id || "anonymous");
 
-  const fetchPosts = useCallback(async (isBackground = false) => {
+  const fetchPosts = useCallback(async (isBackground = false, cursor?: string) => {
     if (!currentUser?.id) return;
     try {
-      if (!isBackground) setIsLoading(true);
-      const res = await getFeedPosts(currentUser.id, targetProfileId);
+      if (!isBackground && !cursor) setIsLoading(true);
+      if (cursor) setIsFetchingMore(true);
+      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 10);
       let loadedPosts = res.posts || [];
 
-      if (highlightedPostId) {
+      if (highlightedPostId && !cursor) {
         const existingIdx = loadedPosts.findIndex((p: any) => p.id === highlightedPostId);
         if (existingIdx !== -1) {
           const [p] = loadedPosts.splice(existingIdx, 1);
@@ -44,16 +48,20 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       }
 
       if (res.success && loadedPosts) {
-        setPosts(loadedPosts);
-        (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-        (window as any).__POST_FEED_CACHE[cacheKey] = loadedPosts;
+        setNextCursor(res.nextCursor);
+        setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
+        if (!cursor) {
+          (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
+          (window as any).__POST_FEED_CACHE[cacheKey] = loadedPosts;
+        }
       } else {
         if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
       }
     } catch (err: any) {
       if (!isBackground) setError(err.message);
     } finally {
-      if (!isBackground) setIsLoading(false);
+      if (!isBackground && !cursor) setIsLoading(false);
+      if (cursor) setIsFetchingMore(false);
     }
   }, [currentUser?.id, targetProfileId, highlightedPostId, cacheKey]);
 
@@ -115,6 +123,20 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       window.removeEventListener("gallery_deleted", handleGalleryDeleted);
     };
   }, [fetchPosts, cacheKey]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && nextCursor && !isFetchingMore && !isLoading) {
+        fetchPosts(true, nextCursor);
+      }
+    }, { threshold: 0.1 });
+    
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, [nextCursor, isFetchingMore, isLoading, fetchPosts]);
 
   if (isLoading) {
     return (
@@ -196,6 +218,11 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
           isHighlighted={post.id === highlightedPostId}
         />
       ))}
+      {nextCursor && (
+        <div ref={observerRef} className="py-4 flex justify-center h-16">
+          {isFetchingMore && <div className="animate-pulse w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C]" />}
+        </div>
+      )}
     </div>
   );
 }

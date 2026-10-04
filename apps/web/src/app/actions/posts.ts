@@ -234,7 +234,7 @@ export async function createPost(data: {
   }
 }
 
-export async function getFeedPosts(userId: string, targetProfileId?: string) {
+export async function getFeedPosts(userId: string, targetProfileId?: string, cursor?: string, limit: number = 10) {
   try {
     const friendships = await prisma.friendship.findMany({
       where: {
@@ -272,6 +272,8 @@ export async function getFeedPosts(userId: string, targetProfileId?: string) {
 
     const posts = await prisma.post.findMany({
       where: whereClause as any,
+      take: limit + 1,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       include: {
         author: {
           include: { profile: true }
@@ -303,8 +305,13 @@ export async function getFeedPosts(userId: string, targetProfileId?: string) {
       },
       orderBy: { createdAt: "desc" }
     });
+    let nextCursor: string | undefined = undefined;
+    if (posts.length > limit) {
+      const nextItem = posts.pop();
+      nextCursor = nextItem?.id;
+    }
 
-    return { success: true, posts: await Promise.all(posts.map(mapPost)) };
+    return { success: true, posts: await Promise.all(posts.map(mapPost)), nextCursor };
   } catch (error: any) {
     console.error("Error fetching feed:", error);
     return { success: false, error: error.message };

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, use, useLayoutEffect } from "react";
+import React, { useState, useEffect, use, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -107,34 +107,37 @@ function ProfilePageContent({
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
-  const [projects, setProjects] = useState<any[]>(() => projectsCache.get(id) || []);
+  const [projects, setProjects] = useState<any[]>(() => projectsCache.get(id)?.projects || []);
+  const [hasMoreProjects, setHasMoreProjects] = useState<boolean>(() => projectsCache.get(id)?.hasMore || false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(() => !projectsCache.has(id));
 
+  const loadProjects = useCallback(async () => {
+    if (!projectsCache.has(id)) {
+      setIsLoadingProjects(true);
+    }
+    
+    const res = await getUserProjects(id);
+    
+    const loadedProjects = res.projects || [];
+    const hasMore = res.hasMore || false;
+    
+    projectsCache.set(id, { projects: loadedProjects, hasMore });
+    setProjects(loadedProjects);
+    setHasMoreProjects(hasMore);
+    setIsLoadingProjects(false);
+  }, [id]);
+
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      if (!projectsCache.has(id)) {
-        setIsLoadingProjects(true);
-      }
-      const res = await getUserProjects(id);
-      if (!cancelled) {
-        const loadedProjects = res.projects || [];
-        projectsCache.set(id, loadedProjects);
-        setProjects(loadedProjects);
-        setIsLoadingProjects(false);
-      }
-    };
-    load();
+    loadProjects();
     const handleRefresh = () => {
       projectsCache.delete(id);
-      load();
+      loadProjects();
     };
     window.addEventListener("refresh_projects", handleRefresh);
     return () => {
-      cancelled = true;
       window.removeEventListener("refresh_projects", handleRefresh);
     };
-  }, [id]);
+  }, [loadProjects, id]);
   const [startWithGalleryModal, setStartWithGalleryModal] = useState(false);
   const [createdGalleryId, setCreatedGalleryId] = useState<string | undefined>(undefined);
   const [createdGallery, setCreatedGallery] = useState<any>(undefined);
@@ -2377,6 +2380,16 @@ function ProfilePageContent({
                             </div>
                           );
                         })}
+                        {hasMoreProjects && (
+                          <div className="py-4 flex justify-center">
+                            <button
+                              onClick={() => router.push(`/${locale}/project/${username}`)}
+                              className="px-6 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] text-gray-800 dark:text-[#E4E6EB] rounded-full font-semibold transition-colors"
+                            >
+                              {tProject("viewOtherProjects") || "Lihat Project lain"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                     <div className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] p-8 text-center flex flex-col items-center justify-center min-h-[250px]">

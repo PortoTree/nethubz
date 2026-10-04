@@ -878,6 +878,7 @@
     "userHasNoProject": "Currently {username} hasn't published any projects.",
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
-    "requiredLabel": "* Required"
+    "requiredLabel": "* Required",
+    "viewOtherProjects": "View other projects"
   }
 }

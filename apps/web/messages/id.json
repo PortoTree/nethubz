@@ -884,6 +884,7 @@
     "userHasNoProject": "Saat ini {username} belum mempublikasikan project apapun.",
     "cancel": "Batal",
     "saveChanges": "Simpan Perubahan",
-    "requiredLabel": "* Wajib"
+    "requiredLabel": "* Wajib",
+    "viewOtherProjects": "Lihat Project lain"
   }
 }

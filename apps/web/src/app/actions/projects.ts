@@ -61,12 +61,17 @@ export const getUserProjectsCached = unstable_cache(
 
 export async function getUserProjects(userId: string) {
   try {
-    if (!userId) return { success: true, projects: [] };
-    const projects = await getUserProjectsCached(userId);
-    return { success: true, projects };
+    if (!userId) return { success: true, projects: [], hasMore: false };
+    const allProjects = await getUserProjectsCached(userId);
+    
+    const limit = 3;
+    const projectsToReturn = allProjects.slice(0, limit);
+    const hasMore = allProjects.length > limit;
+
+    return { success: true, projects: projectsToReturn, hasMore };
   } catch (error: any) {
     console.error("getUserProjects Error:", error);
-    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+    return { success: false, projects: [], hasMore: false, error: error.message || "Failed to fetch projects" };
   }
 }
 
