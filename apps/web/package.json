@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@marsidev/react-turnstile": "^1.6.1",
     "@tiptap/extension-color": "^3.31.3",
     "@tiptap/extension-font-family": "^3.31.3",
@@ -24,6 +26,7 @@
     "cheerio": "^1.2.0",
     "cloudinary": "^2.11.0",
     "dompurify": "^3.4.16",
+    "emoji-mart": "^5.6.0",
     "jsonwebtoken": "^9.0.3",
     "lottie-react": "^3.1.2",
     "next": "16.3.4",

@@ -8,6 +8,8 @@ import { getUserGalleries, createGallery } from "@/app/actions/galleries";
 import { uploadToCloudinary } from "@/utils/uploadImage";
 import { MediaRenderer } from "./MediaRenderer";
 import { getCaretCoordinates } from "@/utils/getCaretCoordinates";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import GiveawayFormModal, { type GiveawayDraft } from "./GiveawayFormModal";
 
 interface CreatePostModalProps {
@@ -94,6 +96,9 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
   // Giveaway state
   const [giveawayDraft, setGiveawayDraft] = useState<GiveawayDraft | null>(null);
   const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
+
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!searchTagQuery.trim()) {
@@ -294,6 +299,9 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
       }
       if (galleryDropdownRef.current && !galleryDropdownRef.current.contains(event.target as Node)) {
         setIsGalleryDropdownOpen(false);
+      }
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setIsEmojiPickerOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -566,17 +574,11 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           </div>
 
           {/* Textarea Layered Preview */}
-          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative" onScroll={(e) => {
-            const preview = e.currentTarget.querySelector('.preview-layer') as HTMLDivElement;
-            const textarea = e.currentTarget.querySelector('.textarea-layer') as HTMLTextAreaElement;
-            if (preview && textarea) {
-              preview.scrollTop = textarea.scrollTop;
-            }
-          }}>
+          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative transform-gpu">
             <div className="relative min-h-[120px]">
               {/* Background preview */}
               <div 
-                className="preview-layer absolute inset-0 w-full h-full text-[16px] p-0 m-0 pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-black dark:text-[#E4E6EB]"
+                className="preview-layer absolute inset-0 w-full h-full text-[16px] p-0 m-0 pointer-events-none whitespace-pre-wrap break-words text-black dark:text-[#E4E6EB]"
               >
                 {postContent ? (() => {
                   const renderTextFormatting = (text: string, keyPrefix = ''): React.ReactNode => {
@@ -787,10 +789,33 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           </div>
 
           {/* Extras */}
-          <div className="flex items-center justify-end mb-4">
-            <button className="text-gray-400 hover:text-gray-500 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] transition-colors">
+          <div className="flex items-center justify-end mb-4 relative" ref={emojiPickerRef}>
+            <button 
+              onClick={() => setIsEmojiPickerOpen(prev => !prev)}
+              className="text-gray-400 hover:text-gray-500 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] transition-colors"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </button>
+            {isEmojiPickerOpen && (
+              <div className="absolute bottom-full right-0 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden picker-container">
+                <style>{`
+                  .picker-container em-emoji-picker {
+                    height: 280px !important;
+                    min-height: 280px !important;
+                    max-height: 280px !important;
+                  }
+                `}</style>
+                <Picker 
+                  data={data} 
+                  theme="auto" 
+                  previewPosition="none"
+                  skinTonePosition="search"
+                  onEmojiSelect={(emoji: any) => {
+                    setPostContent(prev => prev + emoji.native);
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Add to your post */}
