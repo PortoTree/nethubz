@@ -4,8 +4,66 @@ import { revalidateTag } from "next/cache";
 
 import prisma from "@/utils/prisma";
 
+// Public giveaway fields — rewardLink is intentionally excluded (secret)
+const GIVEAWAY_PUBLIC_SELECT = {
+  id: true,
+  title: true,
+  rewardType: true,
+  notes: true,
+  endsAt: true,
+  mode: true,
+  winnerCount: true,
+  maxParticipants: true,
+  minAccountAgeDays: true,
+  status: true,
+  requirements: { orderBy: { order: "asc" as const } },
+  _count: { select: { entries: { where: { status: { not: "PENDING" as const } } } } },
+};
+
+export interface GiveawayInput {
+  title?: string;
+  rewardType: "GDRIVE_LINK" | "OTHER_LINK";
+  rewardLink: string;
+  notes?: string;
+  endsAt: string; // ISO
+  mode: "ALL_ELIGIBLE" | "RANDOM_DRAW";
+  winnerCount?: number | null;
+  maxParticipants?: number | null;
+  minAccountAgeDays?: number;
+  requirements: { type: "FOLLOW_USER" | "JOIN_GROUP" | "EXTERNAL_SOCIAL"; targetId?: string | null; url?: string | null; platform?: string | null }[];
+}
+
+function validateGiveaway(g: GiveawayInput): string | null {
+  if (g.title && g.title.length > 9) return "Title max 9 characters";
+  if (!/^https?:\/\/\S+$/i.test(g.rewardLink?.trim() || "")) return "Invalid reward link";
+  const end = new Date(g.endsAt);
+  if (isNaN(end.getTime()) || end.getTime() <= Date.now() + 5 * 60 * 1000) return "End time must be at least 5 minutes from now";
+  if (g.mode === "RANDOM_DRAW" && (!g.winnerCount || g.winnerCount < 1)) return "Winner count is required";
+  if (g.maxParticipants != null && g.maxParticipants < 1) return "Invalid participant limit";
+  if (!g.requirements || g.requirements.length === 0) return "At least one requirement is required";
+  for (const r of g.requirements) {
+    if (r.type === "EXTERNAL_SOCIAL" && !/^https?:\/\/\S+$/i.test(r.url?.trim() || "")) return "Invalid social media link";
+    if (r.type === "FOLLOW_USER" && !r.targetId) return "Invalid follow target";
+    if (r.type === "JOIN_GROUP") return "Group requirement is not available yet";
+  }
+  return null;
+}
+
+import { unstable_cache } from "next/cache";
+
+const getCachedUserAvatar = async (userId: string) => {
+  return unstable_cache(
+    async () => prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, profile: { select: { avatarUrl: true, displayName: true } } },
+    }),
+    [`giveaway-target-${userId}`],
+    { tags: [`profile-${userId}`], revalidate: 86400 }
+  )();
+};
+
 // Helper to map DB post to frontend expected post structure
-function mapPost(post: any) {
+async function mapPost(post: any) {
   if (!post) return post;
   const mapped = { ...post };
   if (post.postMedia) {
@@ -19,6 +77,20 @@ function mapPost(post: any) {
   if (post.taggedUsers) {
     mapped.taggedUsers = post.taggedUsers;
   }
+  
+  if (mapped.giveaway?.requirements) {
+    const followTargets = mapped.giveaway.requirements
+      .filter((r: any) => r.type === "FOLLOW_USER" && r.targetId)
+      .map((r: any) => r.targetId);
+      
+    if (followTargets.length > 0) {
+      const targets = await Promise.all(followTargets.map((id: string) => getCachedUserAvatar(id)));
+      mapped.giveaway.followTargets = targets.filter(Boolean);
+    } else {
+      mapped.giveaway.followTargets = [];
+    }
+  }
+  
   return mapped;
 }
 
@@ -32,8 +104,14 @@ export async function createPost(data: {
   linkMetadata?: any;
   taggedUserIds?: string[];
   galleryId?: string;
+  giveaway?: GiveawayInput | null;
 }) {
   try {
+    if (data.giveaway) {
+      const err = validateGiveaway(data.giveaway);
+      if (err) return { success: false, error: err };
+    }
+
     const extractedTags = data.content.match(/#[\w_]+/g)?.map(t => t.slice(1).toLowerCase()) || [];
     const uniqueTags = [...new Set(extractedTags)];
 
@@ -86,9 +164,32 @@ export async function createPost(data: {
         } : undefined,
         hashtags: uniqueTags.length > 0 ? {
           connect: uniqueTags.map(tag => ({ name: tag }))
-        } : undefined
+        } : undefined,
+        giveaway: data.giveaway ? {
+          create: {
+            title: data.giveaway.title?.trim() || null,
+            rewardType: data.giveaway.rewardType,
+            rewardLink: data.giveaway.rewardLink.trim(),
+            notes: data.giveaway.notes?.trim() || null,
+            endsAt: new Date(data.giveaway.endsAt),
+            mode: data.giveaway.mode,
+            winnerCount: data.giveaway.mode === "RANDOM_DRAW" ? data.giveaway.winnerCount : null,
+            maxParticipants: data.giveaway.maxParticipants ?? null,
+            minAccountAgeDays: Math.max(0, data.giveaway.minAccountAgeDays || 0),
+            requirements: {
+              create: data.giveaway.requirements.map((r, idx) => ({
+                type: r.type,
+                targetId: r.targetId || null,
+                url: r.url?.trim() || null,
+                platform: r.platform || null,
+                order: idx,
+              })),
+            },
+          },
+        } : undefined,
       },
       include: {
+        giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
         postMedia: {
           include: { media: true }
         },
@@ -126,7 +227,7 @@ export async function createPost(data: {
     revalidateTag("feed_posts", "page");
     revalidateTag(`profile_posts_${data.authorId}`, "page");
 
-    return { success: true, post: mapPost(newPost) };
+    return { success: true, post: await mapPost(newPost) };
   } catch (error: any) {
     console.error("Error creating post:", error);
     return { success: false, error: error.message };
@@ -195,6 +296,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string) {
         gallery: {
           select: { id: true, name: true }
         },
+        giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
         _count: {
           select: { likes: true, comments: true }
         }
@@ -202,7 +304,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string) {
       orderBy: { createdAt: "desc" }
     });
 
-    return { success: true, posts: posts.map(mapPost) };
+    return { success: true, posts: await Promise.all(posts.map(mapPost)) };
   } catch (error: any) {
     console.error("Error fetching feed:", error);
     return { success: false, error: error.message };
@@ -311,7 +413,7 @@ export async function updatePost(postId: string, authorId: string, content: stri
     revalidateTag("feed_posts", "page");
     revalidateTag(`profile_posts_${authorId}`, "page");
     
-    return { success: true, post: mapPost(updatedPost) };
+    return { success: true, post: await mapPost(updatedPost) };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -363,7 +465,7 @@ export async function getExplorePosts(tag?: string) {
       orderBy: { createdAt: "desc" },
       take: 50
     });
-    return { success: true, posts: posts.map(mapPost) };
+    return { success: true, posts: await Promise.all(posts.map(mapPost)) };
   } catch (error: any) {
     console.error("Error fetching explore posts:", error);
     return { success: false, error: error.message };
@@ -404,7 +506,7 @@ export async function getPostById(postId: string) {
       }
     });
     if (!post) return { success: false, error: "Post not found" };
-    return { success: true, post: mapPost(post) };
+    return { success: true, post: await mapPost(post) };
   } catch (error: any) {
     console.error("Error fetching post by ID:", error);
     return { success: false, error: error.message };

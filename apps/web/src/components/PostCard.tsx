@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/actions/posts";
 import CreatePostModal from "./CreatePostModal";
 import { MediaRenderer } from "./MediaRenderer";
+import GiveawayCard from "./GiveawayCard";
 
 export function formatPostTime(timestamp: number | Date, t: any, locale: string) {
   const ts = new Date(timestamp).getTime();
@@ -331,7 +332,11 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         </div>
       )}
 
-      
+      {/* Giveaway Card (If any) */}
+      {post.giveaway && (
+        <GiveawayCard giveaway={post.giveaway} currentUser={currentUser} />
+      )}
+
       {/* Tagged Users Preview */}
       {post.taggedUsers && post.taggedUsers.length > 0 && (
         <div className="px-4 mb-3">

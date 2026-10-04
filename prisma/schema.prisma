@@ -38,6 +38,7 @@ model User {
   taggedInPosts         Post[]           @relation("PostTags")
   Media                 Media[]
   galleries             Gallery[]
+  giveawayEntries       GiveawayEntry[]
 }
 
 model PendingUser {
@@ -192,6 +193,88 @@ model Post {
   postMedia     PostMedia[]
   taggedUsers   User[]         @relation("PostTags")
   hashtags      Hashtag[]      @relation("PostToHashtag")
+  giveaway      Giveaway?
+}
+
+model Giveaway {
+  id                String             @id @default(uuid())
+  postId            String             @unique
+  title             String?            @db.VarChar(9)
+  rewardType        GiveawayRewardType
+  rewardLink        String // SECRET: never expose in post API, only via notification to recipients
+  notes             String?
+  endsAt            DateTime
+  mode              GiveawayMode       @default(ALL_ELIGIBLE)
+  winnerCount       Int? // used when mode = RANDOM_DRAW
+  maxParticipants   Int? // null = unlimited
+  minAccountAgeDays Int                @default(0) // 0 = disabled
+  status            GiveawayStatus     @default(ACTIVE)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  post         Post                  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  requirements GiveawayRequirement[]
+  entries      GiveawayEntry[]
+
+  @@index([status, endsAt])
+}
+
+model GiveawayRequirement {
+  id         String                  @id @default(uuid())
+  giveawayId String
+  type       GiveawayRequirementType
+  targetId   String? // userId (FOLLOW_USER) or groupId (JOIN_GROUP)
+  url        String? // EXTERNAL_SOCIAL link
+  platform   String? // instagram, tiktok, x, youtube, etc
+  order      Int                     @default(0)
+
+  giveaway Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+}
+
+model GiveawayEntry {
+  id                String              @id @default(uuid())
+  giveawayId        String
+  userId            String
+  status            GiveawayEntryStatus @default(PENDING)
+  externalUsernames Json?               @default("{}") // { requirementId: "@username" }
+  clickedLinks      String[]            @default([]) // requirementIds whose external link was clicked
+  rewardSentAt      DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  giveaway Giveaway @relation(fields: [giveawayId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([giveawayId, userId])
+}
+
+enum GiveawayRewardType {
+  GDRIVE_LINK
+  OTHER_LINK
+}
+
+enum GiveawayMode {
+  ALL_ELIGIBLE
+  RANDOM_DRAW
+}
+
+enum GiveawayStatus {
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum GiveawayRequirementType {
+  FOLLOW_USER
+  JOIN_GROUP
+  EXTERNAL_SOCIAL
+}
+
+enum GiveawayEntryStatus {
+  PENDING
+  ELIGIBLE
+  WINNER
+  REJECTED
 }
 
 model Comment {
@@ -319,6 +402,10 @@ enum NotificationType {
   COMMENT_REPLY
   POST_SHARE
   POST_TAG
+  GIVEAWAY_JOINED
+  GIVEAWAY_WON
+  GIVEAWAY_REWARD
+  GIVEAWAY_ENDED
 }
 
 model Media {
@@ -373,8 +460,8 @@ model Gallery {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  posts     Post[]
-  privacy   String   @default("PUBLIC")
-  coverUrl  String?
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts    Post[]
+  privacy  String  @default("PUBLIC")
+  coverUrl String?
 }

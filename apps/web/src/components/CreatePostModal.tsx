@@ -8,6 +8,7 @@ import { getUserGalleries, createGallery } from "@/app/actions/galleries";
 import { uploadToCloudinary } from "@/utils/uploadImage";
 import { MediaRenderer } from "./MediaRenderer";
 import { getCaretCoordinates } from "@/utils/getCaretCoordinates";
+import GiveawayFormModal, { type GiveawayDraft } from "./GiveawayFormModal";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -89,6 +90,10 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
   const [mentionQuery, setMentionQuery] = useState<{ query: string; position: number; top: number; left: number } | null>(null);
   const [mentionResults, setMentionResults] = useState<any[]>([]);
   const [inlineTaggedUsernames, setInlineTaggedUsernames] = useState<string[]>([]);
+
+  // Giveaway state
+  const [giveawayDraft, setGiveawayDraft] = useState<GiveawayDraft | null>(null);
+  const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
 
   useEffect(() => {
     if (!searchTagQuery.trim()) {
@@ -259,6 +264,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
       setLinkPreviewData(initialPost?.linkMetadata || null);
       setInlineTaggedUsernames([]);
       setMentionQuery(null);
+      if (!initialPost) setGiveawayDraft(null);
     }
   }, [isOpen, initialPost, startWithMediaModal, startWithTagModal]);
 
@@ -353,7 +359,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
   if (!isOpen || typeof document === 'undefined') return null;
 
   const handlePost = async () => {
-    if (!postContent.trim() && mediaPreviewList.length === 0) return;
+    if (!postContent.trim() && mediaPreviewList.length === 0 && !giveawayDraft) return;
     
     if (selectedGalleryId !== "none" && mediaPreviewList.length === 0) {
       setNoMediaGalleryWarning(true);
@@ -399,6 +405,18 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           linkMetadata: linkPreviewData,
           taggedUserIds: taggedUsers.map((u: any) => u.id),
           galleryId: finalGalleryId,
+          giveaway: giveawayDraft ? {
+            title: giveawayDraft.title,
+            rewardType: giveawayDraft.rewardType,
+            rewardLink: giveawayDraft.rewardLink,
+            notes: giveawayDraft.notes,
+            endsAt: giveawayDraft.endsAt,
+            mode: giveawayDraft.mode,
+            winnerCount: giveawayDraft.winnerCount,
+            maxParticipants: giveawayDraft.maxParticipants,
+            minAccountAgeDays: giveawayDraft.minAccountAgeDays,
+            requirements: giveawayDraft.requirements.map(r => ({ type: r.type, targetId: r.targetId, url: r.url, platform: r.platform })),
+          } : null,
         });
       }
 
@@ -413,6 +431,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
         setInlineTaggedUsernames([]);
         setMentionQuery(null);
         setSelectedGalleryId("none");
+        setGiveawayDraft(null);
         onClose();
         if (onSuccess) onSuccess();
         // Dispatch custom event to trigger feed refresh
@@ -684,6 +703,30 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
                 </a>
               </div>
             )}
+
+            {/* Giveaway Summary Card */}
+            {giveawayDraft && (
+              <div className="mb-4 rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-3">
+                <div className="flex items-start gap-3">
+                  <img src="/navigasi/giveaway.svg" alt="" className="w-8 h-8 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[15px] text-amber-900 dark:text-amber-200">{t("giveaway.badge")} · {giveawayDraft.rewardType === "GDRIVE_LINK" ? t("giveaway.rewardGdrive") : t("giveaway.rewardOther")}</p>
+                    <p className="text-[13px] text-amber-800 dark:text-amber-300/90 mt-0.5">
+                      {giveawayDraft.mode === "RANDOM_DRAW" ? t("giveaway.winnersLabel", { count: giveawayDraft.winnerCount || 1 }) : t("giveaway.allEligibleLabel")}
+                      {" · "}
+                      {giveawayDraft.maxParticipants ? t("giveaway.limitMax") + " " + giveawayDraft.maxParticipants : t("giveaway.limitUnlimited")}
+                    </p>
+                    <p className="text-[13px] text-amber-800 dark:text-amber-300/90">
+                      {t("giveaway.endSection")}: {new Date(giveawayDraft.endsAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button type="button" onClick={() => setIsGiveawayModalOpen(true)} className="text-[12px] font-semibold px-2 py-1 rounded-md bg-white/70 dark:bg-black/20 text-amber-900 dark:text-amber-200 hover:bg-white dark:hover:bg-black/30">{t("giveaway.edit")}</button>
+                    <button type="button" onClick={() => setGiveawayDraft(null)} className="text-[12px] font-semibold px-2 py-1 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10">{t("giveaway.remove")}</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Extras */}
@@ -714,7 +757,13 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
               </button>
 
               {/* Giveaway */}
-              <button className="group relative p-1.5 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-full transition-colors opacity-50 cursor-not-allowed">
+              <button
+                id="create-post-giveaway-btn"
+                type="button"
+                onClick={() => !initialPost && setIsGiveawayModalOpen(true)}
+                disabled={!!initialPost}
+                className={`group relative p-1.5 rounded-full transition-colors ${giveawayDraft ? "bg-amber-100 dark:bg-amber-500/20" : "hover:bg-gray-200 dark:hover:bg-[#3A3B3C]"} ${initialPost ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
                 <img src="/navigasi/giveaway.svg" alt="Giveaway" className="w-6 h-6 object-contain" />
                 <span className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 text-white text-xs px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                   {t("feed.giveaway") || "Giveaway"}
@@ -777,7 +826,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           {/* Post Button */}
           <button 
             onClick={handlePost}
-            disabled={(!postContent.trim() && mediaPreviewList.length === 0) || isPosting}
+            disabled={(!postContent.trim() && mediaPreviewList.length === 0 && !giveawayDraft) || isPosting}
             className="w-full bg-[#1877F2] hover:bg-blue-600 disabled:bg-gray-200 disabled:dark:bg-[#4E4F50] text-white disabled:text-gray-400 disabled:dark:text-gray-500 font-semibold py-2 rounded-lg transition-colors flex justify-center items-center gap-2"
           >
             {isPosting ? (
@@ -1042,6 +1091,14 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           </div>
         </div>
       )}
+
+      <GiveawayFormModal
+        isOpen={isGiveawayModalOpen}
+        onClose={() => setIsGiveawayModalOpen(false)}
+        onSave={(draft) => { setGiveawayDraft(draft); setIsGiveawayModalOpen(false); }}
+        currentUser={currentUser}
+        initial={giveawayDraft}
+      />
     </>,
     document.body
   );
