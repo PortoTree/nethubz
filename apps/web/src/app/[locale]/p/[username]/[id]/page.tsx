@@ -2283,7 +2283,14 @@ function ProfilePageContent({
                                     {p.title}
                                   </h3>
                                   <div className="flex items-center gap-2">
-                                    <span className="shrink-0 px-3 py-1 rounded-full text-[12px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+                                    <span className={
+                                      "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +
+                                      (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
+                                      p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
+                                      p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
+                                      p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
+                                      "bg-gray-100 text-gray-700")
+                                    }>
                                       {tProject(statusKey)}
                                     </span>
                                     {isOwnProfile && (
