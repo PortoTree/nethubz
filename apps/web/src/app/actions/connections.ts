@@ -135,8 +135,8 @@ export async function handlePrimaryConnectionAction(token: string, currentUserId
       }
     }
 
-    revalidateTag(`profile-${currentUserId}`, "page");
-    revalidateTag(`profile-${targetUserId}`, "page");
+    revalidateTag(`profile-${currentUserId}`);
+    revalidateTag(`profile-${targetUserId}`);
     return { success: true };
   } catch (error) {
     console.error("Error in primary connection action:", error);

@@ -10,7 +10,8 @@ import {
   getGiveawayReward,
   getGiveawayParticipants,
 } from "@/app/actions/giveaways";
-import { toggleFollow } from "@/app/actions/connections";
+import { handlePrimaryConnectionAction } from "@/app/actions/connections";
+import { notifyConnectionChanged } from "@/utils/profileCache";
 
 type State = NonNullable<Awaited<ReturnType<typeof getGiveawayState>>["state"]>;
 
@@ -111,8 +112,9 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
       };
     });
 
-    const res = await toggleFollow(token, currentUser.id, targetId);
+    const res = await handlePrimaryConnectionAction(token, currentUser.id, targetId);
     if (res?.success) {
+      notifyConnectionChanged(currentUser.id, targetId);
       await refresh(); // wait until completely updated
     }
     setBusyReqId(null);
@@ -335,7 +337,7 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
                     })}
                   </div>
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${p.status === "WINNER" ? "bg-amber-500 text-white" : p.status === "REJECTED" ? "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300" : "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"}`}>
-                    {p.status}
+                    {t(`status_${p.status}`)}
                   </span>
                 </div>
               ))}

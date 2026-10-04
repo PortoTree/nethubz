@@ -12,6 +12,7 @@ import animationDataLight from "../../../../public/search-bar.json";
 import animationDataDark from "../../../../public/search-bar-putih.json";
 import { getNotifications, markAsRead, deleteNotification } from "@/app/actions/notifications";
 import { handlePrimaryConnectionAction } from "@/app/actions/connections";
+import { notifyConnectionChanged } from "@/utils/profileCache";
 import { getProfile } from "@/app/actions/profile";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 
@@ -169,6 +170,7 @@ export default function Navbar({
     const token = localStorage.getItem("token") || "";
     const res = await handlePrimaryConnectionAction(token, currentUser.id, senderId);
     if (res.success) {
+      notifyConnectionChanged(currentUser.id, senderId);
       // Delete the FRIEND_REQUEST notification from DB so it doesn't reappear on refresh
       await deleteNotification(token, currentUser.id, notifId);
       // Remove it from local state

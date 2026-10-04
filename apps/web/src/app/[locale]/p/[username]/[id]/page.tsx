@@ -20,7 +20,7 @@ import { getOptimizedUrl } from "@/utils/cloudinary";
 import { MediaRenderer } from "@/components/MediaRenderer";
 import CreatePostModal from "@/components/CreatePostModal";
 
-import { profileCache, connectionCache, galleryCache } from "@/utils/profileCache";
+import { profileCache, connectionCache, galleryCache, notifyConnectionChanged } from "@/utils/profileCache";
 
 function ProfilePageContent({
   params,
@@ -592,6 +592,7 @@ function ProfilePageContent({
 
     const res = await handlePrimaryConnectionAction(token, currentUser.id, id);
     if (res.success) {
+      notifyConnectionChanged(currentUser.id, id as string);
       // Manual component update to bypass ANY Next.js caching issues
       const newStatus = { ...connectionStatus };
       const newProfile = profileData ? JSON.parse(JSON.stringify(profileData)) : null;

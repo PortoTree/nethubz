@@ -376,6 +376,50 @@ export default function Beranda() {
   const [isProfileSidebarLoading, setIsProfileSidebarLoading] = useState(false);
   const [isProfileSidebarOptionsOpen, setIsProfileSidebarOptionsOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const selectedProfileIdRef = useRef<string | null>(null);
+  selectedProfileIdRef.current = selectedProfile?.id ?? null;
+
+  // Realtime sync: any follow/friend action anywhere refreshes the open sidebar
+  useEffect(() => {
+    const onChanged = async (e: any) => {
+      const { currentUserId, targetId } = e.detail || {};
+      if (!targetId || selectedProfileIdRef.current !== targetId) return;
+      try {
+        const [{ getProfile }, { getConnectionStatus }] = await Promise.all([
+          import("@/app/actions/profile"),
+          import("@/app/actions/connections"),
+        ]);
+        const [res, conn]: any = await Promise.all([
+          getProfile(targetId),
+          getConnectionStatus(currentUserId, targetId),
+        ]);
+        if (!res?.success || !res.profile) return;
+        profileCache.set(targetId, res.profile);
+        connectionCache.set(targetId, conn);
+        const user = res.profile.user;
+        let relation = "none";
+        if (conn.friendshipStatus === "ACCEPTED") relation = "friend";
+        else if (conn.friendshipStatus === "PENDING") relation = "request";
+        setSelectedProfile((prev: any) =>
+          prev && prev.id === targetId
+            ? {
+                ...prev,
+                relation,
+                isFollowing: conn.isFollowing,
+                requestedBy: conn.friendshipRequestedBy,
+                stats: {
+                  friends: (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0),
+                  followers: user._count?.followers || 0,
+                  posts: user._count?.posts || 0,
+                },
+              }
+            : prev
+        );
+      } catch {}
+    };
+    window.addEventListener("connection-changed", onChanged);
+    return () => window.removeEventListener("connection-changed", onChanged);
+  }, []);
   const postMenuRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
