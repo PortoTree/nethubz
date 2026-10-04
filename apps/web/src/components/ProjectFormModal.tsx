@@ -7,68 +7,95 @@ import { useTranslations } from "next-intl";
 export interface ProjectDraft {
   id?: string;
   title: string;
+  description: string;
   status: "RELEASED" | "IN_PROGRESS" | "SEARCHING_TEAM" | "OPEN_SOURCE";
   techStack: string[];
   repoUrl: string;
   demoUrl: string;
-  coverUrl?: string;
-  coverFile?: File;
-  videoUrl?: string;
+  coverUrls?: string[];
+  coverFiles?: File[];
+  mediaUrls?: string[];
   roleNeeded: string;
 }
 
 interface ProjectFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (project: ProjectDraft) => void;
+  onSave: (project: ProjectDraft) => void | Promise<void>;
   initial?: ProjectDraft | null;
+  isSubmitting?: boolean;
 }
 
 export default function ProjectFormModal({
   isOpen,
   onClose,
   onSave,
-  initial
+  initial,
+  isSubmitting = false
 }: ProjectFormModalProps) {
   const t = useTranslations();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectDraft["status"]>("RELEASED");
   const [techStack, setTechStack] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([""]);
+  const [coverUrls, setCoverUrls] = useState<string[]>([]);
+  const [coverFiles, setCoverFiles] = useState<File[]>([]);
+  const [coverPreviews, setCoverPreviews] = useState<string[]>([]);
+  const [mediaTab, setMediaTab] = useState<"upload" | "link">("upload");
   const [roleNeeded, setRoleNeeded] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
     setError(null);
     if (initial) {
       setTitle(initial.title || "");
+      setDescription(initial.description || "");
       setStatus(initial.status || "RELEASED");
       setTechStack(initial.techStack?.join(", ") || "");
       setRepoUrl(initial.repoUrl || "");
       setDemoUrl(initial.demoUrl || "");
-      setVideoUrl(initial.videoUrl || "");
-      setCoverUrl(initial.coverUrl || "");
-      setCoverPreview(initial.coverUrl || null);
-      setCoverFile(null);
+      setMediaUrls(initial.mediaUrls?.length ? initial.mediaUrls : [""]);
+      setCoverUrls(initial.coverUrls || []);
+      setCoverPreviews(initial.coverUrls || []);
+      setCoverFiles([]);
+      if (initial.mediaUrls?.length && !initial.coverUrls?.length) {
+        setMediaTab("link");
+      } else {
+        setMediaTab("upload");
+      }
       setRoleNeeded(initial.roleNeeded || "");
     } else {
       setTitle("");
+      setDescription("");
       setStatus("RELEASED");
       setTechStack("");
       setRepoUrl("");
       setDemoUrl("");
-      setVideoUrl("");
-      setCoverUrl("");
-      setCoverPreview(null);
-      setCoverFile(null);
+      setMediaUrls([""]);
+      setCoverUrls([]);
+      setCoverPreviews([]);
+      setCoverFiles([]);
+      setMediaTab("upload");
       setRoleNeeded("");
     }
   }, [isOpen, initial]);
@@ -80,8 +107,11 @@ export default function ProjectFormModal({
     if (!title.trim()) {
       return setError(t("project.errTitle"));
     }
+    if (!description.trim()) {
+      return setError(t("project.errDescriptionReq"));
+    }
 
-    const URL_RE = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    const URL_RE = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i;
     if (repoUrl.trim() && !URL_RE.test(repoUrl.trim())) {
       return setError(t("project.errRepoUrl"));
     }
@@ -89,8 +119,24 @@ export default function ProjectFormModal({
       return setError(t("project.errDemoUrl"));
     }
 
-    if (videoUrl.trim() && !URL_RE.test(videoUrl.trim())) {
-      return setError(t("project.errDemoUrl")); // Reuse error for now
+    let hasMedia = false;
+
+    if (mediaTab === "link") {
+      const validLinks = mediaUrls.filter(u => u.trim());
+      if (validLinks.length === 0) {
+        return setError(t("project.errMediaRequired") || "Silakan masukkan setidaknya satu link media atau upload gambar.");
+      }
+      hasMedia = true;
+      for (const mUrl of validLinks) {
+        if (!URL_RE.test(mUrl.trim())) {
+          return setError(t("project.errMediaUrl")); 
+        }
+      }
+    } else {
+      if (coverFiles.length === 0 && coverUrls.length === 0) {
+        return setError(t("project.errMediaRequired") || "Silakan masukkan setidaknya satu link media atau upload gambar.");
+      }
+      hasMedia = true;
     }
 
     if (status === "SEARCHING_TEAM" && !roleNeeded.trim()) {
@@ -105,13 +151,14 @@ export default function ProjectFormModal({
     onSave({
       id: initial?.id,
       title: title.trim(),
+      description: description.trim(),
       status,
       techStack: techArray,
       repoUrl: repoUrl.trim(),
       demoUrl: demoUrl.trim(),
-      videoUrl: videoUrl.trim(),
-      coverUrl,
-      coverFile: coverFile || undefined,
+      mediaUrls: mediaTab === "link" ? mediaUrls.map(u => u.trim()).filter(u => u) : [],
+      coverUrls: mediaTab === "upload" ? coverUrls : [],
+      coverFiles: mediaTab === "upload" ? coverFiles : [],
       roleNeeded: roleNeeded.trim()
     });
   };
@@ -136,60 +183,166 @@ export default function ProjectFormModal({
 
         {/* Body */}
         <div className="p-5 flex flex-col gap-4">
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2">
-              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-              {error}
-            </div>
-          )}
-
           <div>
             <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.title")} <span className="text-red-500">*</span></label>
             <input 
               type="text" 
               value={title} 
               onChange={e => setTitle(e.target.value)}
+              disabled={isSubmitting}
               placeholder={t("project.titlePlaceholder")}
-              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div>
-            <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.coverImage")}</label>
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className={`w-full aspect-[21/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-colors ${coverPreview ? 'border-transparent' : 'border-gray-300 dark:border-[#4E4F50] hover:bg-gray-50 dark:hover:bg-[#3A3B3C]'}`}
-            >
-              {coverPreview ? (
-                <div className="relative w-full h-full group">
-                  <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <span className="text-white font-medium text-sm">Ganti Gambar</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center p-4">
-                  <div className="w-10 h-10 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center mx-auto mb-2 text-gray-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">Upload Gambar (opsional)</span>
-                </div>
-              )}
+          <div className="flex items-center justify-between mb-2 border-b border-gray-200 dark:border-[#3E4042]">
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => !isSubmitting && setMediaTab("upload")}
+                disabled={isSubmitting}
+                className={`pb-2 border-b-2 text-[15px] font-semibold transition-colors -mb-[1px] disabled:opacity-50 disabled:cursor-not-allowed ${mediaTab === "upload" ? "border-[#1877F2] text-[#1877F2]" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-[#B0B3B8] dark:hover:text-gray-200"}`}
+              >
+                {t("project.uploadMediaTab")}
+              </button>
+              <button
+                type="button"
+                onClick={() => !isSubmitting && setMediaTab("link")}
+                disabled={isSubmitting}
+                className={`pb-2 border-b-2 text-[15px] font-semibold transition-colors -mb-[1px] disabled:opacity-50 disabled:cursor-not-allowed ${mediaTab === "link" ? "border-[#1877F2] text-[#1877F2]" : "border-transparent text-gray-500 hover:text-gray-700 dark:text-[#B0B3B8] dark:hover:text-gray-200"}`}
+              >
+                {t("project.linkMediaTab")}
+              </button>
             </div>
-            <input 
-              ref={fileInputRef}
-              type="file" 
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setCoverFile(file);
-                  setCoverPreview(URL.createObjectURL(file));
-                }
-              }}
+            <span className="text-red-500 text-[13px] font-semibold pb-2">{t("project.requiredLabel")}</span>
+          </div>
+
+          <div className="bg-gray-50/50 dark:bg-[#18191A]/30 border border-gray-200 dark:border-[#3E4042] rounded-xl p-4">
+
+            {mediaTab === "upload" && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.coverImage")}</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2">
+                  {coverPreviews.map((preview, idx) => (
+                    <div key={idx} className="relative w-full aspect-video rounded-xl border border-gray-200 dark:border-[#4E4F50] overflow-hidden group">
+                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setCoverFiles(prev => prev.filter((_, i) => i !== idx));
+                          setCoverPreviews(prev => prev.filter((_, i) => i !== idx));
+                        }}
+                        className="absolute top-1 right-1 p-1 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                  {coverPreviews.length < 5 && (
+                    <div 
+                      onClick={() => !isSubmitting && fileInputRef.current?.click()}
+                      className={`w-full aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-[#4E4F50] flex flex-col items-center justify-center transition-colors ${isSubmitting ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50 dark:hover:bg-[#3A3B3C]"}`}
+                    >
+                      <svg className="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      <span className="text-gray-500 text-[13px] font-medium">Upload</span>
+                    </div>
+                  )}
+                </div>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/*"
+                  multiple
+                  disabled={isSubmitting}
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    let total = coverFiles.length + files.length;
+                    if (total > 5) {
+                      setError(t("project.errMaxFiles"));
+                      return;
+                    }
+                    const validFiles: File[] = [];
+                    const validPreviews: string[] = [];
+                    for (const f of files) {
+                      if (f.size > 3.2 * 1024 * 1024) {
+                        setError(t("project.errFileTooLarge"));
+                        return;
+                      }
+                      validFiles.push(f);
+                      validPreviews.push(URL.createObjectURL(f));
+                    }
+                    setCoverFiles(prev => [...prev, ...validFiles]);
+                    setCoverPreviews(prev => [...prev, ...validPreviews]);
+                    setError(null);
+                  }}
+                />
+                <p className="text-[12px] text-gray-500 mt-1">{t("project.coverImageHint")}</p>
+              </div>
+            )}
+
+            {mediaTab === "link" && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.mediaUrl")}</label>
+                <div className="space-y-3">
+                  {mediaUrls.map((url, idx) => (
+                    <div key={idx} className="relative flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        </div>
+                        <input 
+                          type="url" 
+                          value={url} 
+                          onChange={e => {
+                            const newUrls = [...mediaUrls];
+                            newUrls[idx] = e.target.value;
+                            setMediaUrls(newUrls);
+                          }}
+                          disabled={isSubmitting}
+                          placeholder={t("project.mediaUrlPlaceholder")}
+                          className="w-full bg-white dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-2.5 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                      {mediaUrls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setMediaUrls(mediaUrls.filter((_, i) => i !== idx))}
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {mediaUrls.length < 10 && (
+                    <button
+                      type="button"
+                      onClick={() => !isSubmitting && setMediaUrls([...mediaUrls, ""])}
+                      disabled={isSubmitting}
+                      className="text-[14px] font-semibold text-[#1877F2] hover:text-[#166fe5] transition-colors inline-block mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t("project.addLink")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">
+              {t("project.description")} <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              disabled={isSubmitting}
+              placeholder={t("project.descriptionPlaceholder")}
+              rows={4}
+              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <p className="text-[12px] text-gray-500 mt-1">{t("project.coverImageHint")}</p>
           </div>
 
           <div>
@@ -197,7 +350,8 @@ export default function ProjectFormModal({
             <select
               value={status}
               onChange={e => setStatus(e.target.value as any)}
-              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow appearance-none"
+              disabled={isSubmitting}
+              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="RELEASED">{t("project.statusReleased")}</option>
               <option value="IN_PROGRESS">{t("project.statusInProgress")}</option>
@@ -213,8 +367,9 @@ export default function ProjectFormModal({
                 type="text" 
                 value={roleNeeded} 
                 onChange={e => setRoleNeeded(e.target.value)}
+                disabled={isSubmitting}
                 placeholder={t("project.roleNeededPlaceholder")}
-                className="w-full bg-blue-50 dark:bg-[#263951] border border-blue-200 dark:border-[#1877F2]/30 rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-blue-300 dark:placeholder-blue-300/50"
+                className="w-full bg-blue-50 dark:bg-[#263951] border border-blue-200 dark:border-[#1877F2]/30 rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-blue-300 dark:placeholder-blue-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <p className="text-[12px] text-gray-500 mt-1">{t("project.roleNeededHint")}</p>
             </div>
@@ -226,8 +381,9 @@ export default function ProjectFormModal({
               type="text" 
               value={techStack} 
               onChange={e => setTechStack(e.target.value)}
+              disabled={isSubmitting}
               placeholder={t("project.techStackPlaceholder")}
-              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl px-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <p className="text-[12px] text-gray-500 mt-1">{t("project.techStackHint")}</p>
           </div>
@@ -243,8 +399,9 @@ export default function ProjectFormModal({
                   type="url" 
                   value={repoUrl} 
                   onChange={e => setRepoUrl(e.target.value)}
+                  disabled={isSubmitting}
                   placeholder="https://github.com/..."
-                  className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
+                  className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -259,29 +416,20 @@ export default function ProjectFormModal({
                   type="url" 
                   value={demoUrl} 
                   onChange={e => setDemoUrl(e.target.value)}
+                  disabled={isSubmitting}
                   placeholder="https://..."
-                  className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
+                  className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
           
-          <div>
-            <label className="block text-[14px] font-semibold text-gray-700 dark:text-[#E4E6EB] mb-1.5">{t("project.videoUrl")}</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-              </div>
-              <input 
-                type="url" 
-                value={videoUrl} 
-                onChange={e => setVideoUrl(e.target.value)}
-                placeholder={t("project.videoUrlPlaceholder")}
-                className="w-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-300 dark:border-[#4E4F50] rounded-xl pl-10 pr-4 py-3 text-black dark:text-[#E4E6EB] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#1877F2] transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
-              />
+          {error && (
+            <div className="p-3 mt-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-2 animate-in fade-in zoom-in duration-200">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              {error}
             </div>
-          </div>
-          
+          )}
         </div>
 
         {/* Footer */}
@@ -289,16 +437,25 @@ export default function ProjectFormModal({
           <button 
             type="button" 
             onClick={onClose} 
-            className="flex-1 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 dark:text-[#B0B3B8] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] transition-colors"
+            disabled={isSubmitting}
+            className="flex-1 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 dark:text-[#B0B3B8] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t("project.cancel")}
           </button>
           <button 
             type="button" 
             onClick={handleSave} 
-            className="flex-1 py-2.5 rounded-xl text-[15px] font-semibold bg-[#1877F2] hover:bg-blue-600 text-white transition-colors"
+            disabled={isSubmitting}
+            className="flex-1 py-2.5 rounded-xl text-[15px] font-semibold bg-[#1877F2] hover:bg-blue-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {initial ? t("project.saveChanges") : t("project.addProject")}
+            {isSubmitting ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="opacity-90">{t("project.saveChanges")}...</span>
+              </>
+            ) : (
+              initial ? t("project.saveChanges") : t("project.addProject")
+            )}
           </button>
         </div>
       </div>

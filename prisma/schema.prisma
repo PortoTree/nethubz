@@ -473,12 +473,13 @@ model Project {
   id          String        @id @default(uuid())
   userId      String
   title       String
+  description String        @db.Text
   status      ProjectStatus @default(RELEASED)
   techStack   String[]      @default([]) 
   repoUrl     String?
   demoUrl     String?
-  coverUrl    String?
-  videoUrl    String?
+  coverUrls   String[]      @default([])
+  mediaUrls   String[]      @default([])
   roleNeeded  String?       
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt

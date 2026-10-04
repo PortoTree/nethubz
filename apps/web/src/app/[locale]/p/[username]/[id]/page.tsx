@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,6 +18,7 @@ import { getUserGalleries, createGallery, updateGallery, deleteGallery, deleteMe
 import { getConnectionStatus, handlePrimaryConnectionAction, toggleBlock, removeFollower } from "@/app/actions/connections";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { MediaRenderer } from "@/components/MediaRenderer";
+import { createProject, getUserProjects } from "@/app/actions/projects";
 import CreatePostModal from "@/components/CreatePostModal";
 import ProjectFormModal, { ProjectDraft } from "@/components/ProjectFormModal";
 
@@ -104,6 +105,26 @@ function ProfilePageContent({
   const [isCreatingGallery, setIsCreatingGallery] = useState(false);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const res = await getUserProjects(id);
+      if (!cancelled) {
+        setProjects(res.projects || []);
+        setIsLoadingProjects(false);
+      }
+    };
+    load();
+    window.addEventListener("refresh_projects", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("refresh_projects", load);
+    };
+  }, [id]);
   const [startWithGalleryModal, setStartWithGalleryModal] = useState(false);
   const [createdGalleryId, setCreatedGalleryId] = useState<string | undefined>(undefined);
   const [createdGallery, setCreatedGallery] = useState<any>(undefined);
@@ -354,7 +375,7 @@ function ProfilePageContent({
     }
   }, [isDarkMode, themeLoaded]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let currentId: string | null = null;
     const token = localStorage.getItem("token");
     if (token) {
@@ -2166,6 +2187,47 @@ function ProfilePageContent({
                         </button>
                       </div>
                     )}
+                    {isLoadingProjects ? (
+                      <div className="flex justify-center py-10">
+                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : projects.length > 0 ? (
+                      <div className="flex flex-col gap-4">
+                        {projects.map((p) => {
+                          const cover = p.coverUrls?.[0] || p.mediaUrls?.[0];
+                          const statusKey = ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[p.status] || "statusReleased";
+                          return (
+                            <div key={p.id} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5">
+                              {cover && (
+                                <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
+                              )}
+                              <div className="p-5">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <h3 className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] break-words">{p.title}</h3>
+                                  <span className="shrink-0 px-3 py-1 rounded-full text-[12px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+                                    {tProject(statusKey)}
+                                  </span>
+                                </div>
+                                <p className="text-gray-600 dark:text-[#B0B3B8] text-[14px] whitespace-pre-line line-clamp-4 mb-3">{p.description}</p>
+                                {p.techStack?.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-3">
+                                    {p.techStack.map((tech: string) => (
+                                      <span key={tech} className="px-2.5 py-1 rounded-lg text-[12px] font-medium bg-gray-100 text-gray-700 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">{tech}</span>
+                                    ))}
+                                  </div>
+                                )}
+                                {(p.repoUrl || p.demoUrl) && (
+                                  <div className="flex flex-wrap gap-4 text-[13px] font-semibold">
+                                    {p.repoUrl && <a href={p.repoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewRepo")} ↗</a>}
+                                    {p.demoUrl && <a href={p.demoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewDemo")} ↗</a>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
                     <div className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] p-8 text-center flex flex-col items-center justify-center min-h-[250px]">
                       <div className="w-16 h-16 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center mb-4">
                         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
@@ -2177,6 +2239,7 @@ function ProfilePageContent({
                         {tProject("userHasNoProject", { username }) || `Saat ini ${username} belum mempublikasikan project apapun.`}
                       </p>
                     </div>
+                    )}
                   </div>
                 </div>
               </>
@@ -2721,10 +2784,44 @@ function ProfilePageContent({
       <ProjectFormModal
         isOpen={isCreateProjectModalOpen}
         onClose={() => setIsCreateProjectModalOpen(false)}
-        onSave={(projectDraft) => {
-          // TODO: implement API call to save project
-          console.log("Project saved:", projectDraft);
-          setIsCreateProjectModalOpen(false);
+        isSubmitting={isSubmittingProject}
+        onSave={async (projectDraft) => {
+          setIsSubmittingProject(true);
+          try {
+            let finalCoverUrls = projectDraft.coverUrls || [];
+            
+            // Upload new cover files if any
+            if (projectDraft.coverFiles && projectDraft.coverFiles.length > 0) {
+              const uploadPromises = projectDraft.coverFiles.map(file => uploadToCloudinary(file, "project_covers"));
+              const uploadedUrls = await Promise.all(uploadPromises);
+              finalCoverUrls = [...finalCoverUrls, ...uploadedUrls];
+            }
+
+            const res = await createProject({
+              userId: currentUser.id,
+              title: projectDraft.title,
+              description: projectDraft.description,
+              status: projectDraft.status,
+              techStack: projectDraft.techStack,
+              repoUrl: projectDraft.repoUrl,
+              demoUrl: projectDraft.demoUrl,
+              coverUrls: finalCoverUrls,
+              mediaUrls: projectDraft.mediaUrls,
+              roleNeeded: projectDraft.roleNeeded,
+            });
+
+            if (res.success) {
+              setIsCreateProjectModalOpen(false);
+              // Optimistically add to UI or trigger a refetch if needed
+              window.dispatchEvent(new Event("refresh_projects"));
+            } else {
+              alert("Gagal membuat proyek: " + res.error);
+            }
+          } catch (error: any) {
+            alert("Terjadi kesalahan: " + error.message);
+          } finally {
+            setIsSubmittingProject(false);
+          }
         }}
       />
 
