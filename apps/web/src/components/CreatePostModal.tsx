@@ -811,7 +811,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
                   previewPosition="none"
                   skinTonePosition="search"
                   onEmojiSelect={(emoji: any) => {
-                    setPostContent(prev => prev + emoji.native);
+                    setPostContent((prev: string) => prev + emoji.native);
                   }}
                 />
               </div>
