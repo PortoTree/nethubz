@@ -60,3 +60,77 @@ export async function getUserProjects(userId: string) {
     return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
   }
 }
+
+export async function getAllProjects() {
+  try {
+    const projects = await prisma.project.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          include: {
+            profile: true
+          }
+        }
+      }
+    });
+    return { success: true, projects };
+  } catch (error: any) {
+    console.error("getAllProjects Error:", error);
+    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+  }
+}
+
+export async function getProjectsByUsername(username: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: {
+        profile: true
+      }
+    });
+
+    if (!user) {
+      return { success: false, projects: [], error: "User not found" };
+    }
+
+    const projects = await prisma.project.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          include: {
+            profile: true
+          }
+        }
+      }
+    });
+    
+    return { success: true, projects, user };
+  } catch (error: any) {
+    console.error("getProjectsByUsername Error:", error);
+    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+  }
+}
+export async function getProjectById(id: string) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        user: {
+          include: {
+            profile: true
+          }
+        }
+      }
+    });
+
+    if (!project) {
+      return { success: false, project: null, error: "Project not found" };
+    }
+
+    return { success: true, project };
+  } catch (error: any) {
+    console.error("getProjectById Error:", error);
+    return { success: false, project: null, error: error.message || "Failed to fetch project" };
+  }
+}

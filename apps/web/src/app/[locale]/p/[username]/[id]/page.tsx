@@ -5,6 +5,7 @@ import React, { useState, useEffect, use, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PostFeed from "@/components/PostFeed";
 import EditProfileModal from "@/components/EditProfileModal";
@@ -2197,7 +2198,7 @@ function ProfilePageContent({
                           const cover = p.coverUrls?.[0] || p.mediaUrls?.[0];
                           const statusKey = ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[p.status] || "statusReleased";
                           return (
-                            <div key={p.id} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5">
+                            <div key={p.id} onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 group block cursor-pointer">
                               {cover && (
                                 <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
                               )}
@@ -2217,7 +2218,7 @@ function ProfilePageContent({
                                   </div>
                                 )}
                                 {(p.repoUrl || p.demoUrl) && (
-                                  <div className="flex flex-wrap gap-4 text-[13px] font-semibold">
+                                  <div className="flex flex-wrap gap-4 text-[13px] font-semibold relative z-10" onClick={(e) => e.stopPropagation()}>
                                     {p.repoUrl && <a href={p.repoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewRepo")} ↗</a>}
                                     {p.demoUrl && <a href={p.demoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewDemo")} ↗</a>}
                                   </div>
