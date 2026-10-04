@@ -1,7 +1,12 @@
-export async function uploadToCloudinary(blobUrl: string, preset: string = "mencari_assets"): Promise<string> {
-  // Fetch the blob from the local blob URL
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
+export async function uploadToCloudinary(fileOrUrl: string | File | Blob, preset: string = "mencari_assets"): Promise<string> {
+  // Fetch the blob from the local blob URL if it's a string
+  let blob: Blob;
+  if (typeof fileOrUrl === "string") {
+    const response = await fetch(fileOrUrl);
+    blob = await response.blob();
+  } else {
+    blob = fileOrUrl;
+  }
   
   // Determine extension from blob type
   let extension = "png";
@@ -22,7 +27,7 @@ export async function uploadToCloudinary(blobUrl: string, preset: string = "menc
   
   // Cloudinary unauthenticated upload endpoint
   const cloudName = "ecdhyrfa";
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
   
   try {
     const res = await fetch(uploadUrl, {

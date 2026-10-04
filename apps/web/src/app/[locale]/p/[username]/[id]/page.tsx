@@ -2189,8 +2189,28 @@ function ProfilePageContent({
                       </div>
                     )}
                     {isLoadingProjects ? (
-                      <div className="flex justify-center py-10">
-                        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="flex flex-col gap-4">
+                        {[1, 2].map((i) => (
+                          <div key={i} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden animate-pulse">
+                            <div className="w-full aspect-video bg-gray-200 dark:bg-[#3A3B3C]" />
+                            <div className="p-5">
+                              <div className="flex items-start justify-between gap-3 mb-4">
+                                <div className="h-6 bg-gray-200 dark:bg-[#3A3B3C] rounded w-1/2" />
+                                <div className="h-6 bg-gray-200 dark:bg-[#3A3B3C] rounded-full w-24" />
+                              </div>
+                              <div className="space-y-2 mb-5">
+                                <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-full" />
+                                <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-5/6" />
+                                <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-4/6" />
+                              </div>
+                              <div className="flex gap-2">
+                                <div className="h-7 w-16 bg-gray-200 dark:bg-[#3A3B3C] rounded" />
+                                <div className="h-7 w-14 bg-gray-200 dark:bg-[#3A3B3C] rounded" />
+                                <div className="h-7 w-20 bg-gray-200 dark:bg-[#3A3B3C] rounded" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ) : projects.length > 0 ? (
                       <div className="flex flex-col gap-4">
@@ -2793,7 +2813,7 @@ function ProfilePageContent({
             
             // Upload new cover files if any
             if (projectDraft.coverFiles && projectDraft.coverFiles.length > 0) {
-              const uploadPromises = projectDraft.coverFiles.map(file => uploadToCloudinary(file, "project_covers"));
+              const uploadPromises = projectDraft.coverFiles.map(file => uploadToCloudinary(file, "project-cover"));
               const uploadedUrls = await Promise.all(uploadPromises);
               finalCoverUrls = [...finalCoverUrls, ...uploadedUrls];
             }
