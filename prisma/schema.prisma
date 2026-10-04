@@ -477,6 +477,8 @@ model Project {
   techStack   String[]      @default([]) 
   repoUrl     String?
   demoUrl     String?
+  coverUrl    String?
+  videoUrl    String?
   roleNeeded  String?       
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
