@@ -839,6 +839,10 @@
   "project": {
     "addProject": "Tambah Proyek",
     "editProject": "Edit Proyek",
+    "publish": "Publish",
+    "deleteProject": "Hapus Proyek",
+    "deleteProjectConfirmTitle": "Hapus Proyek",
+    "deleteProjectConfirmText": "Apakah Anda yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan.",
     "errTitle": "Judul proyek wajib diisi.",
     "errRepoUrl": "URL repository tidak valid.",
     "errDemoUrl": "URL demo tidak valid.",

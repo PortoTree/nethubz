@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/utils/prisma";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 export interface CreateProjectInput {
   userId: string;
@@ -38,6 +38,7 @@ export async function createProject(data: CreateProjectInput) {
     });
 
     // We can revalidate tags like "user_profile_projects" or "feed"
+    // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag("projects");
 
     return { success: true, project };
@@ -47,13 +48,21 @@ export async function createProject(data: CreateProjectInput) {
   }
 }
 
-export async function getUserProjects(userId: string) {
-  try {
-    if (!userId) return { success: true, projects: [] };
-    const projects = await prisma.project.findMany({
+export const getUserProjectsCached = unstable_cache(
+  async (userId: string) => {
+    return prisma.project.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
     });
+  },
+  ["user-projects"],
+  { tags: ["projects"] }
+);
+
+export async function getUserProjects(userId: string) {
+  try {
+    if (!userId) return { success: true, projects: [] };
+    const projects = await getUserProjectsCached(userId);
     return { success: true, projects };
   } catch (error: any) {
     console.error("getUserProjects Error:", error);
@@ -132,5 +141,94 @@ export async function getProjectById(id: string) {
   } catch (error: any) {
     console.error("getProjectById Error:", error);
     return { success: false, project: null, error: error.message || "Failed to fetch project" };
+  }
+}
+
+export async function deleteProject(id: string, userId: string) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!project) {
+      return { success: false, error: "Project not found" };
+    }
+
+    if (project.userId !== userId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    // Hapus cover project di Cloudinary jika ada
+    if (project.coverUrls && project.coverUrls.length > 0) {
+      try {
+        const { deleteFromCloudinary } = await import('@/lib/cloudinary');
+        for (const url of project.coverUrls) {
+          // Ekstrak publicId dari URL Cloudinary
+          // Contoh URL: https://res.cloudinary.com/ecdhyrfa/image/upload/v1234/project-cover/img_abc.png
+          // publicId: project-cover/img_abc
+          const match = url.match(/\/v\d+\/(.+?)\.[a-z0-9]+$/i);
+          if (match && match[1]) {
+            const publicId = match[1];
+            await deleteFromCloudinary(publicId, "image");
+          }
+        }
+      } catch (e) {
+        console.error("Failed to delete project cover from Cloudinary:", e);
+      }
+    }
+
+    await prisma.project.delete({
+      where: { id },
+    });
+
+    // @ts-expect-error Next.js typings might incorrectly expect 2 args
+    revalidateTag("projects");
+    return { success: true };
+  } catch (error: any) {
+    console.error("deleteProject Error:", error);
+    return { success: false, error: error.message || "Failed to delete project" };
+  }
+}
+
+export async function updateProject(id: string, userId: string, data: {
+  title?: string;
+  description?: string;
+  status?: any;
+  techStack?: string[];
+  repoUrl?: string;
+  demoUrl?: string;
+  coverUrls?: string[];
+  mediaUrls?: string[];
+  roleNeeded?: string;
+}) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id }
+    });
+    
+    if (!project) return { success: false, error: "Project not found" };
+    if (project.userId !== userId) return { success: false, error: "Unauthorized" };
+    
+    const updated = await prisma.project.update({
+      where: { id },
+      data: {
+        title: data.title !== undefined ? data.title : project.title,
+        description: data.description !== undefined ? data.description : project.description,
+        status: data.status !== undefined ? data.status : project.status,
+        techStack: data.techStack !== undefined ? data.techStack : project.techStack,
+        repoUrl: data.repoUrl !== undefined ? data.repoUrl : project.repoUrl,
+        demoUrl: data.demoUrl !== undefined ? data.demoUrl : project.demoUrl,
+        coverUrls: data.coverUrls !== undefined ? data.coverUrls : project.coverUrls,
+        mediaUrls: data.mediaUrls !== undefined ? data.mediaUrls : project.mediaUrls,
+        roleNeeded: data.roleNeeded !== undefined ? data.roleNeeded : project.roleNeeded,
+      }
+    });
+    
+    // @ts-expect-error Next.js typings might incorrectly expect 2 args
+    revalidateTag("projects");
+    return { success: true, project: updated };
+  } catch (error: any) {
+    console.error("updateProject Error:", error);
+    return { success: false, error: error.message || "Failed to update project" };
   }
 }

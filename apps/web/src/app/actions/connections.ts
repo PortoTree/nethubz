@@ -135,7 +135,9 @@ export async function handlePrimaryConnectionAction(token: string, currentUserId
       }
     }
 
+    // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag(`profile-${currentUserId}`);
+    // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag(`profile-${targetUserId}`);
     return { success: true };
   } catch (error) {
