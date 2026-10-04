@@ -112,8 +112,10 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
     });
 
     const res = await toggleFollow(token, currentUser.id, targetId);
+    if (res?.success) {
+      await refresh(); // wait until completely updated
+    }
     setBusyReqId(null);
-    if (res?.success) refresh(); // Sync in background
   };
 
   const handleJoin = async () => {
@@ -235,8 +237,8 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
                   {!met && canInteract && u && (
                     <button
                       onClick={() => handleFollowUser(req, u.id)}
-                      disabled={busyReqId === req.id}
-                      className="text-[12px] font-semibold px-2.5 py-1 rounded-md bg-[#1877F2] text-white hover:bg-[#166FE5] disabled:opacity-50"
+                      disabled={!!busyReqId}
+                      className="text-[12px] font-semibold px-2.5 py-1 rounded-md bg-[#1877F2] text-white hover:bg-[#166FE5] disabled:opacity-50 disabled:hover:bg-[#1877F2] disabled:cursor-not-allowed"
                     >
                       {busyReqId === req.id ? "..." : t("followNow")}
                     </button>
