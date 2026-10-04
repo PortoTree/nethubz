@@ -879,6 +879,12 @@
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
     "requiredLabel": "* Required",
-    "viewOtherProjects": "View other projects"
+    "viewOtherProjects": "View other projects",
+    "backToProjects": "Back to {name}'s Projects",
+    "aboutProject": "About this Project",
+    "technologies": "Technologies",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share"
   }
 }

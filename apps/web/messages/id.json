@@ -885,6 +885,12 @@
     "cancel": "Batal",
     "saveChanges": "Simpan Perubahan",
     "requiredLabel": "* Wajib",
-    "viewOtherProjects": "Lihat Project lain"
+    "viewOtherProjects": "Lihat Project lain",
+    "backToProjects": "Kembali ke Project {name}",
+    "aboutProject": "Tentang Project ini",
+    "technologies": "Teknologi",
+    "like": "Suka",
+    "comment": "Komen",
+    "share": "Bagikan"
   }
 }

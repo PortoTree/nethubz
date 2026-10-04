@@ -175,3 +175,33 @@ html.dark::-webkit-scrollbar-thumb:hover {
 .dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #4E4F50;
 }
+
+/* Project Card Title Marquee */
+.project-title-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  container-type: inline-size;
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  transition: mask-image 0.3s ease, -webkit-mask-image 0.3s ease;
+}
+
+.project-title-container:hover {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.project-title-text {
+  display: inline-block;
+  min-width: 100%;
+}
+
+.project-title-container:hover .project-title-text {
+  animation: project-marquee 2s linear infinite alternate;
+}
+
+@keyframes project-marquee {
+  0%, 30% { transform: translateX(0); }
+  70%, 100% { transform: translateX(calc(100cqw - 100%)); }
+}

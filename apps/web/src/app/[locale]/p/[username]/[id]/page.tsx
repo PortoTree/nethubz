@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PostFeed from "@/components/PostFeed";
+import ProjectCard from "@/components/ProjectCard";
 import EditProfileModal from "@/components/EditProfileModal";
 import CropModal from "@/components/CropModal";
 import ProfileMediaSelectionModal from "@/components/ProfileMediaSelectionModal";
@@ -2248,135 +2249,23 @@ function ProfilePageContent({
                       </div>
                     ) : projects.length > 0 ? (
                       <div className="flex flex-col gap-4">
-                        {projects.map((p) => {
-                          const coverUrls = (p.coverUrls && p.coverUrls.length > 0) ? p.coverUrls : (p.mediaUrls && p.mediaUrls.length > 0 ? p.mediaUrls : []);
-                          const hasMultiple = coverUrls.length > 1;
-                          const cover = coverUrls[0];
-                          const statusKey = ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[p.status] || "statusReleased";
+                        {projects.slice(0, 3).map((p) => {
                           return (
-                            <div key={p.id} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 group block">
-                              {hasMultiple ? (
-                                <div onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)} className="w-full aspect-video flex gap-1 bg-gray-100 dark:bg-[#3A3B3C] cursor-pointer">
-                                  <div className="flex-1 relative h-full">
-                                    <MediaRenderer url={coverUrls[0]} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 z-10" />
-                                  </div>
-                                  <div className="w-1/3 relative h-full">
-                                    <MediaRenderer url={coverUrls[1]} className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 z-10" />
-                                    {coverUrls.length > 2 && (
-                                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-                                        <span className="text-white font-bold text-xl">+{coverUrls.length - 2}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : cover ? (
-                                <div onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)} className="cursor-pointer relative">
-                                  <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
-                                  <div className="absolute inset-0 z-10" />
-                                </div>
-                              ) : null}
-                              <div className="p-5">
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                  <h3 
-                                    onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)}
-                                    className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] break-words cursor-pointer hover:underline"
-                                  >
-                                    {p.title}
-                                  </h3>
-                                  <div className="flex items-center gap-2">
-                                    <span className={
-                                      "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +
-                                      (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
-                                      p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
-                                      p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
-                                      p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
-                                      "bg-gray-100 text-gray-700")
-                                    }>
-                                      {tProject(statusKey)}
-                                    </span>
-                                    {isOwnProfile && (
-                                      <div className="relative">
-                                        <button 
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            setActiveProjectMenuId(activeProjectMenuId === p.id ? null : p.id);
-                                          }}
-                                          className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#4E4F50] text-gray-500 dark:text-gray-400 transition-colors"
-                                        >
-                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-                                        </button>
-                                        
-                                        {activeProjectMenuId === p.id && (
-                                          <>
-                                            <div 
-                                              className="fixed inset-0 z-40"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setActiveProjectMenuId(null);
-                                              }}
-                                            />
-                                            <div 
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                              }}
-                                              className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#3A3B3C] rounded-xl shadow-lg border border-gray-100 dark:border-[#4E4F50] py-1 z-50 overflow-hidden"
-                                            >
-                                              <button 
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] flex items-center gap-2"
-                                              >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                {tProject("publish")}
-                                              </button>
-                                              <button 
-                                                onClick={() => {
-                                                  setProjectToEdit(p);
-                                                  setIsCreateProjectModalOpen(true);
-                                                  setActiveProjectMenuId(null);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] flex items-center gap-2"
-                                              >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                {tProject("editProject")}
-                                              </button>
-                                              <div className="h-px bg-gray-100 dark:bg-[#4E4F50] my-1" />
-                                              <button 
-                                                onClick={() => {
-                                                  setProjectToDelete(p);
-                                                  setIsDeleteProjectModalOpen(true);
-                                                  setActiveProjectMenuId(null);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 font-medium"
-                                              >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                {tProject("deleteProject")}
-                                              </button>
-                                            </div>
-                                          </>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-gray-600 dark:text-[#B0B3B8] text-[14px] whitespace-pre-line line-clamp-4 mb-3">{p.description}</p>
-                                {p.techStack?.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mb-3">
-                                    {p.techStack.map((tech: string) => (
-                                      <span key={tech} className="px-2.5 py-1 rounded-lg text-[12px] font-medium bg-gray-100 text-gray-700 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">{tech}</span>
-                                    ))}
-                                  </div>
-                                )}
-                                {(p.repoUrl || p.demoUrl) && (
-                                  <div className="flex flex-wrap gap-4 text-[13px] font-semibold relative z-10" onClick={(e) => e.stopPropagation()}>
-                                    {p.repoUrl && <a href={p.repoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewRepo")} ↗</a>}
-                                    {p.demoUrl && <a href={p.demoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{tProject("viewDemo")} ↗</a>}
-                                  </div>
-                                )}
-                              </div>
+                            <div key={p.id} className="block relative z-0">
+                              <ProjectCard
+                                project={p}
+                                locale={locale}
+                                username={username}
+                                isOwnProfile={isOwnProfile}
+                                onEdit={(project) => {
+                                  setProjectToEdit(project);
+                                  setIsCreateProjectModalOpen(true);
+                                }}
+                                onDelete={(project) => {
+                                  setProjectToDelete(project);
+                                  setIsDeleteProjectModalOpen(true);
+                                }}
+                              />
                             </div>
                           );
                         })}

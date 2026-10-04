@@ -1,32 +1,109 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import React, { useEffect, useState, useCallback, use } from "react";
+import { useTranslations } from "next-intl";
 import { getProjectById } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
-export default async function ProjectDetailsPage({
+export default function ProjectDetailsPage({
   params,
 }: {
   params: Promise<{ locale: string; username: string; id: string }>;
 }) {
-  const { locale, username, id } = await params;
+  const { locale, username, id } = use(params);
   const decodedUsername = decodeURIComponent(username);
-  const t = await getTranslations("project");
+  const t = useTranslations("project");
+  const router = useRouter();
   
-  const res = await getProjectById(id);
-  
-  if (!res.success || !res.project) {
-    notFound();
+  const [project, setProject] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [themeLoaded, setThemeLoaded] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.sub || payload.id || payload._id || payload.userId || "1";
+        setUser({ id: userId, username: payload.username || "Guest" });
+      } catch (e) {
+        console.error("Invalid token");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light") {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    } else {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+    setThemeLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!themeLoaded) return;
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode, themeLoaded]);
+
+
+
+  const loadProject = useCallback(async () => {
+    const res = await getProjectById(id);
+    if (!res.success || !res.project) {
+      router.push(`/${locale}/404`);
+      return;
+    }
+    
+    // Security check
+    if (res.project.user?.username !== decodedUsername) {
+      router.push(`/${locale}/404`);
+      return;
+    }
+
+    setProject(res.project);
+    setIsLoading(false);
+  }, [id, decodedUsername, locale, router]);
+
+  useEffect(() => {
+    loadProject();
+    const handleRefresh = () => {
+      loadProject();
+    };
+    window.addEventListener("refresh_projects", handleRefresh);
+    return () => {
+      window.removeEventListener("refresh_projects", handleRefresh);
+    };
+  }, [loadProject]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
+        <div className="max-w-[1200px] mx-auto w-full px-4 flex justify-center py-20">
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
   }
 
-  const p = res.project;
-  
-  // Security check: Make sure the project belongs to the username in the URL
-  if (p.user?.username !== decodedUsername) {
-    notFound();
-  }
+  if (!project) return null;
 
+  const p = project;
   const profileUser = p.user;
   const displayName = profileUser.profile?.displayName || profileUser.username;
   const avatar = profileUser.profile?.avatarUrl ? getOptimizedUrl(profileUser.profile.avatarUrl, 'thumb') : null;
@@ -38,7 +115,7 @@ export default async function ProjectDetailsPage({
         
         <Link href={`/${locale}/project/${decodedUsername}`} className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold mb-6 hover:underline">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-          Back to {displayName}'s Projects
+          {t("backToProjects", { name: displayName }) || `Back to ${displayName}'s Projects`}
         </Link>
 
         {/* Main Media Carousel / Cover */}
@@ -56,7 +133,14 @@ export default async function ProjectDetailsPage({
           <div className="flex flex-col gap-6 border-b border-gray-200 dark:border-[#3A3B3C] pb-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-[#E4E6EB]">{p.title}</h1>
-              <span className="px-4 py-1.5 rounded-full text-[13px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+              <span className={
+                "px-4 py-1.5 rounded-full text-[13px] font-bold " +
+                (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
+                p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
+                p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
+                p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
+                "bg-gray-100 text-gray-700")
+              }>
                 {t(statusKey)}
               </span>
             </div>
@@ -81,7 +165,7 @@ export default async function ProjectDetailsPage({
           </div>
 
           <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-[#E4E6EB] mb-4">About this Project</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-[#E4E6EB] mb-4">{t("aboutProject") || "About this Project"}</h3>
             <p className="text-gray-700 dark:text-[#B0B3B8] text-[16px] leading-relaxed whitespace-pre-line">
               {p.description}
             </p>
@@ -101,7 +185,7 @@ export default async function ProjectDetailsPage({
 
           {p.techStack && p.techStack.length > 0 && (
             <div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-[#E4E6EB] mb-4">Technologies</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-[#E4E6EB] mb-4">{t("technologies") || "Technologies"}</h3>
               <div className="flex flex-wrap gap-2">
                 {p.techStack.map((tech: string) => (
                   <span key={tech} className="px-4 py-2 rounded-xl text-[14px] font-semibold bg-gray-200 text-gray-800 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">

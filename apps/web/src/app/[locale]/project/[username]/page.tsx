@@ -1,29 +1,134 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import React, { useEffect, useState, useCallback, use } from "react";
+import { useTranslations } from "next-intl";
 import { getProjectsByUsername } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
+import { uploadToCloudinary } from "@/utils/uploadImage";
 import Link from "next/link";
-import { MediaRenderer } from "@/components/MediaRenderer";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
+import ProjectCard from "@/components/ProjectCard";
+import Navbar from "@/components/Navbar";
+import { projectsCache } from "@/utils/profileCache";
 
-export default async function UserProjectPage({
+import ProjectFormModal from "@/components/ProjectFormModal";
+import { deleteProject, createProject, updateProject } from "@/app/actions/projects";
+
+export default function UserProjectPage({
   params,
 }: {
   params: Promise<{ locale: string; username: string }>;
 }) {
-  const { locale, username } = await params;
+  const { locale, username } = use(params);
   const decodedUsername = decodeURIComponent(username);
-  const t = await getTranslations("project");
+  const t = useTranslations("project");
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.sub || payload.id || payload._id || payload.userId || "1";
+        setUser({ id: userId, username: payload.username || "Guest" });
+      } catch (e) {
+        console.error("Invalid token");
+      }
+    }
+  }, []);
   
-  const res = await getProjectsByUsername(decodedUsername);
-  
-  if (!res.success || !res.user) {
-    notFound();
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<any>(null);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  const [isDeletingProjectLoading, setIsDeletingProjectLoading] = useState(false);
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [themeLoaded, setThemeLoaded] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light") {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    } else {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+    setThemeLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!themeLoaded) return;
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode, themeLoaded]);
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete || !user) return;
+    try {
+      setIsDeletingProjectLoading(true);
+      await deleteProject(projectToDelete.id, user.id);
+      window.dispatchEvent(new Event("refresh_projects"));
+      setIsDeleteProjectModalOpen(false);
+      setProjectToDelete(null);
+    } catch (e) {
+      console.error(e);
+      alert(t("errorDefault") || "Terjadi kesalahan");
+    } finally {
+      setIsDeletingProjectLoading(false);
+    }
+  };
+
+  const loadProjects = useCallback(async () => {
+    setIsLoading(true);
+    const res = await getProjectsByUsername(decodedUsername);
+    if (res.success && res.user) {
+      setProfileUser(res.user);
+      const fetchedProjects = res.projects || [];
+      projectsCache.set(res.user.id, fetchedProjects);
+      setProjects(fetchedProjects);
+    } else {
+      router.push(`/${locale}/404`);
+    }
+    setIsLoading(false);
+  }, [decodedUsername, router, locale]);
+
+  useEffect(() => {
+    loadProjects();
+    const handleRefresh = () => {
+      loadProjects();
+    };
+    window.addEventListener("refresh_projects", handleRefresh);
+    return () => {
+      window.removeEventListener("refresh_projects", handleRefresh);
+    };
+  }, [loadProjects]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
+        <div className="max-w-[1200px] mx-auto w-full px-4 flex justify-center py-20">
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
   }
 
-  const projects = res.projects || [];
-  const profileUser = res.user;
+  if (!profileUser) return null;
+
   const displayName = profileUser.profile?.displayName || profileUser.username;
   const avatar = profileUser.profile?.avatarUrl ? getOptimizedUrl(profileUser.profile.avatarUrl, 'thumb') : null;
+  const isOwnProfile = user?.id === profileUser.id;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
@@ -53,62 +158,122 @@ export default async function UserProjectPage({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((p: any) => {
-              const cover = p.coverUrls?.[0] || p.mediaUrls?.[0];
-              const statusKey = ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[p.status] || "statusReleased";
-
-              return (
-                <div key={p.id} className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-1 flex flex-col h-full group relative block">
-                  {cover ? (
-                    <div className="w-full aspect-video relative z-0">
-                      <MediaRenderer url={cover} className="w-full h-full object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
-                    </div>
-                  ) : (
-                    <div className="w-full aspect-video bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-400">
-                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </div>
-                  )}
-                  
-                  <div className="p-5 flex flex-col flex-grow relative z-10">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <Link href={`/${locale}/project/${profileUser.username}/${p.id}`} className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[18px] line-clamp-2 after:absolute after:inset-0 after:z-0 hover:text-purple-600 dark:hover:text-purple-400">
-                        {p.title}
-                      </Link>
-                      <span className="shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300 relative z-10">
-                        {t(statusKey)}
-                      </span>
-                    </div>
-
-                    <p className="text-gray-600 dark:text-[#B0B3B8] text-[14px] whitespace-pre-line line-clamp-3 mb-4 flex-grow">
-                      {p.description}
-                    </p>
-
-                    <div className="mt-auto">
-                      {p.techStack?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {p.techStack.slice(0, 4).map((tech: string) => (
-                            <span key={tech} className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-600 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">{tech}</span>
-                          ))}
-                          {p.techStack.length > 4 && (
-                            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-600 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">+{p.techStack.length - 4}</span>
-                          )}
-                        </div>
-                      )}
-
-                      {(p.repoUrl || p.demoUrl) && (
-                        <div className="flex items-center justify-start gap-4 pt-4 border-t border-gray-100 dark:border-[#3A3B3C] text-[13px] font-semibold relative z-10">
-                          {p.repoUrl && <a href={p.repoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{t("viewRepo")} ↗</a>}
-                          {p.demoUrl && <a href={p.demoUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline">{t("viewDemo")} ↗</a>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {projects.map((p: any) => (
+              <div key={p.id} className="block relative z-0 h-full">
+                <ProjectCard
+                  project={p}
+                  locale={locale}
+                  username={profileUser.username}
+                  isOwnProfile={isOwnProfile}
+                  onEdit={(project) => {
+                    setProjectToEdit(project);
+                    setIsCreateProjectModalOpen(true);
+                  }}
+                  onDelete={(project) => {
+                    setProjectToDelete(project);
+                    setIsDeleteProjectModalOpen(true);
+                  }}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <ProjectFormModal
+        isOpen={isCreateProjectModalOpen}
+        onClose={() => {
+          setIsCreateProjectModalOpen(false);
+          setProjectToEdit(null);
+        }}
+        isSubmitting={isSubmittingProject}
+        initial={projectToEdit || undefined}
+        onSave={async (projectDraft) => {
+          setIsSubmittingProject(true);
+          try {
+            let finalCoverUrls = projectDraft.coverUrls || [];
+            
+            // Upload new cover files if any
+            if (projectDraft.coverFiles && projectDraft.coverFiles.length > 0) {
+              const uploadPromises = projectDraft.coverFiles.map(file => uploadToCloudinary(file, "project-cover"));
+              const uploadedUrls = await Promise.all(uploadPromises);
+              finalCoverUrls = [...finalCoverUrls, ...uploadedUrls];
+            }
+
+            let res;
+            if (projectDraft.id) {
+              res = await updateProject(projectDraft.id, user.id, {
+                title: projectDraft.title,
+                description: projectDraft.description,
+                status: projectDraft.status,
+                techStack: projectDraft.techStack,
+                repoUrl: projectDraft.repoUrl,
+                demoUrl: projectDraft.demoUrl,
+                coverUrls: finalCoverUrls,
+                mediaUrls: projectDraft.mediaUrls,
+                roleNeeded: projectDraft.roleNeeded,
+              });
+            } else {
+              res = await createProject({
+                userId: user.id,
+                title: projectDraft.title,
+                description: projectDraft.description,
+                status: projectDraft.status,
+                techStack: projectDraft.techStack,
+                repoUrl: projectDraft.repoUrl,
+                demoUrl: projectDraft.demoUrl,
+                coverUrls: finalCoverUrls,
+                mediaUrls: projectDraft.mediaUrls,
+                roleNeeded: projectDraft.roleNeeded,
+              });
+            }
+
+            if (res.success) {
+              setIsCreateProjectModalOpen(false);
+              setProjectToEdit(null);
+              window.dispatchEvent(new Event("refresh_projects"));
+            } else {
+              alert("Gagal menyimpan proyek: " + res.error);
+            }
+          } catch (error: any) {
+            alert("Terjadi kesalahan: " + error.message);
+          } finally {
+            setIsSubmittingProject(false);
+          }
+        }}
+      />
+
+      {isDeleteProjectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={() => !isDeletingProjectLoading && setIsDeleteProjectModalOpen(false)} />
+          <div className="bg-white dark:bg-[#242526] rounded-2xl p-6 w-full max-w-md relative z-10 shadow-xl border border-gray-100 dark:border-[#3A3B3C]">
+            <div className="mb-6">
+              <h3 className="text-[18px] font-bold text-black dark:text-[#E4E6EB] mb-2">{t("deleteProjectConfirmTitle") || "Hapus Project"}</h3>
+              <p className="text-gray-600 dark:text-[#B0B3B8] text-[15px]">
+                {t("deleteProjectConfirmText") || "Apakah Anda yakin ingin menghapus project"} <span className="font-semibold text-gray-900 dark:text-white">"{projectToDelete?.title}"</span>?
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                disabled={isDeletingProjectLoading}
+                onClick={() => setIsDeleteProjectModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl font-bold text-[15px] bg-gray-100 dark:bg-[#3A3B3C] text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-200 dark:hover:bg-[#4E4F50] transition-colors disabled:opacity-50"
+              >
+                {t("cancel") || "Batal"}
+              </button>
+              <button
+                disabled={isDeletingProjectLoading}
+                onClick={handleDeleteProject}
+                className="px-5 py-2.5 rounded-xl font-bold text-[15px] bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeletingProjectLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {t("deleteProject") || "Hapus"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
