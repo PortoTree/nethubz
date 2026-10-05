@@ -36,9 +36,6 @@ enum ProjectCategory {
   ELECTRONICS
   EDTECH
   RESEARCH
-  COURSE
-  COMIC
-  BOOK
   OTHER
 }
 
@@ -54,9 +51,11 @@ model Project {
   // ... kolom eksisting ...
   
   // Penambahan Kolom Baru:
-  category       ProjectCategory @default(SOFTWARE_IT)
-  customCategory String?         // Hanya diisi jika category == "OTHER"
-  collabTypes    CollabType[]    // Bisa milih lebih dari 1 tipe kolaborasi
+  category         ProjectCategory @default(SOFTWARE_IT)
+  customCategory   String?         // Hanya diisi jika category == "OTHER"
+  collabTypes      CollabType[]    // Bisa milih lebih dari 1 tipe kolaborasi
+  linkedProductId  String?         // ID produk jika project ini terhubung ke halaman Product
+  isForSale        Boolean         @default(false) // Toggle badge "For Sale" (Opsional, butuh status RELEASED)
 }
 ```
 
@@ -79,6 +78,12 @@ Di halaman **Add/Edit Project**, kita akan menggunakan State React (`selectedCat
 
 ### Penanganan Khusus Kategori "OTHER":
 Jika dropdown Kategori dipilih `OTHER`, form akan merender satu `<input type="text">` tambahan dengan placeholder: *"Kategori project kamu (misal: Podcast, Hidroponik)"*. Value-nya akan disimpan ke kolom `customCategory`.
+
+### Tambahan Toggle "For Sale" & Tautan Produk:
+1. **Checkbox Tautan Produk**: Jika status project dipilih "Completed / Released", akan muncul checkbox (misal: "Tautkan dengan Product NetHubz"). Jika dicentang, akan memunculkan kolom input **"NetHubz Product Link"** (opsional).
+2. **Hybrid Link Validation**: User bisa langsung *copy-paste* URL produk mereka (misal: `https://nethubz.com/pampam/123`). Sistem akan memvalidasi domain, memastikan link berasal dari `nethubz.com`, mengecek kecocokan username, lalu **mengekstrak Product ID** secara otomatis di belakang layar. Jika domain salah, form akan menolak (error validation).
+3. **Toggle/Checkbox For Sale Badge (Opsional)**: Terdapat toggle tambahan `isForSale` untuk memunculkan badge "For Sale" di halaman Showcase dan memasukkan project ini ke filter pencarian "For Sale". 
+   - **Krusial UX (Personal Branding)**: Fitur ini murni *opsional*. User tetap bisa menautkan Link Produk tanpa harus mencentang status "For Sale", sehingga halaman project tetap terlihat bersih sebagai portofolio murni (tanpa stiker jualan) namun tetap memiliki jembatan (CTA) tersembunyi/elegan di dalamnya menuju halaman produk.
 
 ---
 
@@ -106,20 +111,21 @@ Jika dropdown Kategori dipilih `OTHER`, form akan merender satu `<input type="te
 
 1. **Tahap 1: Database Setup**
    - Tambahkan enum `ProjectCategory` dan `CollabType` ke `schema.prisma`.
-   - Update model `Project`.
+   - Update model `Project` dengan kolom `category`, `customCategory`, `collabTypes`, `linkedProductId`, dan `isForSale`.
    - Jalankan `npx prisma db push` atau `prisma migrate dev`.
    - Perbarui/Generate tipe typescript dari Prisma.
 
 2. **Tahap 2: Lokalisasi & Bahasa**
-   - Tambahkan translasi baru di `en.json` dan `id.json` untuk semua list kategori, label form dinamis, dan placeholder.
+   - Tambahkan translasi baru di `en.json` dan `id.json` untuk semua list kategori, label form dinamis, toggle For Sale, dan placeholder.
 
 3. **Tahap 3: Update Backend Actions**
-   - Modifikasi `src/app/actions/projects.ts` (fungsi `createProject`, `updateProject`, dan fetch project) untuk menerima parameter `category`, `customCategory`, dan `collabTypes`.
+   - Modifikasi `src/app/actions/projects.ts` (fungsi `createProject`, `updateProject`, dan fetch project) untuk menerima parameter tambahan: `category`, `customCategory`, `collabTypes`, dan `isForSale`.
 
 4. **Tahap 4: Refactor UI Form (Create/Edit)**
    - Buat fungsi `getDynamicLabels(category)` yang me-return object label berdasarkan enum.
    - Ganti *hardcoded* label di form input menjadi dinamis.
    - Tambahkan logika *conditional rendering* untuk input `customCategory` jika opsi "Lainnya" dipilih.
+   - Tambahkan komponen UI untuk switch/toggle `isForSale` beserta logika disabled jika status bukan "Released".
 
 5. **Tahap 5: Update Halaman Showcase & Detail**
    - Tambahkan badge kategori di komponen `ProjectCard`.
