@@ -13,6 +13,7 @@ import { MediaRenderer } from "@/components/MediaRenderer";
 import { notFound, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
+import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
 
 
 
@@ -322,14 +323,13 @@ export default function ProjectDetailsPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-20">
+      <FloatingProjectHubBtn 
+        customHref={`/${locale}/project/${decodedUsername}`}
+        customText={`${displayName}'s Projects`}
+      />
       <FloatingUserMenu isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       <div className="max-w-[900px] mx-auto w-full px-4">
         
-        <Link href={`/${locale}/project/${decodedUsername}`} className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold mb-6 hover:underline">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-          {t("backToProjects", { name: displayName }) || `Back to ${displayName}'s Projects`}
-        </Link>
-
         {/* Main Media Gallery */}
         <ProjectGallery mediaUrls={p.mediaUrls?.length ? p.mediaUrls : p.coverUrls || []} />
 
@@ -338,7 +338,7 @@ export default function ProjectDetailsPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-[#E4E6EB]">{p.title}</h1>
               <span className={
-                "px-4 py-1.5 rounded-full text-[13px] font-bold " +
+                "shrink-0 px-2.5 py-1 rounded-md text-[13px] font-semibold " +
                 (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
                 p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
                 p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :

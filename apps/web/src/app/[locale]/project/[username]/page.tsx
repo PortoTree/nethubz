@@ -10,6 +10,7 @@ import { notFound, useRouter } from "next/navigation";
 import ProjectCard from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
+import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
 import { projectsCache } from "@/utils/profileCache";
 
 import ProjectFormModal from "@/components/ProjectFormModal";
@@ -153,6 +154,7 @@ export default function UserProjectPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
+      <FloatingProjectHubBtn />
       <FloatingUserMenu isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       <div className="max-w-[1200px] mx-auto w-full px-4">
         <div className="flex flex-col items-center justify-center text-center mb-10">
