@@ -927,6 +927,8 @@
     "statsTitle": "Menampilkan",
     "statsLabel": "project cocok",
     "noResults": "Tidak ada project yang cocok.",
-    "userProjects": "Project {name}"
+    "userProjects": "Project {name}",
+    "searchResultsTitle": "Hasil Pencarian",
+    "searchNoUser": "Pengguna yang anda cari mungkin tidak memiliki project disini, pastikan username/display name yang anda isi sudah tepat."
   }
 }

@@ -180,6 +180,55 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
     });
   }, [projects, search, activeStatus, activeCategory]);
 
+  // When search is active, compute matching users from project data
+  const searchedUsers = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase();
+    const userMap = new Map<string, {
+      username: string;
+      displayName: string;
+      avatarUrl: string;
+      totalProjects: number;
+      totalLikes: number;
+      totalComments: number;
+      isPopular: boolean;
+    }>();
+    projects.forEach((p) => {
+      if (!p.user?.username) return;
+      const username = p.user.username;
+      const displayName = p.user.profile?.displayName || username;
+      const avatarUrl = p.user.profile?.avatarUrl || "";
+      const matches =
+        username.toLowerCase().includes(q) ||
+        displayName.toLowerCase().includes(q);
+      if (!matches) return;
+      const likes = p._count?.likes || 0;
+      const comments = p._count?.comments || 0;
+      if (userMap.has(username)) {
+        const existing = userMap.get(username)!;
+        existing.totalProjects += 1;
+        existing.totalLikes += likes;
+        existing.totalComments += comments;
+      } else {
+        userMap.set(username, {
+          username,
+          displayName,
+          avatarUrl,
+          totalProjects: 1,
+          totalLikes: likes,
+          totalComments: comments,
+          isPopular: false,
+        });
+      }
+    });
+    // Cross-reference with activeCreators to tag popular users
+    const popularSet = new Set(activeCreators.filter((_, i) => i < 3).map(c => c.username));
+    return Array.from(userMap.values()).map(u => ({
+      ...u,
+      isPopular: popularSet.has(u.username),
+    }));
+  }, [search, projects, activeCreators]);
+
   const statusBadgeClass = (status: string) =>
     "shrink-0 px-2.5 py-1 rounded-md text-[11px] font-semibold " +
     (status === "RELEASED"
@@ -198,7 +247,7 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
     ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[status] || "statusReleased";
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full pb-16">
       {title && subtitle && (
         <div className="flex items-end justify-between mb-2">
           <div>
@@ -432,8 +481,8 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
         </div>
 
         {/* RIGHT: Search & Filter Sidebar */}
-        <div className="w-[300px] shrink-0 flex flex-col gap-4 sticky top-24 z-20">
-          <div className="relative">
+        <div className="w-[300px] shrink-0 flex flex-col sticky top-16 z-20 max-h-[calc(100vh-4.5rem)] pb-12">
+          <div className="relative shrink-0 pb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide">
                 {tHub("searchTitle")}
@@ -499,81 +548,157 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
             </div>
           </div>
 
-          {/* ACTIVE CREATORS */}
-          {activeCreators.length > 0 && (
-            <div className="flex flex-col gap-3 mt-4">
-              <div className="flex items-center gap-1.5 px-1 relative">
-                <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide">
-                  {tHub("activeCreators")}
-                </p>
-                <div className="group/info relative flex items-center">
-                  <svg className="w-3.5 h-3.5 text-gray-400 hover:text-purple-500 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          {/* ACTIVE CREATORS / SEARCH RESULTS */}
+          <div className="flex-1 overflow-y-auto sidebar-scrollbar pr-1">
+            {search.trim() ? (
+              /* ---- Search mode: show matching users ---- */
+              <div className="flex flex-col gap-3 mt-1">
+              <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide px-1">
+                {tHub("searchResultsTitle")}
+              </p>
+              {searchedUsers.length === 0 ? (
+                /* No matching users */
+                <div className="flex flex-col items-center gap-2 py-6 px-3 text-center">
+                  <svg className="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <div className="absolute right-0 top-full mt-2 w-[260px] bg-white dark:bg-[#242526] text-gray-700 dark:text-[#E4E6EB] text-[12px] rounded-xl border border-gray-200 dark:border-[#3A3B3C] shadow-xl p-3 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none">
-                    <p className="font-bold mb-1.5 text-gray-800 dark:text-[#E4E6EB]">{tHub("activeCreatorsTooltipTitle")}</p>
-                    <ul className="flex flex-col gap-1.5 text-[11px] font-medium opacity-80 leading-relaxed text-left">
-                      <li>{tHub("activeCreatorsTooltip1")}</li>
-                      <li>{tHub("activeCreatorsTooltip2")}</li>
-                      <li>{tHub("activeCreatorsTooltip3")}</li>
-                    </ul>
-                  </div>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-500 leading-relaxed">
+                    {tHub("searchNoUser")}
+                  </p>
                 </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                {activeCreators.map((creator) => (
-                  <Link
-                    key={creator.username}
-                    href={`/${locale}/project/${creator.username}`}
-                    className="relative flex items-center gap-3 p-2 rounded-xl border border-transparent transition-all group/creator hover:bg-white dark:hover:bg-[#242526] hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3A3B3C] overflow-hidden"
-                  >
-                    <div className="relative shrink-0 flex items-center">
-                      {creator.avatarUrl ? (
-                        <img src={creator.avatarUrl} alt={creator.displayName} className="w-10 h-10 rounded-full object-cover relative z-10" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-[15px] relative z-10">
-                          {creator.displayName[0]?.toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-grow relative z-10">
-                      <div className="flex items-center w-full">
-                        <span className="text-[13px] font-bold text-gray-800 dark:text-[#E4E6EB] group-hover/creator:text-purple-600 dark:group-hover/creator:text-purple-400 truncate leading-tight transition-colors">
-                          {tHub("userProjects", { name: creator.displayName })}
-                        </span>
-                        {creator.isPopular && (
-                          <img
-                            src="/red-elektro.gif"
-                            alt="Popular Electro"
-                            className="h-[25px] w-auto shrink-0 pointer-events-none mix-blend-screen ml-1 -translate-y-1"
-                          />
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {searchedUsers.map((user) => (
+                    <Link
+                      key={user.username}
+                      href={`/${locale}/project/${user.username}`}
+                      className="relative flex items-center gap-3 p-2 rounded-xl border border-transparent transition-all group/creator hover:bg-white dark:hover:bg-[#242526] hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3A3B3C] overflow-hidden"
+                    >
+                      <div className="relative shrink-0 flex items-center">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.displayName} className="w-10 h-10 rounded-full object-cover relative z-10" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-[15px] relative z-10">
+                            {user.displayName[0]?.toUpperCase()}
+                          </div>
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-0.5 w-full">
-                        <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate pr-2">
-                          @{creator.username}
-                        </span>
-                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-[10px] font-medium shrink-0 opacity-70 group-hover/creator:opacity-100 transition-opacity">
-                          <div className="flex items-center gap-0.5" title="Projects">
-                            <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
-                            {creator.totalProjects}
-                          </div>
-                          <div className="flex items-center gap-0.5" title="Likes">
-                            <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
-                            {creator.totalLikes}
-                          </div>
-                          <div className="flex items-center gap-0.5" title="Comments">
-                            <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                            {creator.totalComments}
+                      <div className="flex flex-col min-w-0 flex-grow relative z-10">
+                        <div className="flex items-center w-full">
+                          <span className="text-[13px] font-bold text-gray-800 dark:text-[#E4E6EB] group-hover/creator:text-purple-600 dark:group-hover/creator:text-purple-400 truncate leading-tight transition-colors">
+                            {tHub("userProjects", { name: user.displayName })}
+                          </span>
+                          {user.isPopular && (
+                            <img
+                              src="/red-elektro.gif"
+                              alt="Popular Electro"
+                              className="h-[25px] w-auto shrink-0 pointer-events-none mix-blend-screen ml-1 -translate-y-1"
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5 w-full">
+                          <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate pr-2">
+                            @{user.username}
+                          </span>
+                          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-[10px] font-medium shrink-0 opacity-70 group-hover/creator:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5" title="Projects">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                              {user.totalProjects}
+                            </div>
+                            <div className="flex items-center gap-0.5" title="Likes">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                              {user.totalLikes}
+                            </div>
+                            <div className="flex items-center gap-0.5" title="Comments">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                              {user.totalComments}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+              )}
               </div>
-            </div>
+            ) : (
+              /* ---- Normal mode: show active creators ---- */
+              activeCreators.length > 0 && (
+                <div className="flex flex-col gap-3 mt-1">
+                <div className="flex items-center gap-1.5 px-1 relative">
+                  <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide">
+                    {tHub("activeCreators")}
+                  </p>
+                  <div className="group/info relative flex items-center">
+                    <svg className="w-3.5 h-3.5 text-gray-400 hover:text-purple-500 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute right-0 top-full mt-2 w-[260px] bg-white dark:bg-[#242526] text-gray-700 dark:text-[#E4E6EB] text-[12px] rounded-xl border border-gray-200 dark:border-[#3A3B3C] shadow-xl p-3 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none">
+                      <p className="font-bold mb-1.5 text-gray-800 dark:text-[#E4E6EB]">{tHub("activeCreatorsTooltipTitle")}</p>
+                      <ul className="flex flex-col gap-1.5 text-[11px] font-medium opacity-80 leading-relaxed text-left">
+                        <li>{tHub("activeCreatorsTooltip1")}</li>
+                        <li>{tHub("activeCreatorsTooltip2")}</li>
+                        <li>{tHub("activeCreatorsTooltip3")}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  {activeCreators.map((creator) => (
+                    <Link
+                      key={creator.username}
+                      href={`/${locale}/project/${creator.username}`}
+                      className="relative flex items-center gap-3 p-2 rounded-xl border border-transparent transition-all group/creator hover:bg-white dark:hover:bg-[#242526] hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3A3B3C] overflow-hidden"
+                    >
+                      <div className="relative shrink-0 flex items-center">
+                        {creator.avatarUrl ? (
+                          <img src={creator.avatarUrl} alt={creator.displayName} className="w-10 h-10 rounded-full object-cover relative z-10" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-[15px] relative z-10">
+                            {creator.displayName[0]?.toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-grow relative z-10">
+                        <div className="flex items-center w-full">
+                          <span className="text-[13px] font-bold text-gray-800 dark:text-[#E4E6EB] group-hover/creator:text-purple-600 dark:group-hover/creator:text-purple-400 truncate leading-tight transition-colors">
+                            {tHub("userProjects", { name: creator.displayName })}
+                          </span>
+                          {creator.isPopular && (
+                            <img
+                              src="/red-elektro.gif"
+                              alt="Popular Electro"
+                              className="h-[25px] w-auto shrink-0 pointer-events-none mix-blend-screen ml-1 -translate-y-1"
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-0.5 w-full">
+                          <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate pr-2">
+                            @{creator.username}
+                          </span>
+                          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-[10px] font-medium shrink-0 opacity-70 group-hover/creator:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5" title="Projects">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                              {creator.totalProjects}
+                            </div>
+                            <div className="flex items-center gap-0.5" title="Likes">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                              {creator.totalLikes}
+                            </div>
+                            <div className="flex items-center gap-0.5" title="Comments">
+                              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                              {creator.totalComments}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
           )}
+          </div>
         </div>
       </div>
     </div>

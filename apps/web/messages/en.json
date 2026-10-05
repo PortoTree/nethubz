@@ -921,6 +921,8 @@
     "statsTitle": "Showing",
     "statsLabel": "projects match",
     "noResults": "No projects match your search.",
-    "userProjects": "{name}'s Projects"
+    "userProjects": "{name}'s Projects",
+    "searchResultsTitle": "Search Results",
+    "searchNoUser": "The user you're looking for may not have any projects here. Please double-check the username or display name you entered."
   }
 }

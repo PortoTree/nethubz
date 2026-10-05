@@ -61,8 +61,22 @@ html.dark::-webkit-scrollbar-thumb:hover {
 }
 
 /* Sidebar Scrollbar Auto-Hide */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s;
+}
+.sidebar-scrollbar:hover {
+  scrollbar-color: #d1d5db transparent;
+}
+.dark .sidebar-scrollbar:hover {
+  scrollbar-color: #4E4F50 transparent;
+}
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 8px;
+}
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
   background-color: transparent;
