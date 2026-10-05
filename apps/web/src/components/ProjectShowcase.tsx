@@ -191,27 +191,7 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
     // Take 3 random from remainder
     const random3 = [...remainingUsers].sort(() => 0.5 - Math.random()).slice(0, 3);
 
-    let combined = [...top3Popular, ...top4Projects, ...random3];
-
-    // TEMPORARY DUMMY DATA
-    if (combined.length < 10) {
-      const dummies = [
-        { username: "john_doe", displayName: "John Doe", avatarUrl: "", totalLikes: 1450, totalComments: 342, totalProjects: 12 },
-        { username: "jane_smith", displayName: "Jane Smith", avatarUrl: "", totalLikes: 890, totalComments: 120, totalProjects: 8 },
-        { username: "alex_dev", displayName: "Alex Developer", avatarUrl: "", totalLikes: 5600, totalComments: 890, totalProjects: 45 },
-        { username: "sarah_code", displayName: "Sarah Coder", avatarUrl: "", totalLikes: 320, totalComments: 45, totalProjects: 3 },
-        { username: "mike_builds", displayName: "Mike Builder", avatarUrl: "", totalLikes: 2100, totalComments: 430, totalProjects: 18 },
-        { username: "emma_design", displayName: "Emma Design", avatarUrl: "", totalLikes: 980, totalComments: 210, totalProjects: 9 },
-        { username: "chris_tech", displayName: "Chris Tech", avatarUrl: "", totalLikes: 4300, totalComments: 670, totalProjects: 31 },
-        { username: "leo_coder", displayName: "Leo Coder", avatarUrl: "", totalLikes: 1500, totalComments: 110, totalProjects: 14 },
-        { username: "david_art", displayName: "David Art", avatarUrl: "", totalLikes: 750, totalComments: 80, totalProjects: 5 },
-        { username: "lucy_writer", displayName: "Lucy Writer", avatarUrl: "", totalLikes: 1100, totalComments: 200, totalProjects: 11 },
-      ];
-
-      const toAdd = 10 - combined.length;
-      const neededDummies = dummies.filter(d => !combined.find(c => c.username === d.username)).slice(0, toAdd);
-      combined = [...combined, ...neededDummies];
-    }
+    const combined = [...top3Popular, ...top4Projects, ...random3];
 
     return combined.map((c, i) => ({ ...c, isPopular: i < 3 }));
   }, [projects]);
@@ -347,7 +327,10 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
           <div className="sticky top-[72px] z-30 bg-white/90 dark:bg-[#242526]/90 backdrop-blur-md px-5 py-3.5 mb-6 border border-gray-200 dark:border-[#4E4F50] shadow-sm rounded-[28px]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h2 className="text-[15px] font-bold text-gray-800 dark:text-[#E4E6EB] cursor-pointer ml-1" onClick={() => setShowStickyCategories(!showStickyCategories)}>
+                <h2 
+                  className={`text-[15px] font-bold text-gray-800 dark:text-[#E4E6EB] ml-1 ${isScrolledPastHero ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`} 
+                  onClick={() => isScrolledPastHero && setShowStickyCategories(!showStickyCategories)}
+                >
                   {tHub("categoryTitle")} <span className="text-purple-600 dark:text-purple-400">{activeCategory === "ALL" ? tHub("allCategories") : categories.find(c => c.key === activeCategory)?.label}</span>
                 </h2>
                 {activeCategory !== "ALL" && (

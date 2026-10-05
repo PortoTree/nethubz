@@ -40,7 +40,7 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
     if (mediaUrls.length === 1) {
       return (
         <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" />
+          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" variant="detail" />
         </div>
       );
     }
@@ -50,7 +50,7 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
         <div className="grid grid-cols-2 gap-2 mb-10 aspect-[2/1]">
           {mediaUrls.map((url, i) => (
             <div key={i} onClick={() => setSelectedMediaIndex(i)} className="w-full h-full bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto" />
+              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto" variant="detail" />
             </div>
           ))}
         </div>
@@ -61,13 +61,13 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
       return (
         <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-10 aspect-[2/1]">
           <div onClick={() => setSelectedMediaIndex(0)} className="col-span-2 row-span-2 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
           <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
           <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
         </div>
       );
@@ -77,16 +77,16 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
       return (
         <div className="grid grid-cols-4 grid-rows-3 gap-2 mb-10 aspect-[2/1]">
           <div onClick={() => setSelectedMediaIndex(0)} className="col-span-3 row-span-3 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
           <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
           <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
           <div onClick={() => setSelectedMediaIndex(3)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-            <MediaRenderer url={mediaUrls[3]} className="w-full h-full object-cover mx-auto" />
+            <MediaRenderer url={mediaUrls[3]} className="w-full h-full object-cover mx-auto" variant="detail" />
           </div>
         </div>
       );
@@ -95,12 +95,12 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
     return (
       <div className="flex flex-col gap-2 mb-10">
         <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-[2/1] bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
-          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" />
+          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" variant="detail" />
         </div>
         <div className="grid grid-cols-4 gap-2 aspect-[4/1]">
           {mediaUrls.slice(1, 5).map((url, i) => (
             <div key={i} onClick={() => setSelectedMediaIndex(i + 1)} className="relative w-full h-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer group">
-              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto group-hover:opacity-75 transition-opacity" />
+              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto group-hover:opacity-75 transition-opacity" variant="detail" />
               {i === 3 && mediaUrls.length > 5 && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-colors">
                   <span className="text-white font-bold text-xl md:text-2xl">+{mediaUrls.length - 5}</span>
@@ -142,7 +142,7 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
 
             {/* Current Image */}
             <div className="w-full max-w-6xl h-[75vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              <MediaRenderer url={mediaUrls[selectedMediaIndex]} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+              <MediaRenderer url={mediaUrls[selectedMediaIndex]} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" variant="detail" />
             </div>
 
             {/* Next Button */}
@@ -166,7 +166,7 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
                     onClick={() => setSelectedMediaIndex(idx)}
                     className={`relative w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-lg overflow-hidden snap-center transition-all duration-200 ${selectedMediaIndex === idx ? 'ring-2 ring-purple-500 scale-110 opacity-100 z-10' : 'opacity-50 hover:opacity-100'}`}
                   >
-                    <MediaRenderer url={url} className="w-full h-full object-cover" />
+                    <MediaRenderer url={url} className="w-full h-full object-cover" variant="thumb" />
                   </button>
                 ))}
               </div>

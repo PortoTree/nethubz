@@ -55,14 +55,14 @@ export default function HorizontalProjectCard({
       {cover ? (
         <div 
           onClick={() => router.push(`/${locale}/project/${projectOwner}/${p.id}`)}
-          className="w-full md:w-[260px] md:shrink-0 aspect-video md:aspect-auto relative z-0 cursor-pointer"
+          className="w-full md:w-[200px] md:shrink-0 aspect-video md:aspect-auto relative z-0 cursor-pointer"
         >
           <MediaRenderer url={cover} className="absolute inset-0 w-full h-full object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
         </div>
       ) : (
         <div 
           onClick={() => router.push(`/${locale}/project/${projectOwner}/${p.id}`)}
-          className="w-full md:w-[260px] md:shrink-0 aspect-video md:aspect-auto bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-400 cursor-pointer"
+          className="w-full md:w-[200px] md:shrink-0 aspect-video md:aspect-auto bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-400 cursor-pointer"
         >
           <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -79,14 +79,14 @@ export default function HorizontalProjectCard({
             >
               {p.title}
             </Link>
-            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 relative z-10">
+            <div className="flex flex-row items-center gap-2 mt-1.5 relative z-10 w-full overflow-hidden">
               {p.category && (
-                <span className={getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")}>
+                <span className={`${getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")} shrink-0`}>
                   {p.category === "OTHER" ? p.customCategory : tProject(`cat_${p.category}` as any)}
                 </span>
               )}
               {p.isForSale && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm shrink-0">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   FOR SALE
                 </span>
@@ -186,25 +186,7 @@ export default function HorizontalProjectCard({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-[#3A3B3C]">
-            <Link href={`/${locale}/p/${projectOwner}/${p.userId || p.user?.id || ""}`} className="flex items-center gap-2.5 group/user relative z-10">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C] shrink-0 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-sm">
-                  {displayName[0]?.toUpperCase()}
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="text-[13px] font-semibold text-gray-700 dark:text-[#E4E6EB] group-hover/user:text-purple-600 dark:group-hover/user:text-purple-400 transition-colors leading-tight">
-                  Project {displayName}
-                </span>
-                <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  @{projectOwner}
-                </span>
-              </div>
-            </Link>
-
+          <div className="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-[#3A3B3C]">
             <div className="flex items-center gap-3.5 relative z-10" onClick={(e) => e.stopPropagation()}>
               <button className="flex items-center gap-1.5 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors font-medium text-[13px]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
