@@ -205,3 +205,30 @@ html.dark::-webkit-scrollbar-thumb:hover {
   0%, 30% { transform: translateX(0); }
   70%, 100% { transform: translateX(calc(100cqw - 100%)); }
 }
+
+/* Popular Creator Electro Effect */
+.popular-electro-shock {
+  position: relative;
+  overflow: hidden;
+}
+
+.popular-electro-shock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.4), rgba(255, 0, 0, 0.6), rgba(239, 68, 68, 0.4), transparent);
+  transform: skewX(-30deg);
+  animation: electro-zap 2s infinite;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+@keyframes electro-zap {
+  0%, 80% { left: -100%; opacity: 0; }
+  85% { left: 50%; opacity: 1; }
+  90% { left: 200%; opacity: 0; }
+  100% { left: 200%; opacity: 0; }
+}
