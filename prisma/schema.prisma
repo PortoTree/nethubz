@@ -481,8 +481,12 @@ model Project {
   coverUrls   String[]      @default([])
   mediaUrls   String[]      @default([])
   roleNeeded  String?       
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  category       ProjectCategory @default(WEB_DEV)
+  customCategory String?
+  collabTypes    CollabType[]
 
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts       Post[]
@@ -494,4 +498,38 @@ enum ProjectStatus {
   SEARCHING_TEAM
   OPEN_SOURCE
   HIATUS
+}
+
+enum ProjectCategory {
+  WEB_DEV
+  MOBILE_APP
+  GAME_DEV
+  DATA_AI
+  DESKTOP_APP
+  OPEN_SOURCE
+  UI_UX
+  GRAPHIC_DESIGN
+  ANIMATION_3D
+  VIDEO_FILM
+  MUSIC_AUDIO
+  ECOMMERCE
+  SAAS
+  FINTECH
+  SOCIAL_IMPACT
+  IOT
+  ROBOTICS
+  ELECTRONICS
+  EDTECH
+  RESEARCH
+  COURSE
+  COMIC
+  BOOK
+  OTHER
+}
+
+enum CollabType {
+  FINDING_TEAM
+  FINDING_MENTOR
+  FINDING_TESTER
+  FINDING_INVESTOR
 }

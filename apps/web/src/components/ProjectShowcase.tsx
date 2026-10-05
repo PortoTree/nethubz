@@ -1,18 +1,60 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
 
-export default function ProjectShowcase({ projects }: { projects: any[] }) {
+export default function ProjectShowcase({ projects, title, subtitle }: { projects: any[], title?: string, subtitle?: string }) {
   const t = useTranslations("project");
   const tHub = useTranslations("projectShowcase");
   const locale = useLocale();
 
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   const [search, setSearch] = useState("");
   const [activeStatus, setActiveStatus] = useState("ALL");
   const [showFilter, setShowFilter] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("ALL");
+
+  const categories = [
+    { key: "WEB_DEV", label: "Web Dev", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> },
+    { key: "MOBILE_APP", label: "Mobile Apps", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg> },
+    { key: "GAME_DEV", label: "Game Dev", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg> },
+    { key: "DATA_AI", label: "Data & AI", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> },
+    { key: "DESKTOP_APP", label: "Desktop Apps", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
+    { key: "OPEN_SOURCE", label: "Open Source", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+    { key: "UI_UX", label: "UI/UX Design", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg> },
+    { key: "GRAPHIC_DESIGN", label: "Graphic Design", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> },
+    { key: "ANIMATION_3D", label: "3D & Animation", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg> },
+    { key: "VIDEO_FILM", label: "Video & Film", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> },
+    { key: "MUSIC_AUDIO", label: "Music & Audio", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg> },
+    { key: "ECOMMERCE", label: "E-Commerce", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
+    { key: "SAAS", label: "SaaS", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg> },
+    { key: "FINTECH", label: "Fintech", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+    { key: "SOCIAL_IMPACT", label: "Social Impact", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> },
+    { key: "IOT", label: "IoT", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg> },
+    { key: "ROBOTICS", label: "Robotics", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> },
+    { key: "ELECTRONICS", label: "Electronics", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg> },
+    { key: "EDTECH", label: "EdTech", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v6" /></svg> },
+    { key: "RESEARCH", label: "Research", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> },
+    { key: "COURSE", label: "Course & Module", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+    { key: "COMIC", label: "Comic/Webtoon", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> },
+    { key: "BOOK", label: "Book/Novel", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg> },
+    { key: "OTHER", label: "Other", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg> }
+  ];
 
   const statusFilters = [
     { key: "ALL", label: tHub("filterAll") },
@@ -36,9 +78,10 @@ export default function ProjectShowcase({ projects }: { projects: any[] }) {
         p.user?.profile?.displayName?.toLowerCase().includes(q) ||
         p.techStack?.some((t: string) => t.toLowerCase().includes(q));
       const matchStatus = activeStatus === "ALL" || p.status === activeStatus;
-      return matchSearch && matchStatus;
+      const matchCategory = activeCategory === "ALL" || p.category === activeCategory || (!p.category && activeCategory === "SOFTWARE_IT");
+      return matchSearch && matchStatus && matchCategory;
     });
-  }, [projects, search, activeStatus]);
+  }, [projects, search, activeStatus, activeCategory]);
 
   const statusBadgeClass = (status: string) =>
     "shrink-0 px-2.5 py-1 rounded-md text-[11px] font-semibold " +
@@ -58,9 +101,62 @@ export default function ProjectShowcase({ projects }: { projects: any[] }) {
     ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam" } as Record<string, string>)[status] || "statusReleased";
 
   return (
-    <div className="flex gap-6 items-start w-full">
-      {/* LEFT: Project Cards */}
+    <div className="flex flex-col gap-6 w-full">
+      {title && subtitle && (
+        <div className="flex items-end justify-between mb-2">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-[#E4E6EB]">{title}</h1>
+            <p className="text-gray-500 dark:text-[#B0B3B8] text-[14px] mt-1">{subtitle}</p>
+          </div>
+        </div>
+      )}
+
+      {/* HERO CATEGORIES CAROUSEL */}
+      <div ref={carouselRef} className="flex gap-3 overflow-x-auto pb-4 pt-2 px-1 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
+        {categories.map((c) => {
+          const count = projects.filter((p) => p.category === c.key || (!p.category && c.key === "WEB_DEV")).length;
+          return (
+            <button
+              key={c.key}
+              onClick={() => setActiveCategory(activeCategory === c.key ? "ALL" : c.key)}
+              className={`shrink-0 w-[120px] snap-start flex flex-col items-center justify-center p-4 rounded-2xl border transition-all relative ${
+                activeCategory === c.key
+                  ? "bg-purple-100 border-purple-200 text-purple-700 dark:bg-purple-500/20 dark:border-purple-500/30 dark:text-purple-300 shadow-sm translate-y-[2px]"
+                  : "bg-white border-gray-100 border-b-gray-200 text-gray-600 hover:border-purple-200 hover:-translate-y-1 hover:shadow-lg dark:bg-[#242526] dark:border-[#3A3B3C] dark:border-b-[#4E4F50] dark:text-[#B0B3B8] dark:hover:border-purple-500/30 shadow-md border-b-[4px]"
+              }`}
+            >
+              <div className={`mb-3 p-2.5 rounded-full transition-colors ${activeCategory === c.key ? "bg-purple-200 dark:bg-purple-500/40 text-purple-700 dark:text-purple-300" : "bg-gray-50 dark:bg-[#3A3B3C] text-gray-500 dark:text-gray-400"}`}>
+                {c.icon}
+              </div>
+              <span className="text-[12px] font-bold text-center leading-tight tracking-wide mb-1">{c.label}</span>
+              <span className="text-[10px] font-medium opacity-70">{count} project</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-6 items-start w-full">
+        {/* LEFT: Project Cards */}
       <div className="flex-1 min-w-0">
+        
+        <div className="flex flex-col gap-3 mb-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-gray-800 dark:text-[#E4E6EB]">
+              {tHub("categoryTitle")} <span className="text-purple-600 dark:text-purple-400">{activeCategory === "ALL" ? tHub("allCategories") : categories.find(c => c.key === activeCategory)?.label}</span>
+            </h2>
+            <div className="flex gap-2">
+              <button onClick={scrollLeft} className="w-8 h-8 rounded-full bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] transition-colors shadow-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button onClick={scrollRight} className="w-8 h-8 rounded-full bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] transition-colors shadow-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
+          <div className="h-px w-full bg-gray-200 dark:bg-[#3A3B3C]"></div>
+        </div>
+
+
         {filtered.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-[#242526] rounded-2xl border border-gray-100 dark:border-[#3A3B3C]">
             <svg className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,5 +341,6 @@ export default function ProjectShowcase({ projects }: { projects: any[] }) {
 
       </div>
     </div>
+  </div>
   );
 }

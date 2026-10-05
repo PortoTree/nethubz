@@ -903,8 +903,10 @@
   },
   "projectHub": "Project Hub",
   "projectShowcase": {
-    "pageTitle": "Project Showcase",
-    "pageSubtitle": "{count} projects from our community",
+    "pageTitle": "Project Hub",
+    "pageSubtitle": "Discover project portfolios from the entire community here.",
+    "categoryTitle": "Category :",
+    "allCategories": "All Categories",
     "searchTitle": "Search",
     "searchPlaceholder": "Search projects, creators...",
     "filterStatus": "Status",

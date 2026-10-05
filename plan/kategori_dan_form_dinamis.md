@@ -14,14 +14,31 @@ Tujuan dari update ini adalah:
 Kita akan memodifikasi model `Project` dengan menambahkan enum kategori dan tipe kolaborasi.
 
 ```prisma
-// Enum untuk Kategori Utama
+// Enum untuk Kategori Spesifik (24 Kategori)
 enum ProjectCategory {
-  SOFTWARE_IT
-  DESIGN_CREATIVE
-  BUSINESS_STARTUP
-  HARDWARE_IOT
-  RESEARCH_EDUCATION
-  ARTS_LITERATURE
+  WEB_DEV
+  MOBILE_APP
+  GAME_DEV
+  DATA_AI
+  DESKTOP_APP
+  OPEN_SOURCE
+  UI_UX
+  GRAPHIC_DESIGN
+  ANIMATION_3D
+  VIDEO_FILM
+  MUSIC_AUDIO
+  ECOMMERCE
+  SAAS
+  FINTECH
+  SOCIAL_IMPACT
+  IOT
+  ROBOTICS
+  ELECTRONICS
+  EDTECH
+  RESEARCH
+  COURSE
+  COMIC
+  BOOK
   OTHER
 }
 

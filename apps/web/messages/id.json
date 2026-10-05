@@ -909,8 +909,10 @@
   },
   "projectHub": "Project Hub",
   "projectShowcase": {
-    "pageTitle": "Etalase Project",
-    "pageSubtitle": "{count} project dari komunitas kami",
+    "pageTitle": "Project Hub",
+    "pageSubtitle": "Temukan portofolio project dari seluruh komunitas disini.",
+    "categoryTitle": "Kategori :",
+    "allCategories": "Semua Kategori",
     "searchTitle": "Cari",
     "searchPlaceholder": "Cari project, kreator...",
     "filterStatus": "Status",
