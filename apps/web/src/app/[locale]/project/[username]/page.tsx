@@ -9,6 +9,7 @@ import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import ProjectCard from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
+import FloatingUserMenu from "@/components/FloatingUserMenu";
 import { projectsCache } from "@/utils/profileCache";
 
 import ProjectFormModal from "@/components/ProjectFormModal";
@@ -117,8 +118,28 @@ export default function UserProjectPage({
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
-        <div className="max-w-[1200px] mx-auto w-full px-4 flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="max-w-[1200px] mx-auto w-full px-4">
+          <div className="flex flex-col items-center justify-center text-center mb-10 animate-pulse">
+            <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-[#3A3B3C] mb-4"></div>
+            <div className="w-48 h-8 rounded-lg bg-gray-300 dark:bg-[#3A3B3C] mb-2"></div>
+            <div className="w-32 h-5 rounded-lg bg-gray-300 dark:bg-[#3A3B3C]"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white dark:bg-[#242526] rounded-xl overflow-hidden shadow-sm animate-pulse border border-gray-100 dark:border-[#3A3B3C] h-[360px]">
+                <div className="w-full aspect-[4/3] bg-gray-300 dark:bg-[#3A3B3C]"></div>
+                <div className="p-4 flex flex-col gap-2">
+                  <div className="w-3/4 h-6 rounded-lg bg-gray-300 dark:bg-[#4E4F50]"></div>
+                  <div className="w-full h-4 rounded-lg bg-gray-300 dark:bg-[#4E4F50]"></div>
+                  <div className="w-5/6 h-4 rounded-lg bg-gray-300 dark:bg-[#4E4F50]"></div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-16 h-6 rounded-full bg-gray-300 dark:bg-[#4E4F50]"></div>
+                    <div className="w-16 h-6 rounded-full bg-gray-300 dark:bg-[#4E4F50]"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -132,6 +153,7 @@ export default function UserProjectPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
+      <FloatingUserMenu isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       <div className="max-w-[1200px] mx-auto w-full px-4">
         <div className="flex flex-col items-center justify-center text-center mb-10">
           <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="block mb-4 hover:opacity-80 transition-opacity">

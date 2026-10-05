@@ -12,6 +12,7 @@ import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
 import { notFound, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import FloatingUserMenu from "@/components/FloatingUserMenu";
 
 
 
@@ -286,8 +287,26 @@ export default function ProjectDetailsPage({
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
-        <div className="max-w-[1200px] mx-auto w-full px-4 flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="max-w-[900px] mx-auto w-full px-4 animate-pulse">
+          <div className="w-48 h-6 bg-gray-300 dark:bg-[#3A3B3C] rounded mb-6"></div>
+          <div className="w-full aspect-[16/9] md:aspect-[21/9] bg-gray-300 dark:bg-[#3A3B3C] rounded-2xl mb-10"></div>
+          <div className="flex flex-col gap-6 border-b border-gray-200 dark:border-[#3A3B3C] pb-8">
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex-1">
+                <div className="w-3/4 h-10 bg-gray-300 dark:bg-[#3A3B3C] rounded-lg mb-4"></div>
+                <div className="flex gap-2">
+                  <div className="w-20 h-8 bg-gray-300 dark:bg-[#3A3B3C] rounded-full"></div>
+                  <div className="w-24 h-8 bg-gray-300 dark:bg-[#3A3B3C] rounded-full"></div>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-gray-300 dark:bg-[#3A3B3C] rounded-full shrink-0"></div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-col gap-4">
+             <div className="w-full h-4 bg-gray-300 dark:bg-[#3A3B3C] rounded"></div>
+             <div className="w-full h-4 bg-gray-300 dark:bg-[#3A3B3C] rounded"></div>
+             <div className="w-5/6 h-4 bg-gray-300 dark:bg-[#3A3B3C] rounded"></div>
+          </div>
         </div>
       </div>
     );
@@ -303,6 +322,7 @@ export default function ProjectDetailsPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-20">
+      <FloatingUserMenu isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       <div className="max-w-[900px] mx-auto w-full px-4">
         
         <Link href={`/${locale}/project/${decodedUsername}`} className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold mb-6 hover:underline">
