@@ -362,6 +362,9 @@ model Notification {
   commentId String?
   comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 }
 
@@ -427,6 +430,7 @@ enum NotificationType {
   GIVEAWAY_WON
   GIVEAWAY_REWARD
   GIVEAWAY_ENDED
+  COMMENT_LIKE
   PROJECT_LIKE
   PROJECT_COMMENT
   PROJECT_SHARE
@@ -517,6 +521,7 @@ model Project {
   comments    Comment[]
   likes       Like[]
   savedBy     SavedProject[]
+  notifications Notification[]
 }
 
 enum ProjectStatus {

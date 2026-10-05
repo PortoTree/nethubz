@@ -10,6 +10,12 @@ import { addComment, getComments } from "@/app/actions/interactions";
 import { toggleLike } from "@/app/actions/interactions";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Mention from '@tiptap/extension-mention';
+import Placeholder from '@tiptap/extension-placeholder';
+import { searchUsersForMention } from '@/app/actions/profile';
+import { getMentionSuggestion } from '@/utils/mentionSuggestion';
 
 import { commentsCache } from "@/utils/cache";
 
@@ -38,6 +44,63 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
   const emojiRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+
+  // Focus helper for MentionsInput
+  const handleReplyClick = (username: string, id: string, displayName: string) => {
+    if (editor) {
+      editor.chain().focus().insertContent([
+        { type: 'mention', attrs: { id: `${username}/${id}`, label: displayName } },
+        { type: 'text', text: ' ' }
+      ]).run();
+    }
+  };
+
+  const getMentionsText = (ed: any) => {
+    const json = ed.getJSON();
+    let text = '';
+    const parseNode = (node: any) => {
+      if (node.type === 'text') text += node.text;
+      if (node.type === 'mention') text += `@[${node.attrs.label}](${node.attrs.id})`;
+      if (node.type === 'paragraph' && text !== '') text += '\n';
+      if (node.content) node.content.forEach(parseNode);
+    }
+    if (json.content) json.content.forEach(parseNode);
+    return text.trim();
+  };
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ bold: false, italic: false, strike: false, code: false, codeBlock: false, heading: false, bulletList: false, orderedList: false, listItem: false, blockquote: false, horizontalRule: false }),
+      Placeholder.configure({
+        placeholder: t("postModal.writeComment") || "Tulis komentar...",
+        emptyEditorClass: 'is-editor-empty text-gray-400',
+      }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'text-blue-500 dark:text-blue-400 font-bold underline cursor-pointer bg-blue-50 dark:bg-blue-900/30 rounded px-1',
+        },
+        suggestion: getMentionSuggestion(),
+      }),
+    ],
+    onUpdate: ({ editor }) => {
+      setCommentText(getMentionsText(editor));
+    },
+    editorProps: {
+      attributes: {
+        class: 'w-full min-h-[24px] max-h-[120px] overflow-y-auto outline-none custom-scrollbar',
+      },
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          if (commentText.trim() && !isSubmitting) {
+            handleSubmitComment(event as any);
+          }
+          return true;
+        }
+        return false;
+      }
+    },
+  });
 
   const autoResize = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
@@ -116,9 +179,36 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
         return next;
       });
       setCommentText("");
+      if (editor) editor.commands.clearContent();
       // Update comment count on parent? For now just visual in modal
     }
     setIsSubmitting(false);
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    if (!currentUser) return;
+    try {
+      await toggleLike(currentUser.id, "comment", commentId);
+      // Optional: optimistic UI update for comment likes here
+    } catch (error) {
+      console.error("Error toggling comment like:", error);
+    }
+  };
+
+  // fetchUsers function is now in mentionSuggestion
+
+  const renderCommentContent = (content: string) => {
+    if (!content) return null;
+    const parts = content.split(/(@\[.*?\]\([^\)]+\))/g);
+    return parts.map((part, i) => {
+      const match = part.match(/@\[(.*?)\]\(([^\)]+)\)/);
+      if (match) {
+        const username = match[2].split('/')[0];
+        const id = match[2].split('/')[1] || username;
+        return <span key={i} className="text-blue-500 cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/p/${username}/${id}`); }}>@{match[1]}</span>;
+      }
+      return <span key={i}>{part}</span>;
+    });
   };
 
   if (!isOpen || typeof document === "undefined") return null;
@@ -181,12 +271,12 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>
                           </button>
                         </div>
-                        <p className="text-[14px] text-gray-800 dark:text-gray-300 mt-1 whitespace-pre-wrap">{c.content}</p>
+                        <p className="text-[14px] text-gray-800 dark:text-gray-300 mt-1 whitespace-pre-wrap">{renderCommentContent(c.content)}</p>
                       </div>
                       <div className="flex items-center gap-3 mt-1 ml-1 text-[12px] font-semibold text-gray-500">
                         <span>{formatPostTime(c.createdAt, t, locale)}</span>
-                        <button className="hover:text-blue-500 transition-colors">{t("postModal.like") || "Suka"}</button>
-                        <button className="hover:text-blue-500 transition-colors">{t("postModal.reply") || "Balas"}</button>
+                        <button onClick={() => handleLikeComment(c.id)} className="hover:text-blue-500 transition-colors">{t("postModal.like") || "Suka"}</button>
+                        <button onClick={() => handleReplyClick(c.author?.username, c.author?.id, c.author?.profile?.displayName || c.author?.username)} className="hover:text-blue-500 transition-colors">{t("postModal.reply") || "Balas"}</button>
                       </div>
                     </div>
                   </div>
@@ -209,31 +299,38 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
               <img src={currentUser?.profile?.avatarUrl || "/default-avatar.svg"} alt="Avatar" className="w-9 h-9 rounded-full object-cover shrink-0 mb-[2px]" />
               <div className="flex-1 relative">
                 <div ref={emojiRef}>
-                  <button type="button" onClick={() => setIsEmojiOpen(o => !o)} aria-label="Emoji" className="absolute left-2 bottom-[6px] p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">
+                  <button type="button" onClick={() => setIsEmojiOpen(o => !o)} aria-label="Emoji" className="absolute left-2 bottom-[6px] z-10 p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </button>
                   {isEmojiOpen && (
                     <div className="absolute bottom-full -left-12 mb-4 z-50 shadow-2xl rounded-2xl overflow-hidden picker-container">
                       <style>{`.picker-container em-emoji-picker{height:280px !important;min-height:280px !important;max-height:280px !important;width:328px !important;max-width:calc(100vw - 2rem) !important;}`}</style>
-                      <Picker data={data} onEmojiSelect={(e: any) => setCommentText(prev => prev + e.native)} theme={document.documentElement.classList.contains("dark") ? "dark" : "light"} previewPosition="none" skinTonePosition="search" />
+                      <Picker data={data} onEmojiSelect={(e: any) => {
+                        if (editor) editor.chain().focus().insertContent(e.native).run();
+                      }} theme={document.documentElement.classList.contains("dark") ? "dark" : "light"} previewPosition="none" skinTonePosition="search" />
                     </div>
                   )}
                 </div>
-                <textarea 
-                  ref={textareaRef}
-                  value={commentText}
-                  onChange={e => { setCommentText(e.target.value); autoResize(e.target); }}
-                  placeholder={t("postModal.writeComment") || "Tulis komentar..."}
-                  className="block w-full bg-gray-100 dark:bg-[#3A3B3C] border-none rounded-2xl py-2 pl-11 pr-12 text-[14px] text-gray-900 dark:text-white resize-none focus:ring-0 custom-scrollbar overflow-y-auto"
-                  rows={1}
-                  style={{ maxHeight: "120px" }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmitComment(e);
+                <div className="flex-1 rounded-2xl bg-gray-100 dark:bg-[#3A3B3C] py-2 pl-11 pr-12 min-w-0 text-gray-900 dark:text-[#E4E6EB]">
+                  <style>{`
+                    .ProseMirror {
+                      word-break: break-word;
+                      overflow-wrap: anywhere;
+                      white-space: pre-wrap;
                     }
-                  }}
-                />
+                    .ProseMirror p.is-editor-empty:first-child::before {
+                      color: #9ca3af;
+                      content: attr(data-placeholder);
+                      float: left;
+                      height: 0;
+                      pointer-events: none;
+                    }
+                    .ProseMirror p {
+                      margin: 0;
+                    }
+                  `}</style>
+                  <EditorContent editor={editor} />
+                </div>
                 <button 
                   type="submit" 
                   disabled={!commentText.trim() || isSubmitting}

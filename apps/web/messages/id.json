@@ -453,7 +453,10 @@
     "typeGiveawayEnded": "Giveaway kamu telah berakhir dan pemenang sudah ditentukan.",
     "typeGiveawayReward": "mengirimkan hadiah giveaway ke kamu.",
     "typePostShare": "membagikan postingan kamu.",
-    "typeCommentReply": "membalas komentar kamu."
+    "typeCommentReply": "membalas komentar anda pada postingan/project.",
+    "typeProjectLike": "menyukai project kamu.",
+    "typeProjectComment": "mengomentari project kamu.",
+    "typeCommentLike": "menyukai komentar anda."
   },
   "product": {
     "buy_now": "Beli Sekarang",

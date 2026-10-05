@@ -205,3 +205,26 @@ export async function updateProfileInfo(token: string, userId: string, data: any
     return { success: false, error: "Database error" };
   }
 }
+
+export async function searchUsersForMention(query: string) {
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: query, mode: "insensitive" } },
+        { profile: { displayName: { contains: query, mode: "insensitive" } } }
+      ]
+    },
+    take: 5,
+    select: {
+      id: true,
+      username: true,
+      profile: { select: { displayName: true, avatarUrl: true } }
+    }
+  });
+  return users.map(u => ({
+    id: `${u.username}/${u.id}`,
+    display: u.username,
+    avatarUrl: u.profile?.avatarUrl,
+    displayName: u.profile?.displayName || u.username
+  }));
+}

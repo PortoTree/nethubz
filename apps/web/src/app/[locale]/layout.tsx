@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 
 import SplashScreen from "@/components/SplashScreen";
 import { UserProvider } from "@/contexts/UserContext";
+import GlobalPostModal from "@/components/GlobalPostModal";
 
 export default async function LocaleLayout({
   children,
@@ -41,6 +42,7 @@ export default async function LocaleLayout({
       <SplashScreen />
       <UserProvider>
         {children}
+        <GlobalPostModal />
       </UserProvider>
     </NextIntlClientProvider>
   );

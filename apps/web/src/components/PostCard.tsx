@@ -58,21 +58,20 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
 
   const [isSaved, setIsSaved] = useState(post.hasSaved || false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
-  
-
+  const [shareCount, setShareCount] = useState(post._count?.shares || 0);
 
   const handleLike = async () => {
     if (!currentUser || isLikeLoading) return;
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
-    setLikeCount(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+    setLikeCount((prev: number) => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
     setIsLikeLoading(true);
     
     const res = await toggleLike(currentUser.id, "post", post.id);
     if (!res.success) {
       // Revert on failure
       setIsLiked(!newIsLiked);
-      setLikeCount(prev => !newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+      setLikeCount((prev: number) => !newIsLiked ? prev + 1 : Math.max(0, prev - 1));
       console.error(res.error);
     }
     setIsLikeLoading(false);

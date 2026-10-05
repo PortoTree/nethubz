@@ -14,8 +14,6 @@ interface PostFeedProps {
 
 function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostFeedProps) {
   const t = useTranslations();
-  const searchParams = useSearchParams();
-  const highlightedPostId = searchParams.get("postId");
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,19 +32,6 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 10);
       let loadedPosts = res.posts || [];
 
-      if (highlightedPostId && !cursor) {
-        const existingIdx = loadedPosts.findIndex((p: any) => p.id === highlightedPostId);
-        if (existingIdx !== -1) {
-          const [p] = loadedPosts.splice(existingIdx, 1);
-          loadedPosts.unshift(p);
-        } else {
-          const highlightedRes = await getPostById(highlightedPostId);
-          if (highlightedRes.success && highlightedRes.post) {
-            loadedPosts.unshift(highlightedRes.post);
-          }
-        }
-      }
-
       if (res.success && loadedPosts) {
         setNextCursor(res.nextCursor);
         setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
@@ -63,7 +48,7 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       if (!isBackground && !cursor) setIsLoading(false);
       if (cursor) setIsFetchingMore(false);
     }
-  }, [currentUser?.id, targetProfileId, highlightedPostId, cacheKey]);
+  }, [currentUser?.id, targetProfileId, cacheKey, t]);
 
   useEffect(() => {
     const cachedPosts = (window as any).__POST_FEED_CACHE?.[cacheKey];
@@ -215,7 +200,6 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
           post={post} 
           currentUser={currentUser} 
           onProfileClick={onProfileClick} 
-          isHighlighted={post.id === highlightedPostId}
         />
       ))}
       {nextCursor && (

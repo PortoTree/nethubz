@@ -28,7 +28,7 @@ export default function HorizontalProjectCard({
 }: HorizontalProjectCardProps) {
   const router = useRouter();
   const tProject = useTranslations("project");
-  const { user: currentUser } = useUser();
+  const { currentUser } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [isLiked, setIsLiked] = useState(p.likes?.some((l: any) => l.userId === currentUser?.id) || false);

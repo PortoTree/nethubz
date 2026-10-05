@@ -45,9 +45,9 @@ export async function getNotifications(token: string, userId: string) {
     });
 
     return { success: true, notifications, unreadCount };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching notifications:", error);
-    return { success: false, error: "Database error" };
+    return { success: false, error: "Database error: " + (error?.message || String(error)) };
   }
 }
 

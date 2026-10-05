@@ -29,6 +29,30 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
       });
 
       // TODO: Create Notification
+      let targetOwnerId: string | undefined;
+      
+      if (targetType === "post") {
+        const post = await prisma.post.findUnique({ where: { id: targetId } });
+        if (post) targetOwnerId = post.authorId;
+      } else if (targetType === "project") {
+        const project = await prisma.project.findUnique({ where: { id: targetId } });
+        if (project) targetOwnerId = project.userId;
+      } else if (targetType === "comment") {
+        const comment = await prisma.comment.findUnique({ where: { id: targetId } });
+        if (comment) targetOwnerId = comment.authorId;
+      }
+      
+      if (targetOwnerId && targetOwnerId !== userId) {
+        await prisma.notification.create({
+          data: {
+            type: targetType === "post" ? "POST_LIKE" : targetType === "project" ? "PROJECT_LIKE" : "COMMENT_LIKE" as any,
+            userId: targetOwnerId,
+            senderId: userId,
+            postId: targetType === "post" ? targetId : undefined,
+            projectId: targetType === "project" ? targetId : undefined,
+          }
+        });
+      }
 
       return { success: true, action: "liked" };
     }
@@ -126,6 +150,42 @@ export async function addComment(userId: string, targetType: "post" | "project",
     });
 
     // TODO: Create Notification
+    let targetOwnerId: string | undefined;
+    
+    if (parentId) {
+      const parentComment = await prisma.comment.findUnique({ where: { id: parentId } });
+      if (parentComment && parentComment.authorId !== userId) {
+        await prisma.notification.create({
+          data: {
+            type: "COMMENT_REPLY",
+            userId: parentComment.authorId,
+            senderId: userId,
+            postId: targetType === "post" ? targetId : undefined,
+            projectId: targetType === "project" ? targetId : undefined,
+          }
+        });
+      }
+    } else {
+      if (targetType === "post") {
+        const post = await prisma.post.findUnique({ where: { id: targetId } });
+        if (post) targetOwnerId = post.authorId;
+      } else if (targetType === "project") {
+        const project = await prisma.project.findUnique({ where: { id: targetId } });
+        if (project) targetOwnerId = project.userId;
+      }
+      
+      if (targetOwnerId && targetOwnerId !== userId) {
+        await prisma.notification.create({
+          data: {
+            type: targetType === "post" ? "POST_COMMENT" : "PROJECT_COMMENT",
+            userId: targetOwnerId,
+            senderId: userId,
+            postId: targetType === "post" ? targetId : undefined,
+            projectId: targetType === "project" ? targetId : undefined,
+          }
+        });
+      }
+    }
 
     return { success: true, comment };
   } catch (error: any) {

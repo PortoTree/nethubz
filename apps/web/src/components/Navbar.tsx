@@ -106,13 +106,23 @@ export default function Navbar({
     
     if (!isBackground) setIsLoadingNotifs(true);
     
-    const res = await getNotifications(token, currentUser.id);
-    if (res.success) {
-      setNotifications(res.notifications || []);
-      setUnreadCount(res.unreadCount || 0);
-      globalNotifsCache = { list: res.notifications || [], unread: res.unreadCount || 0, userId: currentUser.id };
+    try {
+      const res = await getNotifications(token, currentUser.id);
+      if (res.success) {
+        setNotifications(res.notifications || []);
+        setUnreadCount(res.unreadCount || 0);
+        globalNotifsCache = { list: res.notifications || [], unread: res.unreadCount || 0, userId: currentUser.id };
+      } else {
+        console.error("fetchNotifs returned false success:", res.error);
+        if (res.error === "Unauthorized") {
+          console.warn("Token is invalid! You might need to login again.");
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch notifications:", e);
+    } finally {
+      setIsLoadingNotifs(false);
     }
-    setIsLoadingNotifs(false);
   };
 
   // Initial load
@@ -1001,7 +1011,9 @@ export default function Navbar({
                     if (!notif.isRead) await handleMarkOneRead(notif.id);
                     setIsNotifPanelOpen(false);
                     if (notif.postId) {
-                      router.push(`/${locale}/home?postId=${notif.postId}`);
+                      router.push(`${pathname}?postId=${notif.postId}`);
+                    } else if (notif.projectId) {
+                      router.push(`/${locale}/project/${notif.sender?.username}/${notif.projectId}`);
                     } else {
                       router.push(`/${locale}/p/${notif.sender?.username}/${notif.senderId}`);
                     }
@@ -1014,7 +1026,7 @@ export default function Navbar({
                       <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526] ${
                         notif.type === "FOLLOW" ? "bg-emerald-500" :
                         notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
-                        notif.type === "POST_LIKE" ? "bg-red-500" :
+                        notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE" ? "bg-red-500" :
                         notif.type === "POST_TAG" ? "bg-purple-500" :
                         "bg-[#2D88FF]"
                       }`}>
@@ -1024,7 +1036,7 @@ export default function Navbar({
                         {(notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW") && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
                         )}
-                        {notif.type === "POST_LIKE" && (
+                        {(notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                         )}
                         {notif.type === "POST_TAG" && (
@@ -1039,7 +1051,7 @@ export default function Navbar({
                         {notif.type === "POST_SHARE" && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
                         )}
-                        {notif.type === "COMMENT_REPLY" && (
+                        {(notif.type === "COMMENT_REPLY" || notif.type === "POST_COMMENT" || notif.type === "PROJECT_COMMENT") && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
                         )}
                       </div>
@@ -1053,6 +1065,9 @@ export default function Navbar({
                         {notif.type === "FRIEND_NOW" && ` ${t("notif.typeFriendNow")}`}
                         {notif.type === "POST_LIKE" && ` ${t("notif.typePostLike")}`}
                         {notif.type === "POST_COMMENT" && ` ${t("notif.typePostComment")}`}
+                        {notif.type === "PROJECT_LIKE" && ` ${t("notif.typeProjectLike")}`}
+                        {notif.type === "PROJECT_COMMENT" && ` ${t("notif.typeProjectComment")}`}
+                        {notif.type === "COMMENT_LIKE" && ` ${t("notif.typeCommentLike")}`}
                         {notif.type === "POST_TAG" && ` ${t("notif.typePostTag")}`}
                         {notif.type === "COMMENT_REPLY" && ` ${t("notif.typeCommentReply")}`}
                         {notif.type === "POST_SHARE" && ` ${t("notif.typePostShare")}`}
