@@ -129,14 +129,14 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
       <div className="w-full max-w-4xl h-full max-h-[80vh] bg-white dark:bg-[#242526] rounded-xl flex flex-col md:flex-row overflow-hidden shadow-2xl border border-gray-200 dark:border-[#3E4042] relative" onClick={e => e.stopPropagation()}>
         
         {/* LEFT COLUMN - POST CONTENT */}
-        <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col overflow-y-auto border-r border-gray-200 dark:border-[#3E4042] custom-scrollbar bg-[#F3F2EF] dark:bg-[#18191A]">
-          <div className="w-full shrink-0 min-h-full p-0 md:p-3 pb-20 md:pb-6">
+        <div className="w-full md:w-[50%] lg:w-[52%] flex flex-col overflow-y-auto border-r border-gray-200 dark:border-[#3E4042] custom-scrollbar bg-[#F3F2EF] dark:bg-[#18191A]">
+          <div className="w-full shrink-0 min-h-full p-0 md:p-2 pb-16 md:pb-4">
              <PostCard post={post} currentUser={currentUser} hideFooter={true} disableClicks={true} />
           </div>
         </div>
 
         {/* RIGHT COLUMN - COMMENTS */}
-        <div className="w-full md:w-[45%] lg:w-[40%] flex flex-col h-full bg-gray-50 dark:bg-[#18191A]">
+        <div className="w-full md:w-[50%] lg:w-[48%] flex flex-col h-full bg-gray-50 dark:bg-[#18191A]">
           <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] shrink-0 bg-white dark:bg-[#242526] flex items-center justify-between">
             <h2 className="font-bold text-[18px] text-gray-900 dark:text-white">{t("postModal.title") || "Komentar"}</h2>
             <button onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C] hover:bg-gray-300 dark:hover:bg-[#4E4F50] text-gray-700 dark:text-[#E4E6EB] flex items-center justify-center transition-colors">
