@@ -245,9 +245,9 @@ export default function UserProjectPage({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
-                category: projectDraft.category,
+                category: projectDraft.category as any,
                 customCategory: projectDraft.customCategory,
-                collabTypes: projectDraft.collabTypes,
+                collabTypes: projectDraft.collabTypes as any,
                 linkedProductUrl: projectDraft.linkedProductUrl,
                 isForSale: projectDraft.isForSale,
               });
@@ -263,9 +263,9 @@ export default function UserProjectPage({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
-                category: projectDraft.category,
+                category: projectDraft.category as any,
                 customCategory: projectDraft.customCategory,
-                collabTypes: projectDraft.collabTypes,
+                collabTypes: projectDraft.collabTypes as any,
                 linkedProductUrl: projectDraft.linkedProductUrl,
                 isForSale: projectDraft.isForSale,
               });
