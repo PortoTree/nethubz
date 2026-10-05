@@ -463,13 +463,28 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
 
                     <div className="p-5 flex flex-col flex-grow relative z-10 w-full min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <Link
-                          href={`/${locale}/project/${username}/${p.id}`}
-                          className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] line-clamp-2 after:absolute after:inset-0 after:z-0 hover:text-purple-600 dark:hover:text-purple-400"
-                        >
-                          {p.title}
-                        </Link>
-                        <span className={statusBadgeClass(p.status)}>
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/${locale}/project/${username}/${p.id}`}
+                            className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] line-clamp-2 after:absolute after:inset-0 after:z-0 hover:text-purple-600 dark:hover:text-purple-400"
+                          >
+                            {p.title}
+                          </Link>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5 relative z-10">
+                            {p.category && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
+                                {p.category === "OTHER" ? p.customCategory : t(`cat_${p.category}` as any)}
+                              </span>
+                            )}
+                            {p.isForSale && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                FOR SALE
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className={statusBadgeClass(p.status) + " relative z-10 shrink-0 mt-0.5"}>
                           {t(statusKey(p.status))}
                         </span>
                       </div>

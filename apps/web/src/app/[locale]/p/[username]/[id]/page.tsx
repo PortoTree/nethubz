@@ -2907,6 +2907,11 @@ function ProfilePageContent({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
+                category: projectDraft.category,
+                customCategory: projectDraft.customCategory,
+                collabTypes: projectDraft.collabTypes,
+                linkedProductUrl: projectDraft.linkedProductUrl,
+                isForSale: projectDraft.isForSale,
               });
             } else {
               res = await createProject({
@@ -2920,6 +2925,11 @@ function ProfilePageContent({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
+                category: projectDraft.category,
+                customCategory: projectDraft.customCategory,
+                collabTypes: projectDraft.collabTypes,
+                linkedProductUrl: projectDraft.linkedProductUrl,
+                isForSale: projectDraft.isForSale,
               });
             }
 
@@ -2929,10 +2939,10 @@ function ProfilePageContent({
               // Optimistically add to UI or trigger a refetch if needed
               window.dispatchEvent(new Event("refresh_projects"));
             } else {
-              alert("Gagal membuat proyek: " + res.error);
+              return "Gagal membuat proyek: " + res.error;
             }
           } catch (error: any) {
-            alert("Terjadi kesalahan: " + error.message);
+            return "Terjadi kesalahan: " + error.message;
           } finally {
             setIsSubmittingProject(false);
           }

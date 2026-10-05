@@ -31,11 +31,11 @@ Setelah user saling terkoneksi, mereka butuh media untuk berinteraksi dan berbag
 note: nanti akan ada postingan khusus only komunitas, apakah di kerjakan logikanya sekalian atau mau terpisah nanti bareng dengan pengerjaan komunitas saja?
 
 ## Phase 2.1 (plan/kategori_dan_form_dinamis.md)
-- [ ] **Database Setup**: Tambah enum `ProjectCategory` dan `CollabType`, serta update model `Project` (tambah `category`, `customCategory`, `collabTypes`, `linkedProductId`, `isForSale`) di `schema.prisma`.
-- [ ] **Lokalisasi & Bahasa**: Tambah translasi baru di `en.json` dan `id.json` untuk list kategori 21 item, label form dinamis, dan placeholder.
-- [ ] **Backend Actions**: Update `projects.ts` (`createProject`, `updateProject`) untuk menerima data baru, termasuk validasi *Hybrid Link* Nethubz untuk ekstrak `linkedProductId`.
-- [ ] **Refactor UI Form (Create/Edit)**: Implementasi label dinamis berdasarkan kategori yang dipilih, input khusus untuk kategori "OTHER", checkbox *"Tautkan dengan Product NetHubz"*, dan toggle/badge *For Sale*.
-- [ ] **Update Showcase & Detail**: Badge kategori di komponen `ProjectCard`, perbarui filter pencarian backend agar membaca `customCategory` dan status *For Sale*.
+- [x] **Database Setup**: Tambah enum `ProjectCategory` dan `CollabType`, serta update model `Project` (tambah `category`, `customCategory`, `collabTypes`, `linkedProductId`, `isForSale`) di `schema.prisma`.
+- [x] **Lokalisasi & Bahasa**: Tambah translasi baru di `en.json` dan `id.json` untuk list kategori 21 item, label form dinamis, dan placeholder.
+- [x] **Backend Actions**: Update `projects.ts` (`createProject`, `updateProject`) untuk menerima data baru, termasuk validasi *Hybrid Link* Nethubz untuk ekstrak `linkedProductId`.
+- [x] **Refactor UI Form (Create/Edit)**: Implementasi label dinamis berdasarkan kategori yang dipilih, input khusus untuk kategori "OTHER", checkbox *"Tautkan dengan Product NetHubz"*, dan toggle/badge *For Sale*.
+- [x] **Update Showcase & Detail**: Badge kategori di komponen `ProjectCard`, perbarui filter pencarian backend agar membaca `customCategory` dan status *For Sale*.
 
 ## Phase 2.2
 - [ ] **Optimasi Navbar**: Refactor Navbar ke dalam file `layout.tsx` supaya setiap kali pindah halaman, navbar tidak perlu merender ulang terus-menerus.

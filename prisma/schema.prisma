@@ -487,6 +487,8 @@ model Project {
   category       ProjectCategory @default(WEB_DEV)
   customCategory String?
   collabTypes    CollabType[]
+  linkedProductId String?
+  isForSale      Boolean       @default(false)
 
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts       Post[]
@@ -521,9 +523,6 @@ enum ProjectCategory {
   ELECTRONICS
   EDTECH
   RESEARCH
-  COURSE
-  COMIC
-  BOOK
   OTHER
 }
 

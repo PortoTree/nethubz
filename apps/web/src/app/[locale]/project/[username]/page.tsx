@@ -245,6 +245,11 @@ export default function UserProjectPage({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
+                category: projectDraft.category,
+                customCategory: projectDraft.customCategory,
+                collabTypes: projectDraft.collabTypes,
+                linkedProductUrl: projectDraft.linkedProductUrl,
+                isForSale: projectDraft.isForSale,
               });
             } else {
               res = await createProject({
@@ -258,6 +263,11 @@ export default function UserProjectPage({
                 coverUrls: finalCoverUrls,
                 mediaUrls: projectDraft.mediaUrls,
                 roleNeeded: projectDraft.roleNeeded,
+                category: projectDraft.category,
+                customCategory: projectDraft.customCategory,
+                collabTypes: projectDraft.collabTypes,
+                linkedProductUrl: projectDraft.linkedProductUrl,
+                isForSale: projectDraft.isForSale,
               });
             }
 
@@ -266,10 +276,10 @@ export default function UserProjectPage({
               setProjectToEdit(null);
               window.dispatchEvent(new Event("refresh_projects"));
             } else {
-              alert("Gagal menyimpan proyek: " + res.error);
+              return "Gagal menyimpan proyek: " + res.error;
             }
           } catch (error: any) {
-            alert("Terjadi kesalahan: " + error.message);
+            return "Terjadi kesalahan: " + error.message;
           } finally {
             setIsSubmittingProject(false);
           }
