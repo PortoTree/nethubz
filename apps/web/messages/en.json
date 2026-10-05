@@ -888,6 +888,16 @@
     "share": "Share",
     "comments": "Comments",
     "writeComment": "Write a comment...",
-    "noCommentsYet": "No comments yet. Be the first to share your thoughts!"
+    "noCommentsYet": "No comments yet. Be the first to share your thoughts!",
+    "sendMessage": "Send Message",
+    "sendCollabTitle": "Send Collaboration Message",
+    "collabMessageDefault": "Hi, I am interested in collaborating on this project.",
+    "send": "Send",
+    "messageSentSuccess": "Your message has been sent. The project owner will contact you soon.",
+    "close": "Close",
+    "messageSentSubtext": "Check your chat menu periodically",
+    "openChat": "Open Chat",
+    "viewProject": "View Project",
+    "viewProfile": "View Profile"
   }
 }

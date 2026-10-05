@@ -894,6 +894,16 @@
     "share": "Bagikan",
     "comments": "Komentar",
     "writeComment": "Tulis komentar...",
-    "noCommentsYet": "Belum ada komentar. Jadilah yang pertama membagikan pendapatmu!"
+    "noCommentsYet": "Belum ada komentar. Jadilah yang pertama membagikan pendapatmu!",
+    "sendMessage": "Kirim Pesan",
+    "sendCollabTitle": "Kirim Pesan Kolaborasi",
+    "collabMessageDefault": "Halo, saya tertarik untuk berkolaborasi dalam project ini.",
+    "send": "Kirim",
+    "messageSentSuccess": "Pesan Anda terkirim. Pemilik project akan segera menghubungi Anda.",
+    "close": "Tutup",
+    "messageSentSubtext": "Cek menu obrolan secara berkala",
+    "openChat": "Buka Pesan",
+    "viewProject": "Lihat Project",
+    "viewProfile": "Lihat Profil"
   }
 }

@@ -4,10 +4,177 @@ import React, { useEffect, useState, useCallback, use } from "react";
 import { useTranslations } from "next-intl";
 import { getProjectById } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
+import { getProfile } from "@/app/actions/profile";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { useRef } from "react";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
 import { notFound, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+
+
+
+const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState<number | null>(null);
+
+  if (!mediaUrls || mediaUrls.length === 0) return null;
+
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (selectedMediaIndex !== null) {
+      setSelectedMediaIndex((selectedMediaIndex + 1) % mediaUrls.length);
+    }
+  };
+
+  const handlePrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (selectedMediaIndex !== null) {
+      setSelectedMediaIndex((selectedMediaIndex - 1 + mediaUrls.length) % mediaUrls.length);
+    }
+  };
+
+  const renderGrid = () => {
+    if (mediaUrls.length === 1) {
+      return (
+        <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" />
+        </div>
+      );
+    }
+
+    if (mediaUrls.length === 2) {
+      return (
+        <div className="grid grid-cols-2 gap-2 mb-10 aspect-[2/1]">
+          {mediaUrls.map((url, i) => (
+            <div key={i} onClick={() => setSelectedMediaIndex(i)} className="w-full h-full bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (mediaUrls.length === 3) {
+      return (
+        <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-10 aspect-[2/1]">
+          <div onClick={() => setSelectedMediaIndex(0)} className="col-span-2 row-span-2 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" />
+          </div>
+          <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" />
+          </div>
+          <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" />
+          </div>
+        </div>
+      );
+    }
+
+    if (mediaUrls.length === 4) {
+      return (
+        <div className="grid grid-cols-4 grid-rows-3 gap-2 mb-10 aspect-[2/1]">
+          <div onClick={() => setSelectedMediaIndex(0)} className="col-span-3 row-span-3 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" />
+          </div>
+          <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" />
+          </div>
+          <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" />
+          </div>
+          <div onClick={() => setSelectedMediaIndex(3)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+            <MediaRenderer url={mediaUrls[3]} className="w-full h-full object-cover mx-auto" />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-2 mb-10">
+        <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-[2/1] bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+          <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" />
+        </div>
+        <div className="grid grid-cols-4 gap-2 aspect-[4/1]">
+          {mediaUrls.slice(1, 5).map((url, i) => (
+            <div key={i} onClick={() => setSelectedMediaIndex(i + 1)} className="relative w-full h-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer group">
+              <MediaRenderer url={url} className="w-full h-full object-cover mx-auto group-hover:opacity-75 transition-opacity" />
+              {i === 3 && mediaUrls.length > 5 && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-colors">
+                  <span className="text-white font-bold text-xl md:text-2xl">+{mediaUrls.length - 5}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {renderGrid()}
+
+      {selectedMediaIndex !== null && (
+        <div className="fixed inset-0 z-[9999] bg-black/95 flex flex-col justify-between items-center backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200" onClick={() => setSelectedMediaIndex(null)}>
+          
+          {/* Close Button */}
+          <button 
+            className="absolute top-6 right-6 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            onClick={(e) => { e.stopPropagation(); setSelectedMediaIndex(null); }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+
+          {/* Main Viewer Area */}
+          <div className="relative flex-1 w-full flex items-center justify-center px-12 md:px-24">
+            {/* Prev Button */}
+            {mediaUrls.length > 1 && (
+              <button 
+                className="absolute left-4 md:left-10 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                onClick={handlePrev}
+              >
+                <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+            )}
+
+            {/* Current Image */}
+            <div className="w-full max-w-6xl h-[75vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <MediaRenderer url={mediaUrls[selectedMediaIndex]} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+            </div>
+
+            {/* Next Button */}
+            {mediaUrls.length > 1 && (
+              <button 
+                className="absolute right-4 md:right-10 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                onClick={handleNext}
+              >
+                <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+            )}
+          </div>
+
+          {/* Thumbnail Strip */}
+          {mediaUrls.length > 1 && (
+            <div className="w-full pb-8 pt-4 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-center px-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 snap-x max-w-full no-scrollbar">
+                {mediaUrls.map((url, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setSelectedMediaIndex(idx)}
+                    className={`relative w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-lg overflow-hidden snap-center transition-all duration-200 ${selectedMediaIndex === idx ? 'ring-2 ring-purple-500 scale-110 opacity-100 z-10' : 'opacity-50 hover:opacity-100'}`}
+                  >
+                    <MediaRenderer url={url} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
 
 export default function ProjectDetailsPage({
   params,
@@ -24,6 +191,15 @@ export default function ProjectDetailsPage({
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [user, setUser] = useState<any>(null);
+  
+  const [commentInput, setCommentInput] = useState("");
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  
+  const [isCollabModalOpen, setIsCollabModalOpen] = useState(false);
+  const [collabMessage, setCollabMessage] = useState("");
+  const [isCollabMessageSent, setIsCollabMessageSent] = useState(false);
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,10 +208,26 @@ export default function ProjectDetailsPage({
         const payload = JSON.parse(atob(token.split(".")[1]));
         const userId = payload.sub || payload.id || payload._id || payload.userId || "1";
         setUser({ id: userId, username: payload.username || "Guest" });
+        getProfile(userId).then(res => {
+          if (res?.success && res?.profile) {
+            setUser((prev: any) => ({ ...prev, profile: res.profile }));
+          }
+        });
       } catch (e) {
         console.error("Invalid token");
       }
     }
+  }, []);
+
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setIsEmojiPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -118,16 +310,8 @@ export default function ProjectDetailsPage({
           {t("backToProjects", { name: displayName }) || `Back to ${displayName}'s Projects`}
         </Link>
 
-        {/* Main Media Carousel / Cover */}
-        {p.mediaUrls && p.mediaUrls.length > 0 ? (
-          <div className="w-full aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center">
-            <MediaRenderer url={p.mediaUrls[0]} className="w-full h-full object-contain mx-auto" />
-          </div>
-        ) : p.coverUrls && p.coverUrls.length > 0 ? (
-          <div className="w-full aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center">
-            <img src={getOptimizedUrl(p.coverUrls[0], 'preview')} alt={p.title} className="w-full h-full object-contain mx-auto" />
-          </div>
-        ) : null}
+        {/* Main Media Gallery */}
+        <ProjectGallery mediaUrls={p.mediaUrls?.length ? p.mediaUrls : p.coverUrls || []} />
 
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-6 border-b border-gray-200 dark:border-[#3A3B3C] pb-8">
@@ -191,14 +375,27 @@ export default function ProjectDetailsPage({
           </div>
 
           {p.roleNeeded && p.status === "SEARCHING_TEAM" && (
-            <div className="p-5 bg-purple-50 dark:bg-purple-500/10 rounded-2xl border border-purple-100 dark:border-purple-500/20">
-              <h3 className="text-[16px] font-bold text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                {t("roleNeeded")}
-              </h3>
-              <p className="text-purple-700 dark:text-purple-400 text-[15px]">
-                {p.roleNeeded}
-              </p>
+            <div className="p-5 bg-purple-50 dark:bg-purple-500/10 rounded-2xl border border-purple-100 dark:border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-[16px] font-bold text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  {t("roleNeeded")}
+                </h3>
+                <p className="text-purple-700 dark:text-purple-400 text-[15px]">
+                  {p.roleNeeded}
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setCollabMessage(t("collabMessageDefault") || "Halo, saya tertarik untuk berkolaborasi dalam project ini.");
+                  setIsCollabMessageSent(false);
+                  setIsCollabModalOpen(true);
+                }}
+                className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-purple-200 dark:shadow-none"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                {t("sendMessage") || "Kirim pesan"}
+              </button>
             </div>
           )}
 
@@ -239,9 +436,9 @@ export default function ProjectDetailsPage({
             <div className="flex flex-col lg:flex-row gap-8">
               
               {/* Left Column (Comments) */}
-              <div className="flex-1 lg:max-w-[60%] border border-gray-200 dark:border-[#3A3B3C] rounded-2xl bg-white dark:bg-[#242526] overflow-hidden flex flex-col">
+              <div className="flex-1 lg:max-w-[60%] border border-gray-200 dark:border-[#3A3B3C] rounded-2xl bg-white dark:bg-[#242526] flex flex-col resize-y overflow-hidden min-h-[500px] pb-1">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] bg-gray-50 dark:bg-[#1f2021]">
+                <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] bg-gray-50 dark:bg-[#1f2021] rounded-t-2xl">
                   <h3 className="text-[17px] font-bold text-gray-900 dark:text-[#E4E6EB] flex items-center gap-2">
                     <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
                     {t("comments") || "Comments"} <span className="text-gray-500 dark:text-[#B0B3B8] font-medium">({p._count?.comments || 0})</span>
@@ -259,7 +456,7 @@ export default function ProjectDetailsPage({
                 </div>
 
                 {/* Comment Input */}
-                <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] bg-white dark:bg-[#242526]">
+                <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] bg-white dark:bg-[#242526] rounded-b-2xl">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 shrink-0 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold overflow-hidden shadow-sm">
                       {user?.profile?.avatarUrl ? (
@@ -268,17 +465,33 @@ export default function ProjectDetailsPage({
                         <span>{user?.username?.[0]?.toUpperCase() || "?"}</span>
                       )}
                     </div>
-                    <div className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center px-4 py-2 border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-colors">
-                      <button className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors shrink-0 p-1">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </button>
-                      <input 
-                        type="text" 
+                    <div className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-xl flex items-end px-4 py-2 border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-colors">
+                      <div className="relative flex items-center mb-1" ref={emojiPickerRef}>
+                        <button 
+                          onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                          className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors shrink-0 p-1"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                        {isEmojiPickerOpen && (
+                          <div className="absolute bottom-12 left-0 z-50">
+                            <Picker 
+                              data={data} 
+                              onEmojiSelect={(emoji: any) => setCommentInput(prev => prev + emoji.native)} 
+                              theme={isDarkMode ? 'dark' : 'light'} 
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <textarea 
+                        value={commentInput}
+                        onChange={(e) => setCommentInput(e.target.value)}
                         placeholder={t("writeComment") || "Write a comment..."} 
-                        className="flex-1 bg-transparent border-none focus:outline-none text-[14px] text-gray-900 dark:text-[#E4E6EB] placeholder-gray-500 px-3 py-1"
+                        rows={1}
+                        className="flex-1 bg-transparent border-none focus:outline-none text-[14px] text-gray-900 dark:text-[#E4E6EB] placeholder-gray-500 px-3 py-1.5 resize-y min-h-[36px] max-h-[200px]"
                       />
-                      <button className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold text-[14px] px-2 py-1 transition-colors shrink-0">
-                        <svg className="w-5 h-5 -rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                      <button className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold text-[14px] px-2 py-1 mb-1 transition-colors shrink-0">
+                        <svg className="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                       </button>
                     </div>
                   </div>
@@ -304,9 +517,9 @@ export default function ProjectDetailsPage({
                   
                   <div className="flex flex-col gap-3 w-full max-w-[280px]">
                     <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-center text-[15px] transition-all hover:-translate-y-0.5 shadow-sm shadow-purple-200 dark:shadow-none">
-                      Lihat Profil
+                      {t("viewProfile") || "Lihat Profil"}
                     </Link>
-                    <Link href={`/${locale}/project/${profileUser.username}`} className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] text-gray-800 dark:text-[#E4E6EB] font-bold rounded-xl text-[14px] transition-colors">
+                    <Link href={`/${locale}/project/${profileUser.username}`} className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] text-gray-800 dark:text-[#E4E6EB] font-bold rounded-xl text-[14px] text-center transition-colors">
                       {t("viewOtherProjects") || "Project Lain"}
                     </Link>
                   </div>
@@ -316,8 +529,86 @@ export default function ProjectDetailsPage({
             </div>
           </div>
         </div>
-
       </div>
+
+      {/* Collaboration Message Modal */}
+      {isCollabModalOpen && (
+        <div className="fixed inset-0 z-[99999] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#242526] w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {!isCollabMessageSent && (
+              <div className="p-4 border-b border-gray-100 dark:border-[#3A3B3C] flex justify-between items-center bg-gray-50 dark:bg-[#1f2021]">
+                <h3 className="font-bold text-gray-900 dark:text-[#E4E6EB]">{t("sendCollabTitle") || "Kirim Pesan Kolaborasi"}</h3>
+                <button onClick={() => setIsCollabModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            )}
+            
+            <div className="p-5">
+              {!isCollabMessageSent ? (
+                <>
+                  <p className="text-[14px] text-gray-600 dark:text-gray-400 mb-4">
+                    Kirim pesan ke <span className="font-bold text-gray-900 dark:text-gray-200">@{profileUser.username}</span> terkait project <span className="font-bold">"{p.title}"</span>.
+                  </p>
+                  <textarea 
+                    value={collabMessage}
+                    onChange={(e) => setCollabMessage(e.target.value)}
+                    className="w-full bg-gray-100 dark:bg-[#3A3B3C] border-none rounded-xl p-3 text-[14px] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-y min-h-[100px]"
+                    placeholder="Tulis pesan Anda disini..."
+                  />
+                  <div className="mt-5 flex justify-end gap-3">
+                    <button 
+                      onClick={() => setIsCollabModalOpen(false)}
+                      className="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] rounded-xl transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      onClick={() => {
+                        // TODO: Implement actual chat API call here
+                        setIsCollabMessageSent(true);
+                      }}
+                      className="px-4 py-2 font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl transition-colors shadow-sm"
+                    >
+                      {t("send") || "Kirim"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-6 animate-in slide-in-from-right-4 duration-300">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <h4 className="font-bold text-gray-900 dark:text-[#E4E6EB] mb-2">
+                    {(t("messageSentSuccess") || "Pesan Anda terkirim. Pemilik project akan segera menghubungi Anda.").split('. ').map((str: string, idx: number, arr: string[]) => (
+                      <span key={idx} className={idx === 0 ? "text-xl block mb-1" : "text-[15px]"}>
+                        {str}{idx < arr.length - 1 ? '.' : ''}
+                      </span>
+                    ))}
+                  </h4>
+                  <p className="text-[14px] text-gray-500 dark:text-gray-400 mb-8 mt-1">
+                    {t("messageSentSubtext") || "Cek menu obrolan secara berkala"}
+                  </p>
+                  <div className="flex w-full max-w-[320px] gap-2">
+                    <button 
+                      onClick={() => alert("Redirecting to Chat...")}
+                      className="basis-[40%] px-2 py-2 font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 dark:text-gray-200 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] rounded-xl transition-colors shadow-sm text-[14px]"
+                    >
+                      {t("openChat") || "Buka pesan"}
+                    </button>
+                    <button 
+                      onClick={() => setIsCollabModalOpen(false)}
+                      className="basis-[60%] px-4 py-2 font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm"
+                    >
+                      {t("viewProject") || "Lihat project"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
