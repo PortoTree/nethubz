@@ -492,6 +492,66 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         </div>
       )}
 
+      
+      {/* Embedded Project */}
+      {post.project && (
+        <div className="px-4 pb-3">
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/${locale}/project/${post.author?.username || post.authorId}/${post.project.id}`);
+            }}
+            className="border border-gray-200 dark:border-[#4E4F50] rounded-2xl overflow-hidden cursor-pointer hover:bg-gray-50 dark:hover:bg-[#3A3B3C]/50 transition-colors bg-white dark:bg-[#242526]"
+          >
+            <div className="relative pointer-events-none">
+              {post.project.coverUrls?.[0] || post.project.mediaUrls?.[0] ? (
+                <MediaRenderer url={post.project.coverUrls?.[0] || post.project.mediaUrls?.[0]} className="w-full aspect-video object-cover" />
+              ) : null}
+            </div>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold text-[17px] text-gray-900 dark:text-[#E4E6EB] leading-tight">{post.project.title}</h3>
+                <span className={`text-[11px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shrink-0 ${
+                  post.project.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                  post.project.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                  post.project.status === "OPEN_SOURCE" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                  "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                }`}>
+                  {post.project.status.replace('_', ' ')}
+                </span>
+              </div>
+              
+              {post.project.techStack && post.project.techStack.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {post.project.techStack.slice(0, 5).map((tech: string, i: number) => (
+                    <span key={i} className="text-[11px] px-2 py-0.5 bg-gray-100 dark:bg-[#3A3B3C] text-gray-600 dark:text-[#E4E6EB] rounded-full">
+                      {tech}
+                    </span>
+                  ))}
+                  {post.project.techStack.length > 5 && (
+                    <span className="text-[11px] px-2 py-0.5 bg-gray-100 dark:bg-[#3A3B3C] text-gray-500 rounded-full">
+                      +{post.project.techStack.length - 5}
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Project Engagement Counters */}
+              <div className="flex items-center gap-4 mt-3 text-[13px] text-gray-500 dark:text-gray-400 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                  <span>{post.project._count?.likes || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  <span>{post.project._count?.comments || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Gallery badge — tampil jika postingan terkait album */}
       {post.gallery && (
         <div className="px-4 pb-2 flex justify-start">
@@ -518,13 +578,13 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
             </svg>
-            {t("feed.like") || "Suka"} {post._count?.likes > 0 && <span className="ml-1">({post._count.likes})</span>}
+            {t("feed.like") || "Suka"} <span className="ml-0.5">({post._count?.likes || 0})</span>
           </button>
           <button className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
             </svg>
-            {t("feed.comment") || "Komentar"} {post._count?.comments > 0 && <span className="ml-1">({post._count.comments})</span>}
+            {t("feed.comment") || "Komentar"} <span className="ml-0.5">({post._count?.comments || 0})</span>
           </button>
           <button className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

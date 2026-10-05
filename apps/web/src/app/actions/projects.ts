@@ -75,6 +75,17 @@ export async function getUserProjects(userId: string) {
   }
 }
 
+export async function getAllUserProjects(userId: string) {
+  try {
+    if (!userId) return { success: true, projects: [] };
+    const allProjects = await getUserProjectsCached(userId);
+    return { success: true, projects: allProjects };
+  } catch (error: any) {
+    console.error("getAllUserProjects Error:", error);
+    return { success: false, projects: [], error: error.message };
+  }
+}
+
 export async function getAllProjects() {
   try {
     const projects = await prisma.project.findMany({

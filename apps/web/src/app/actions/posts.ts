@@ -104,6 +104,7 @@ export async function createPost(data: {
   linkMetadata?: any;
   taggedUserIds?: string[];
   galleryId?: string;
+  projectId?: string;
   giveaway?: GiveawayInput | null;
 }) {
   try {
@@ -145,6 +146,7 @@ export async function createPost(data: {
         mediaLayout: data.mediaLayout || "GRID",
         linkMetadata: data.linkMetadata || null,
         galleryId: data.galleryId || null,
+        projectId: data.projectId || null,
         postMedia: data.mediaUrls && data.mediaUrls.length > 0 ? {
           create: data.mediaUrls.map((url, idx) => ({
             order: idx,
@@ -301,7 +303,8 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
         giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
         _count: {
           select: { likes: true, comments: true }
-        }
+        },
+        project: true
       },
       orderBy: { createdAt: "desc" }
     });
@@ -467,7 +470,8 @@ export async function getExplorePosts(tag?: string) {
         },
         _count: {
           select: { likes: true, comments: true }
-        }
+        },
+        project: true
       },
       orderBy: { createdAt: "desc" },
       take: 50
@@ -509,7 +513,8 @@ export async function getPostById(postId: string) {
         },
         _count: {
           select: { likes: true, comments: true }
-        }
+        },
+        project: true
       }
     });
     if (!post) return { success: false, error: "Post not found" };

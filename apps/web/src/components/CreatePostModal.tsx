@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { createPost, updatePost } from "@/app/actions/posts";
 import { getUserGalleries, createGallery } from "@/app/actions/galleries";
+import { getAllUserProjects } from "@/app/actions/projects";
 import { uploadToCloudinary } from "@/utils/uploadImage";
 import { MediaRenderer } from "./MediaRenderer";
 import { getCaretCoordinates } from "@/utils/getCaretCoordinates";
@@ -56,6 +57,13 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
   const [isMorePopupOpen, setIsMorePopupOpen] = useState(false);
   const morePopupRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
+
+
+  // Project Attachment State
+  const [projects, setProjects] = useState<any[]>([]);
+  const [attachedProject, setAttachedProject] = useState<any>(initialPost?.project || null);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
   // Gallery state
   const [galleries, setGalleries] = useState<any[]>([]);
@@ -413,6 +421,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           linkMetadata: linkPreviewData,
           taggedUserIds: taggedUsers.map((u: any) => u.id),
           galleryId: finalGalleryId,
+          projectId: attachedProject?.id || undefined,
           giveaway: giveawayDraft ? {
             title: giveawayDraft.title,
             rewardType: giveawayDraft.rewardType,
@@ -440,6 +449,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
         setMentionQuery(null);
         setSelectedGalleryId("none");
         setGiveawayDraft(null);
+        setAttachedProject(null);
         onClose();
         if (onSuccess) onSuccess();
         // Dispatch custom event to trigger feed refresh
@@ -818,6 +828,27 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
             )}
           </div>
 
+          
+            {attachedProject && (
+              <div className="relative mb-4 border border-gray-200 dark:border-[#4E4F50] rounded-xl overflow-hidden p-3 bg-gray-50 dark:bg-[#3A3B3C]/50 flex gap-3">
+                <button onClick={() => setAttachedProject(null)} className="absolute top-2 right-2 w-7 h-7 bg-white dark:bg-[#242526] rounded-full shadow-md flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] z-10">✕</button>
+                {attachedProject.coverUrls?.[0] || attachedProject.mediaUrls?.[0] ? (
+                  <div className="relative w-20 h-16 shrink-0 border border-gray-200 dark:border-[#4E4F50] rounded-lg overflow-hidden pointer-events-none">
+                    <MediaRenderer url={attachedProject.coverUrls?.[0] || attachedProject.mediaUrls?.[0]} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-20 h-16 rounded-lg bg-gray-200 dark:bg-[#4E4F50] flex items-center justify-center shrink-0 border border-gray-200 dark:border-[#4E4F50]">
+                    <span className="text-[10px] text-gray-500">No Image</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 py-1">
+                  <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 mb-0.5">Attached Project</div>
+                  <div className="font-bold text-[15px] text-gray-900 dark:text-[#E4E6EB] truncate leading-tight">{attachedProject.title}</div>
+                  <div className="text-[12px] text-gray-500 dark:text-[#B0B3B8] capitalize mt-0.5">{attachedProject.status?.replace('_', ' ')}</div>
+                </div>
+              </div>
+            )}
+
           {/* Add to your post */}
           <div className="relative flex items-center justify-between border border-gray-300 dark:border-[#4E4F50] rounded-xl p-3 mb-4 shadow-sm">
             <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">{t("feed.addToYourPost")}</span>
@@ -885,8 +916,18 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
                       </div>
                       <span className="text-[14px] font-semibold text-black dark:text-[#E4E6EB]">{t("feed.product") || "Produk"}</span>
                     </button>
-                    {/* Project */}
-                    <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-100 dark:hover:bg-[#4E4F50] transition-colors opacity-50 cursor-not-allowed">
+                                        {/* Project */}
+                    <button onClick={() => {
+                      setIsProjectModalOpen(true);
+                      setIsMorePopupOpen(false);
+                      if (projects.length === 0 && !isLoadingProjects && currentUser?.id) {
+                        setIsLoadingProjects(true);
+                        getAllUserProjects(currentUser.id).then(res => {
+                          if (res.success) setProjects(res.projects || []);
+                          setIsLoadingProjects(false);
+                        });
+                      }
+                    }} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-100 dark:hover:bg-[#4E4F50] transition-colors cursor-pointer">
                       <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
                         <div className="w-5 h-5 bg-purple-500" style={{ WebkitMask: "url(/navigasi/project.svg) center/contain no-repeat", mask: "url(/navigasi/project.svg) center/contain no-repeat" }} />
                       </div>
@@ -1169,6 +1210,62 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
               >
                 {isCreatingGallery ? t("feed.saving") : t("feed.save")}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isProjectModalOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white dark:bg-[#242526] w-full max-w-md rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-200 dark:border-[#3E4042]">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#3E4042]">
+              <h2 className="text-[20px] font-bold text-gray-900 dark:text-[#E4E6EB]">Pilih Proyek</h2>
+              <button onClick={() => setIsProjectModalOpen(false)} className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#3A3B3C] hover:bg-gray-200 dark:hover:bg-[#4E4F50] text-gray-600 dark:text-[#B0B3B8] transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh]">
+              {isLoadingProjects ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-[#B0B3B8]">
+                  Belum ada proyek. Buat proyek terlebih dahulu di profil kamu.
+                </div>
+              ) : (
+                <div className="flex flex-col py-2">
+                  {projects.map((p) => (
+                    <div 
+                      key={p.id} 
+                      onClick={() => {
+                        setAttachedProject(p);
+                        setIsProjectModalOpen(false);
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${attachedProject?.id === p.id ? 'bg-purple-50 dark:bg-purple-500/10' : 'hover:bg-gray-100 dark:hover:bg-[#3A3B3C]'}`}
+                    >
+                      {p.coverUrls?.[0] || p.mediaUrls?.[0] ? (
+                        <div className="relative w-14 h-10 rounded-md overflow-hidden pointer-events-none shrink-0 border border-gray-200 dark:border-[#4E4F50]">
+                          <MediaRenderer url={p.coverUrls?.[0] || p.mediaUrls?.[0]} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-14 h-10 rounded-md bg-gray-200 dark:bg-[#4E4F50] flex items-center justify-center border border-gray-200 dark:border-[#4E4F50]">
+                          <span className="text-[10px] text-gray-500">No Image</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-[15px] text-gray-900 dark:text-[#E4E6EB] truncate leading-tight mb-0.5">{p.title}</div>
+                        <div className="text-[12px] text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wider">{p.status?.replace('_', ' ')}</div>
+                      </div>
+                      {attachedProject?.id === p.id && (
+                        <svg className="w-5 h-5 text-purple-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
