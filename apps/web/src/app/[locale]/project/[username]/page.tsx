@@ -206,6 +206,10 @@ export default function UserProjectPage({
         )}
       </div>
 
+      <div className="mt-20 flex justify-center pb-8">
+        <img src="/logo-horizontal.png" alt="Mencari" className="h-16 grayscale opacity-50 dark:opacity-40" />
+      </div>
+
       {/* Modals */}
       <ProjectFormModal
         isOpen={isCreateProjectModalOpen}

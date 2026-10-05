@@ -551,6 +551,10 @@ export default function ProjectDetailsPage({
         </div>
       </div>
 
+      <div className="mt-20 flex justify-center pb-8">
+        <img src="/logo-horizontal.png" alt="Mencari" className="h-16 grayscale opacity-50 dark:opacity-40" />
+      </div>
+
       {/* Collaboration Message Modal */}
       {isCollabModalOpen && (
         <div className="fixed inset-0 z-[99999] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
