@@ -14,6 +14,28 @@ interface ProjectCardProps {
   onDelete?: (project: any) => void;
 }
 
+export const CATEGORY_COLORS: Record<string, string> = {
+  WEB_DEV: "blue", MOBILE_APP: "emerald", GAME_DEV: "rose", DATA_AI: "purple", DESKTOP_APP: "cyan",
+  OPEN_SOURCE: "slate", UI_UX: "rose", GRAPHIC_DESIGN: "orange", ANIMATION_3D: "purple",
+  VIDEO_FILM: "amber", MUSIC_AUDIO: "emerald", ECOMMERCE: "blue", SAAS: "cyan",
+  FINTECH: "emerald", SOCIAL_IMPACT: "rose", IOT: "amber", ROBOTICS: "slate",
+  ELECTRONICS: "orange", EDTECH: "blue", RESEARCH: "purple", OTHER: "slate"
+};
+
+export const getCategoryBadgeClasses = (color: string) => {
+  const map: Record<string, string> = {
+    blue: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-100 dark:border-blue-500/20",
+    emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20",
+    rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-100 dark:border-rose-500/20",
+    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border-purple-100 dark:border-purple-500/20",
+    cyan: "bg-cyan-50 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400 border-cyan-100 dark:border-cyan-500/20",
+    slate: "bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 border-slate-100 dark:border-slate-500/20",
+    orange: "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400 border-orange-100 dark:border-orange-500/20",
+    amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-100 dark:border-amber-500/20"
+  };
+  return `inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${map[color] || map.blue}`;
+};
+
 export default function ProjectCard({
   project: p,
   locale,
@@ -66,7 +88,7 @@ export default function ProjectCard({
             </h3>
             <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
               {p.category && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
+                <span className={getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")}>
                   {p.category === "OTHER" ? p.customCategory : tProject(`cat_${p.category}` as any)}
                 </span>
               )}

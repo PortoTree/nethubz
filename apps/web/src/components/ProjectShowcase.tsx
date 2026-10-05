@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
+import { CATEGORY_COLORS, getCategoryBadgeClasses } from "@/components/ProjectCard";
 
 export default function ProjectShowcase({ projects, title, subtitle }: { projects: any[], title?: string, subtitle?: string }) {
   const t = useTranslations("project");
@@ -472,7 +473,7 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
                           </Link>
                           <div className="flex flex-wrap items-center gap-1.5 mt-1.5 relative z-10">
                             {p.category && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-100 dark:border-blue-500/20">
+                              <span className={getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")}>
                                 {p.category === "OTHER" ? p.customCategory : t(`cat_${p.category}` as any)}
                               </span>
                             )}

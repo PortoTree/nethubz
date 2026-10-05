@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PostFeed from "@/components/PostFeed";
-import ProjectCard from "@/components/ProjectCard";
+import HorizontalProjectCard from "@/components/HorizontalProjectCard";
 import EditProfileModal from "@/components/EditProfileModal";
 import CropModal from "@/components/CropModal";
 import ProfileMediaSelectionModal from "@/components/ProfileMediaSelectionModal";
@@ -2252,7 +2252,7 @@ function ProfilePageContent({
                         {projects.slice(0, 3).map((p) => {
                           return (
                             <div key={p.id} className="block relative z-0">
-                              <ProjectCard
+                              <HorizontalProjectCard
                                 project={p}
                                 locale={locale}
                                 username={username}
