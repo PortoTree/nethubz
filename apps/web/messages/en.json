@@ -977,5 +977,14 @@
     "userProjects": "{name}'s Projects",
     "searchResultsTitle": "Search Results",
     "searchNoUser": "The user you're looking for may not have any projects here. Please double-check the username or display name you entered."
+  },
+  "postModal": {
+    "title": "Comments",
+    "noComments": "No comments yet. Be the first!",
+    "like": "Like",
+    "reply": "Reply",
+    "loadMore": "Load more",
+    "more": "More options",
+    "writeComment": "Write a comment..."
   }
 }

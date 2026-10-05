@@ -12,7 +12,7 @@ import animationDataLight from "../../../../public/search-bar.json";
 import animationDataDark from "../../../../public/search-bar-putih.json";
 import { getNotifications, markAsRead, deleteNotification } from "@/app/actions/notifications";
 import { handlePrimaryConnectionAction } from "@/app/actions/connections";
-import { notifyConnectionChanged } from "@/utils/profileCache";
+import { notifyConnectionChanged } from "@/utils/cache";
 import { getProfile } from "@/app/actions/profile";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 

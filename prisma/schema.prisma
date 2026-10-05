@@ -35,6 +35,7 @@ model User {
   comments              Comment[]
   likes                 Like[]
   savedPosts            SavedPost[]
+  savedProjects         SavedProject[]
   taggedInPosts         Post[]           @relation("PostTags")
   Media                 Media[]
   galleries             Gallery[]
@@ -189,6 +190,7 @@ model Post {
   project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
   sharedPost    Post?          @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: SetNull)
   shares        Post[]         @relation("PostShares")
+  shareCount    Int            @default(0)
   comments      Comment[]
   likes         Like[]
   savedBy       SavedPost[]
@@ -283,13 +285,15 @@ enum GiveawayEntryStatus {
 model Comment {
   id        String   @id @default(uuid())
   content   String
-  postId    String
+  postId    String?
+  projectId String?
   authorId  String
   parentId  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post          Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies       Comment[]      @relation("CommentReplies")
@@ -302,14 +306,16 @@ model Like {
   userId    String
   postId    String?
   commentId String?
+  projectId String?
   createdAt DateTime @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
   comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // Ensure a user can only like a specific post or comment once
-  @@unique([userId, postId, commentId])
+  // Ensure a user can only like a specific post, comment, or project once
+  @@unique([userId, postId, commentId, projectId])
 }
 
 model SavedPost {
@@ -322,6 +328,18 @@ model SavedPost {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model SavedProject {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
 }
 
 model Notification {
@@ -409,6 +427,9 @@ enum NotificationType {
   GIVEAWAY_WON
   GIVEAWAY_REWARD
   GIVEAWAY_ENDED
+  PROJECT_LIKE
+  PROJECT_COMMENT
+  PROJECT_SHARE
 }
 
 model Media {
@@ -489,9 +510,13 @@ model Project {
   collabTypes    CollabType[]
   linkedProductId String?
   isForSale      Boolean       @default(false)
+  shareCount     Int           @default(0)
 
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts       Post[]
+  comments    Comment[]
+  likes       Like[]
+  savedBy     SavedProject[]
 }
 
 enum ProjectStatus {

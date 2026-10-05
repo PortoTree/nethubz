@@ -5,7 +5,9 @@ import { useState, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/actions/posts";
+import { toggleLike, toggleSave, incrementShareCount } from "@/app/actions/interactions";
 import CreatePostModal from "./CreatePostModal";
+import PostDetailModal from "./PostDetailModal";
 import { MediaRenderer } from "./MediaRenderer";
 import GiveawayCard from "./GiveawayCard";
 
@@ -36,7 +38,7 @@ export function formatPostTime(timestamp: number | Date, t: any, locale: string)
   }
 }
 
-export default function PostCard({ post, currentUser, onProfileClick, isHighlighted = false }: { post: any; currentUser: any; onProfileClick?: (user: any) => void; isHighlighted?: boolean }) {
+export default function PostCard({ post, currentUser, onProfileClick, isHighlighted = false, hideFooter = false, disableClicks = false }: { post: any; currentUser: any; onProfileClick?: (user: any) => void; isHighlighted?: boolean; hideFooter?: boolean; disableClicks?: boolean; }) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -48,6 +50,67 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [modalViewMode, setModalViewMode] = useState<"GRID" | "CAROUSEL">("GRID");
   const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
+  const [isPostDetailModalOpen, setIsPostDetailModalOpen] = useState(false);
+
+  const [isLiked, setIsLiked] = useState(post.hasLiked || false);
+  const [likeCount, setLikeCount] = useState(post._count?.likes || 0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
+
+  const [isSaved, setIsSaved] = useState(post.hasSaved || false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
+  
+
+
+  const handleLike = async () => {
+    if (!currentUser || isLikeLoading) return;
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+    setIsLikeLoading(true);
+    
+    const res = await toggleLike(currentUser.id, "post", post.id);
+    if (!res.success) {
+      // Revert on failure
+      setIsLiked(!newIsLiked);
+      setLikeCount(prev => !newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+      console.error(res.error);
+    }
+    setIsLikeLoading(false);
+  };
+
+  const handleSave = async () => {
+    if (!currentUser || isSaveLoading) return;
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    setIsSaveLoading(true);
+
+    const res = await toggleSave(currentUser.id, "post", post.id);
+    if (!res.success) {
+      // Revert on failure
+      setIsSaved(!newIsSaved);
+      console.error(res.error);
+    }
+    setIsSaveLoading(false);
+  };
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/${locale}/p/${post.author?.username}/${post.authorId}?postId=${post.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.author?.profile?.displayName || post.author?.username}`,
+          url
+        });
+
+      } catch (err) {
+        console.error("Error sharing", err);
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      alert(t("feed.linkCopied") || "Tautan disalin ke papan klip!");
+
+    }
+  };
 
   useEffect(() => {
     if (isDeleteModalOpen || isMediaModalOpen || isTagListModalOpen || isEditModalOpen) {
@@ -284,11 +347,14 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
               <div className="fixed inset-0 z-[10100]" onClick={() => setActivePostMenu(false)}></div>
               
               <div className="absolute right-0 mt-1 w-[260px] bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] p-2 z-[10200]">
-                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors text-left text-black dark:text-[#E4E6EB] font-semibold text-[15px]">
-                  <svg className="w-6 h-6 text-gray-600 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                <button 
+                  onClick={() => { handleSave(); setActivePostMenu(false); }}
+                  className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors text-left text-black dark:text-[#E4E6EB] font-semibold text-[15px]"
+                >
+                  <svg className={`w-6 h-6 ${isSaved ? 'text-emerald-500' : 'text-gray-600 dark:text-[#B0B3B8]'}`} fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
                   </svg>
-                  {t("postMenu.savePost") || "Simpan Postingan"}
+                  {isSaved ? "Hapus dari Tersimpan" : (t("postMenu.savePost") || "Simpan Postingan")}
                 </button>
                 <button
                   onClick={() => {
@@ -501,16 +567,20 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
               e.stopPropagation();
               router.push(`/${locale}/project/${post.author?.username || post.authorId}/${post.project.id}`);
             }}
-            className="border border-gray-200 dark:border-[#4E4F50] rounded-2xl overflow-hidden cursor-pointer hover:bg-gray-50 dark:hover:bg-[#3A3B3C]/50 transition-colors bg-white dark:bg-[#242526]"
+            className="border border-gray-200 dark:border-[#4E4F50] rounded-xl overflow-hidden cursor-pointer hover:bg-gray-50 dark:hover:bg-[#3A3B3C]/50 transition-colors bg-white dark:bg-[#242526] flex flex-col sm:flex-row"
           >
-            <div className="relative pointer-events-none">
+            <div className="w-full sm:w-[140px] shrink-0 relative pointer-events-none border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-[#4E4F50]">
               {post.project.coverUrls?.[0] || post.project.mediaUrls?.[0] ? (
-                <MediaRenderer url={post.project.coverUrls?.[0] || post.project.mediaUrls?.[0]} className="w-full aspect-video object-cover" />
-              ) : null}
+                <MediaRenderer url={post.project.coverUrls?.[0] || post.project.mediaUrls?.[0]} className="w-full h-full object-cover sm:aspect-auto aspect-video sm:min-h-[140px]" />
+              ) : (
+                <div className="w-full h-full sm:min-h-[140px] aspect-video sm:aspect-auto bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-300 dark:text-[#4E4F50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+              )}
             </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-[17px] text-gray-900 dark:text-[#E4E6EB] leading-tight">{post.project.title}</h3>
+            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-center">
+              <div className="flex items-start justify-between mb-1 gap-2">
+                <h3 className="font-bold text-[16px] text-gray-900 dark:text-[#E4E6EB] leading-tight line-clamp-2">{post.project.title}</h3>
                 <span className={`text-[11px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shrink-0 ${
                   post.project.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
                   post.project.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
@@ -522,7 +592,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
               </div>
               
               {post.project.techStack && post.project.techStack.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1 mt-auto">
                   {post.project.techStack.slice(0, 5).map((tech: string, i: number) => (
                     <span key={i} className="text-[11px] px-2 py-0.5 bg-gray-100 dark:bg-[#3A3B3C] text-gray-600 dark:text-[#E4E6EB] rounded-full">
                       {tech}
@@ -574,19 +644,28 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       {/* Footer Actions */}
       <div className="px-4 pb-4 mt-2">
         <div className="flex items-center gap-1 pt-2 border-t border-gray-100 dark:border-[#3E4042]">
-          <button className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent">
+          <button 
+            onClick={handleLike}
+            className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-[15px] font-semibold transition-colors bg-transparent ${isLiked ? 'text-blue-600 dark:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30' : 'text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C]'}`}
+          >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
             </svg>
-            {t("feed.like") || "Suka"} <span className="ml-0.5">({post._count?.likes || 0})</span>
+            {t("feed.like") || "Suka"} <span className="ml-0.5">({likeCount})</span>
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent">
+          <button 
+            onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}
+            className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent"
+          >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
             </svg>
             {t("feed.comment") || "Komentar"} <span className="ml-0.5">({post._count?.comments || 0})</span>
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent">
+          <button 
+            onClick={handleShare}
+            className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent"
+          >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
             </svg>
@@ -756,6 +835,16 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Post Detail & Comment Modal */}
+      {isPostDetailModalOpen && (
+        <PostDetailModal
+          isOpen={isPostDetailModalOpen}
+          onClose={() => setIsPostDetailModalOpen(false)}
+          post={post}
+          currentUser={currentUser}
+        />
       )}
     </>
   );

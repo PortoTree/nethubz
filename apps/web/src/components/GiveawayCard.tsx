@@ -11,7 +11,7 @@ import {
   getGiveawayParticipants,
 } from "@/app/actions/giveaways";
 import { handlePrimaryConnectionAction } from "@/app/actions/connections";
-import { notifyConnectionChanged } from "@/utils/profileCache";
+import { notifyConnectionChanged } from "@/utils/cache";
 
 type State = NonNullable<Awaited<ReturnType<typeof getGiveawayState>>["state"]>;
 

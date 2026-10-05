@@ -12,7 +12,7 @@ import animationDataDark from "../../../../public/search-bar-putih.json";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { getOptimizedUrl } from "@/utils/cloudinary";
-import { profileCache, connectionCache } from "@/utils/profileCache";
+import { profileCache, connectionCache } from "@/utils/cache";
 import React from "react";
 import { useUser } from "@/contexts/UserContext";
 import Navbar from "@/components/Navbar";

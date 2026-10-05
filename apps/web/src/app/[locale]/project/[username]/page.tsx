@@ -11,7 +11,7 @@ import ProjectCard from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
-import { projectsCache } from "@/utils/profileCache";
+import { projectsCache } from "@/utils/cache";
 
 import ProjectFormModal from "@/components/ProjectFormModal";
 import { deleteProject, createProject, updateProject } from "@/app/actions/projects";

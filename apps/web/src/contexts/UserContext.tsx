@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { profileCache } from "@/utils/profileCache";
+import { profileCache } from "@/utils/cache";
 
 interface UserContextType {
   currentUser: any;

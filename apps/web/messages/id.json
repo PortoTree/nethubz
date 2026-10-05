@@ -983,5 +983,14 @@
     "userProjects": "Project {name}",
     "searchResultsTitle": "Hasil Pencarian",
     "searchNoUser": "Pengguna yang anda cari mungkin tidak memiliki project disini, pastikan username/display name yang anda isi sudah tepat."
+  },
+  "postModal": {
+    "title": "Komentar",
+    "noComments": "Belum ada komentar. Jadilah yang pertama!",
+    "like": "Suka",
+    "reply": "Balas",
+    "loadMore": "Muat lebih banyak",
+    "more": "Opsi lainnya",
+    "writeComment": "Tulis komentar..."
   }
 }

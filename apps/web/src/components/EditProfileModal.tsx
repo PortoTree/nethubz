@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import CropModal from "@/components/CropModal";
 import ProfileMediaSelectionModal from "@/components/ProfileMediaSelectionModal";
 import { uploadToCloudinary } from "@/utils/uploadImage";
-import { profileCache } from "@/utils/profileCache";
+import { profileCache } from "@/utils/cache";
 import { useRouter } from "next/navigation";
 import { updateProfileMedia, getProfile, updateDisplayName, updateProfileInfo } from "@/app/actions/profile";
 import { getBlockedUsers, handlePrimaryConnectionAction } from "@/app/actions/connections";

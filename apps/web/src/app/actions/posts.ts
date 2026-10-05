@@ -90,6 +90,14 @@ async function mapPost(post: any) {
       mapped.giveaway.followTargets = [];
     }
   }
+  if (post.likes) {
+    mapped.hasLiked = post.likes.length > 0;
+    delete mapped.likes;
+  }
+  if (post.savedBy) {
+    mapped.hasSaved = post.savedBy.length > 0;
+    delete mapped.savedBy;
+  }
   
   return mapped;
 }
@@ -304,7 +312,15 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
         _count: {
           select: { likes: true, comments: true }
         },
-        project: true
+        likes: { where: { userId } },
+        savedBy: { where: { userId } },
+        project: {
+          include: {
+            _count: { select: { likes: true, comments: true } },
+            likes: { where: { userId } },
+            savedBy: { where: { userId } },
+          }
+        }
       },
       orderBy: { createdAt: "desc" }
     });
