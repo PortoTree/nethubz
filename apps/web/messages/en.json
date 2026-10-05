@@ -900,5 +900,19 @@
     "viewProject": "View Project",
     "viewProfile": "View Profile"
   },
-  "projectHub": "Project Hub"
+  "projectHub": "Project Hub",
+  "projectShowcase": {
+    "pageTitle": "Project Showcase",
+    "pageSubtitle": "{count} projects from our community",
+    "searchTitle": "Search",
+    "searchPlaceholder": "Search projects, creators...",
+    "filterStatus": "Status",
+    "filterAll": "All Status",
+    "filterTech": "Tech Stack",
+    "clearTech": "Clear filter",
+    "statsTitle": "Showing",
+    "statsLabel": "projects match",
+    "noResults": "No projects match your search.",
+    "userProjects": "{name}'s Projects"
+  }
 }

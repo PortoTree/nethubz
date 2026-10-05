@@ -33,7 +33,7 @@ export default function Navbar({
   const pathname = usePathname();
 
   const handleTabNavigation = (tabName: string, routeName: string) => {
-    if (pathname.includes("/p/")) {
+    if (pathname.includes("/p/") || pathname.includes("/project")) {
       router.push(`/${locale}/${routeName}`);
     } else {
       setActiveTab(tabName);

@@ -265,7 +265,7 @@ export default function ProjectDetailsPage({
     }
     
     // Security check
-    if (res.project.user?.username !== decodedUsername) {
+    if (res.project.user?.username?.toLowerCase() !== decodedUsername.toLowerCase()) {
       router.push(`/${locale}/404`);
       return;
     }
@@ -284,6 +284,19 @@ export default function ProjectDetailsPage({
       window.removeEventListener("refresh_projects", handleRefresh);
     };
   }, [loadProject]);
+
+  useEffect(() => {
+    if (!isLoading && window.location.hash === '#comments') {
+      // Need a slight delay to allow browser to finish painting the new DOM
+      const timer = setTimeout(() => {
+        const el = document.getElementById('comments');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -374,7 +387,7 @@ export default function ProjectDetailsPage({
                   <span>{p._count?.likes || 0}</span>
                 </button>
                 <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
-                <button onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                <button onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                   <span>{p._count?.comments || 0}</span>
                 </button>
@@ -452,7 +465,7 @@ export default function ProjectDetailsPage({
           <hr className="border-gray-200 dark:border-[#3A3B3C] my-8" />
           
           {/* Comments Section */}
-          <div id="comments-section" className="pt-2 pb-10">
+          <div id="comments" className="pt-2 pb-10">
             <div className="flex flex-col lg:flex-row gap-8">
               
               {/* Left Column (Comments) */}

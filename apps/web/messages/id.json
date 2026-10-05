@@ -906,5 +906,19 @@
     "viewProject": "Lihat Project",
     "viewProfile": "Lihat Profil"
   },
-  "projectHub": "Project Hub"
+  "projectHub": "Project Hub",
+  "projectShowcase": {
+    "pageTitle": "Etalase Project",
+    "pageSubtitle": "{count} project dari komunitas kami",
+    "searchTitle": "Cari",
+    "searchPlaceholder": "Cari project, kreator...",
+    "filterStatus": "Status",
+    "filterAll": "Semua Status",
+    "filterTech": "Tech Stack",
+    "clearTech": "Hapus filter",
+    "statsTitle": "Menampilkan",
+    "statsLabel": "project cocok",
+    "noResults": "Tidak ada project yang cocok.",
+    "userProjects": "Project {name}"
+  }
 }
