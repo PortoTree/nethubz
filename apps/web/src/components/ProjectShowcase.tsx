@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
@@ -28,6 +28,23 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
   const [activeStatus, setActiveStatus] = useState("ALL");
   const [showFilter, setShowFilter] = useState(false);
   const [activeCategory, setActiveCategory] = useState("ALL");
+  const [showStickyCategories, setShowStickyCategories] = useState(false);
+  const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
+  const stickyCarouselRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsScrolledPastHero(!entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setShowStickyCategories(false); // auto close if scrolled back up
+        }
+      },
+      { threshold: 0, rootMargin: "-100px 0px 0px 0px" } // trigger slightly before it's completely out
+    );
+    if (carouselRef.current) observer.observe(carouselRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const categories = [
     { key: "WEB_DEV", label: "Web Dev", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> },
@@ -139,21 +156,89 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
         {/* LEFT: Project Cards */}
       <div className="flex-1 min-w-0">
         
-        <div className="flex flex-col gap-3 mb-5">
+        <div className="sticky top-[72px] z-30 bg-white/90 dark:bg-[#242526]/90 backdrop-blur-md px-5 py-3.5 mb-6 border border-gray-200 dark:border-[#4E4F50] shadow-sm rounded-[28px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-gray-800 dark:text-[#E4E6EB]">
-              {tHub("categoryTitle")} <span className="text-purple-600 dark:text-purple-400">{activeCategory === "ALL" ? tHub("allCategories") : categories.find(c => c.key === activeCategory)?.label}</span>
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-[15px] font-bold text-gray-800 dark:text-[#E4E6EB] cursor-pointer ml-1" onClick={() => setShowStickyCategories(!showStickyCategories)}>
+                {tHub("categoryTitle")} <span className="text-purple-600 dark:text-purple-400">{activeCategory === "ALL" ? tHub("allCategories") : categories.find(c => c.key === activeCategory)?.label}</span>
+              </h2>
+              {activeCategory !== "ALL" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCategory("ALL");
+                  }}
+                  className="w-5 h-5 rounded-full bg-gray-100 dark:bg-[#3A3B3C] text-gray-500 dark:text-gray-400 flex items-center justify-center hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-500/20 dark:hover:text-red-400 transition-colors"
+                  title="Reset Category"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
+            </div>
             <div className="flex gap-2">
-              <button onClick={scrollLeft} className="w-8 h-8 rounded-full bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] transition-colors shadow-sm">
+              {showStickyCategories && (
+                <button
+                  onClick={() => setShowStickyCategories(false)}
+                  className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 flex items-center justify-center text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors mr-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
+              <button 
+                onClick={() => {
+                  if (!isScrolledPastHero) {
+                    carouselRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+                  } else {
+                    if (!showStickyCategories) setShowStickyCategories(true);
+                    else stickyCarouselRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+                  }
+                }} 
+                className="w-8 h-8 rounded-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#4E4F50] transition-colors"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <button onClick={scrollRight} className="w-8 h-8 rounded-full bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] transition-colors shadow-sm">
+              <button 
+                onClick={() => {
+                  if (!isScrolledPastHero) {
+                    carouselRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
+                  } else {
+                    if (!showStickyCategories) setShowStickyCategories(true);
+                    else stickyCarouselRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
+                  }
+                }} 
+                className="w-8 h-8 rounded-full bg-gray-50 dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] flex items-center justify-center text-gray-600 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#4E4F50] transition-colors"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
-          <div className="h-px w-full bg-gray-200 dark:bg-[#3A3B3C]"></div>
+
+          <div className={`grid transition-all duration-300 ease-in-out ${showStickyCategories ? "grid-rows-[1fr] opacity-100 mt-4" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
+            <div className="overflow-hidden">
+              <div ref={stickyCarouselRef} className="flex gap-3 overflow-x-auto pb-4 pt-1 px-1 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth">
+                {categories.map((c) => {
+                  const count = projects.filter((p) => p.category === c.key || (!p.category && c.key === "WEB_DEV")).length;
+                  return (
+                    <button
+                      key={c.key + "-sticky"}
+                      onClick={() => setActiveCategory(activeCategory === c.key ? "ALL" : c.key)}
+                      className={`shrink-0 w-[120px] snap-start flex flex-col items-center justify-center p-4 rounded-2xl border transition-all relative ${
+                        activeCategory === c.key
+                          ? "bg-purple-100 border-purple-200 text-purple-700 dark:bg-purple-500/20 dark:border-purple-500/30 dark:text-purple-300 shadow-sm translate-y-[2px]"
+                          : "bg-white border-gray-100 border-b-gray-200 text-gray-600 hover:border-purple-200 hover:-translate-y-1 hover:shadow-lg dark:bg-[#242526] dark:border-[#3A3B3C] dark:border-b-[#4E4F50] dark:text-[#B0B3B8] dark:hover:border-purple-500/30 shadow-md border-b-[4px]"
+                      }`}
+                    >
+                      <div className={`mb-3 p-2.5 rounded-full transition-colors ${activeCategory === c.key ? "bg-purple-200 dark:bg-purple-500/40 text-purple-700 dark:text-purple-300" : "bg-gray-50 dark:bg-[#3A3B3C] text-gray-500 dark:text-gray-400"}`}>
+                        {c.icon}
+                      </div>
+                      <span className="text-[12px] font-bold text-center leading-tight tracking-wide mb-1">{c.label}</span>
+                      <span className="text-[10px] font-medium opacity-70">{count} project</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
 
@@ -326,7 +411,7 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={tHub("searchPlaceholder")}
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[#F0F2F5] dark:bg-[#3A3B3C] text-gray-900 dark:text-[#E4E6EB] text-[14px] outline-none border border-transparent focus:border-purple-400 dark:focus:border-purple-500 transition-colors placeholder:text-gray-400"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#242526] text-gray-900 dark:text-[#E4E6EB] text-[14px] outline-none border border-gray-200 dark:border-[#4E4F50] focus:border-purple-400 dark:focus:border-purple-500 transition-colors placeholder:text-gray-400 shadow-sm"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
