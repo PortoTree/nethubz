@@ -145,23 +145,42 @@ export default function ProjectDetailsPage({
               </span>
             </div>
 
-            <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="flex items-center gap-4 group w-fit">
-              {avatar ? (
-                <img src={avatar} alt={displayName} className="w-14 h-14 rounded-full object-cover shadow-sm" />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xl">
-                  {displayName[0].toUpperCase()}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="flex items-center gap-4 group w-fit">
+                {avatar ? (
+                  <img src={avatar} alt={displayName} className="w-14 h-14 rounded-full object-cover shadow-sm" />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xl">
+                    {displayName[0].toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-[16px] font-bold text-gray-900 dark:text-[#E4E6EB] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    {displayName}
+                  </h3>
+                  <p className="text-[14px] text-gray-500 dark:text-[#B0B3B8]">
+                    @{profileUser.username}
+                  </p>
                 </div>
-              )}
-              <div>
-                <h3 className="text-[16px] font-bold text-gray-900 dark:text-[#E4E6EB] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                  {displayName}
-                </h3>
-                <p className="text-[14px] text-gray-500 dark:text-[#B0B3B8]">
-                  @{profileUser.username}
-                </p>
+              </Link>
+              
+              <div className="flex items-center gap-3 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C]">
+                <button className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                  <span>{p._count?.likes || 0}</span>
+                </button>
+                <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
+                <button onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  <span>{p._count?.comments || 0}</span>
+                </button>
+                <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
+                <button className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                  {t("share") || "Share"}
+                </button>
               </div>
-            </Link>
+            </div>
           </div>
 
           <div>
@@ -212,6 +231,90 @@ export default function ProjectDetailsPage({
               )}
             </div>
           )}
+          
+          <hr className="border-gray-200 dark:border-[#3A3B3C] my-8" />
+          
+          {/* Comments Section */}
+          <div id="comments-section" className="pt-2 pb-10">
+            <div className="flex flex-col lg:flex-row gap-8">
+              
+              {/* Left Column (Comments) */}
+              <div className="flex-1 lg:max-w-[60%] border border-gray-200 dark:border-[#3A3B3C] rounded-2xl bg-white dark:bg-[#242526] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] bg-gray-50 dark:bg-[#1f2021]">
+                  <h3 className="text-[17px] font-bold text-gray-900 dark:text-[#E4E6EB] flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
+                    {t("comments") || "Comments"} <span className="text-gray-500 dark:text-[#B0B3B8] font-medium">({p._count?.comments || 0})</span>
+                  </h3>
+                </div>
+
+                {/* Comments List (Empty for now) */}
+                <div className="p-4 flex-1 min-h-[250px] flex flex-col items-center justify-center text-center">
+                  <div className="w-14 h-14 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center mb-4 text-gray-400 dark:text-[#B0B3B8]">
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  </div>
+                  <p className="text-gray-500 dark:text-[#B0B3B8] font-medium text-[15px] max-w-[250px] leading-relaxed">
+                    {t("noCommentsYet") || "No comments yet. Be the first to share your thoughts!"}
+                  </p>
+                </div>
+
+                {/* Comment Input */}
+                <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] bg-white dark:bg-[#242526]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 shrink-0 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold overflow-hidden shadow-sm">
+                      {user?.profile?.avatarUrl ? (
+                        <img src={getOptimizedUrl(user.profile.avatarUrl, 'thumb')} alt="You" className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{user?.username?.[0]?.toUpperCase() || "?"}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-full flex items-center px-4 py-2 border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-colors">
+                      <button className="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400 transition-colors shrink-0 p-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </button>
+                      <input 
+                        type="text" 
+                        placeholder={t("writeComment") || "Write a comment..."} 
+                        className="flex-1 bg-transparent border-none focus:outline-none text-[14px] text-gray-900 dark:text-[#E4E6EB] placeholder-gray-500 px-3 py-1"
+                      />
+                      <button className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold text-[14px] px-2 py-1 transition-colors shrink-0">
+                        <svg className="w-5 h-5 -rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column (Profile CTA) */}
+              <div className="w-full lg:w-[40%] shrink-0">
+                <div className="sticky top-24 flex flex-col items-center text-center">
+                  {avatar ? (
+                    <img src={avatar} alt={displayName} className="w-24 h-24 rounded-full object-cover shadow-sm ring-4 ring-white dark:ring-[#18191A] mb-4" />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-3xl ring-4 ring-white dark:ring-[#18191A] mb-4">
+                      {displayName[0].toUpperCase()}
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-[#E4E6EB] leading-tight">
+                    {displayName}
+                  </h3>
+                  <p className="text-[15px] text-gray-500 dark:text-[#B0B3B8] mt-1 mb-6">
+                    @{profileUser.username}
+                  </p>
+                  
+                  <div className="flex flex-col gap-3 w-full max-w-[280px]">
+                    <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-center text-[15px] transition-all hover:-translate-y-0.5 shadow-sm shadow-purple-200 dark:shadow-none">
+                      Lihat Profil
+                    </Link>
+                    <Link href={`/${locale}/project/${profileUser.username}`} className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] text-gray-800 dark:text-[#E4E6EB] font-bold rounded-xl text-[14px] transition-colors">
+                      {t("viewOtherProjects") || "Project Lain"}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
 
       </div>

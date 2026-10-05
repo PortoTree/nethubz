@@ -890,7 +890,10 @@
     "aboutProject": "Tentang Project ini",
     "technologies": "Teknologi",
     "like": "Suka",
-    "comment": "Komen",
-    "share": "Bagikan"
+    "comment": "Komentar",
+    "share": "Bagikan",
+    "comments": "Komentar",
+    "writeComment": "Tulis komentar...",
+    "noCommentsYet": "Belum ada komentar. Jadilah yang pertama membagikan pendapatmu!"
   }
 }

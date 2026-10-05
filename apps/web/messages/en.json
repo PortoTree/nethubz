@@ -885,6 +885,9 @@
     "technologies": "Technologies",
     "like": "Like",
     "comment": "Comment",
-    "share": "Share"
+    "share": "Share",
+    "comments": "Comments",
+    "writeComment": "Write a comment...",
+    "noCommentsYet": "No comments yet. Be the first to share your thoughts!"
   }
 }
