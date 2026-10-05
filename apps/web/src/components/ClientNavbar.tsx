@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
+import { useUser } from "@/contexts/UserContext";
 
 export default function ClientNavbar({ activeTab = "project" }: { activeTab?: string }) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser } = useUser();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -32,18 +33,7 @@ export default function ClientNavbar({ activeTab = "project" }: { activeTab?: st
     }
   }, [isDarkMode, themeLoaded]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const uid = payload.sub || payload.id || payload._id || payload.userId || "1";
-        setCurrentUser({ id: uid, username: payload.username || "Guest" });
-      } catch (e) {
-        console.error("Invalid token");
-      }
-    }
-  }, []);
+
 
   if (!themeLoaded) return null;
 

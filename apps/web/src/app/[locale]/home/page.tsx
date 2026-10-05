@@ -14,6 +14,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { profileCache, connectionCache } from "@/utils/profileCache";
 import React from "react";
+import { useUser } from "@/contexts/UserContext";
 import Navbar from "@/components/Navbar";
 import CreatePostModal from "@/components/CreatePostModal";
 import PostFeed from "@/components/PostFeed";
@@ -218,11 +219,8 @@ export default function Beranda() {
   console.log("[Beranda] locale:", locale);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [currentUser, setCurrentUser] = useState<any>({
-    username: "User",
-    displayName: "",
-  });
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  
+  const { currentUser, isProfileLoading } = useUser();
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -679,77 +677,6 @@ export default function Beranda() {
       document.documentElement.style.overflow = "";
     };
   }, [isCreatePostModalOpen]);
-
-  useEffect(() => {
-    const fetchProfile = (userId: string) => {
-      import("@/app/actions/profile").then(({ getProfile }) => {
-        getProfile(userId).then(res => {
-          if (res.success && res.profile) {
-            setCurrentUser((prev: any) => ({ ...prev, profile: res.profile }));
-            profileCache.set(userId, res.profile);
-          }
-          setIsProfileLoading(false);
-        });
-      });
-    };
-
-    let globalUserId = "";
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.username || payload.name) {
-          globalUserId = payload.sub || payload.id || payload._id || payload.userId || "1";
-          
-          const cachedProfile = profileCache.get(globalUserId);
-          if (cachedProfile) {
-            setCurrentUser({
-              id: globalUserId,
-              username: payload.username || payload.name || "User",
-              displayName: payload.displayName || payload.username || payload.name || "User",
-              profile: cachedProfile
-            });
-            setIsProfileLoading(false);
-          } else {
-            setCurrentUser({
-              id: globalUserId,
-              username: payload.username || payload.name || "User",
-              displayName: payload.displayName || payload.username || payload.name || "User",
-            });
-          }
-          
-          fetchProfile(globalUserId);
-        }
-      } catch (e) {
-        console.error("Failed to parse token");
-      }
-    }
-
-    const handleProfileUpdated = (e: any) => {
-      if (globalUserId) {
-        if (e.detail && e.detail.type && e.detail.url) {
-          // Optimistically update the avatar/cover in the state
-          setCurrentUser((prev: any) => {
-            if (!prev.profile) return prev;
-            const newProfile = { ...prev.profile };
-            if (e.detail.type === 'avatar') newProfile.avatarUrl = e.detail.url;
-            if (e.detail.type === 'cover') newProfile.coverUrl = e.detail.url;
-            
-            // Also update the cache so if they navigate away and back, it's correct
-            profileCache.set(globalUserId, newProfile);
-            return { ...prev, profile: newProfile };
-          });
-        } else {
-          profileCache.delete(globalUserId);
-        }
-        // Do NOT fetchProfile here to prevent race conditions with server cache that overwrites the new image with stale data
-        // fetchProfile(globalUserId);
-      }
-    };
-    
-    window.addEventListener("profile_updated", handleProfileUpdated);
-    return () => window.removeEventListener("profile_updated", handleProfileUpdated);
-  }, []);
 
   return (
     <>

@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 import SplashScreen from "@/components/SplashScreen";
+import { UserProvider } from "@/contexts/UserContext";
 
 export default async function LocaleLayout({
   children,
@@ -38,7 +39,9 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <SplashScreen />
-      {children}
+      <UserProvider>
+        {children}
+      </UserProvider>
     </NextIntlClientProvider>
   );
 }
