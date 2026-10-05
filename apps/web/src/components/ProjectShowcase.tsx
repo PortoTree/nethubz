@@ -119,8 +119,11 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
 
     let remainingUsers = Array.from(userMap.values());
 
-    // Sort by most popular (likes + comments)
-    const sortedByPopularity = [...remainingUsers].sort((a, b) => (b.totalLikes + b.totalComments) - (a.totalLikes + a.totalComments));
+    // Sort by most popular (likes primary, comments secondary)
+    const sortedByPopularity = [...remainingUsers].sort((a, b) => {
+      if (b.totalLikes !== a.totalLikes) return b.totalLikes - a.totalLikes;
+      return (b.totalComments || 0) - (a.totalComments || 0);
+    });
     const top3Popular = sortedByPopularity.slice(0, 3);
 
     // Remove top3 from remaining
@@ -129,19 +132,19 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
 
     // Sort remaining by most projects
     const sortedByProjects = [...remainingUsers].sort((a, b) => b.totalProjects - a.totalProjects);
-    const top2Projects = sortedByProjects.slice(0, 2);
+    const top3Projects = sortedByProjects.slice(0, 3);
 
-    // Remove top2 projects from remaining
-    const top2ProjectsSet = new Set(top2Projects.map(u => u.username));
-    remainingUsers = remainingUsers.filter(u => !top2ProjectsSet.has(u.username));
+    // Remove top3 projects from remaining
+    const top3ProjectsSet = new Set(top3Projects.map(u => u.username));
+    remainingUsers = remainingUsers.filter(u => !top3ProjectsSet.has(u.username));
 
     // Take 2 random from remainder
     const random2 = [...remainingUsers].sort(() => 0.5 - Math.random()).slice(0, 2);
 
-    let combined = [...top3Popular, ...top2Projects, ...random2];
+    let combined = [...top3Popular, ...top3Projects, ...random2];
 
     // TEMPORARY DUMMY DATA
-    if (combined.length < 7) {
+    if (combined.length < 8) {
       const dummies = [
         { username: "john_doe", displayName: "John Doe", avatarUrl: "", totalLikes: 1450, totalComments: 342, totalProjects: 12 },
         { username: "jane_smith", displayName: "Jane Smith", avatarUrl: "", totalLikes: 890, totalComments: 120, totalProjects: 8 },
@@ -150,9 +153,10 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
         { username: "mike_builds", displayName: "Mike Builder", avatarUrl: "", totalLikes: 2100, totalComments: 430, totalProjects: 18 },
         { username: "emma_design", displayName: "Emma Design", avatarUrl: "", totalLikes: 980, totalComments: 210, totalProjects: 9 },
         { username: "chris_tech", displayName: "Chris Tech", avatarUrl: "", totalLikes: 4300, totalComments: 670, totalProjects: 31 },
+        { username: "leo_coder", displayName: "Leo Coder", avatarUrl: "", totalLikes: 1500, totalComments: 110, totalProjects: 14 },
       ];
 
-      const toAdd = 7 - combined.length;
+      const toAdd = 8 - combined.length;
       const neededDummies = dummies.filter(d => !combined.find(c => c.username === d.username)).slice(0, toAdd);
       combined = [...combined, ...neededDummies];
     }
@@ -428,7 +432,7 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
         </div>
 
         {/* RIGHT: Search & Filter Sidebar */}
-        <div className="w-[300px] shrink-0 flex flex-col gap-4 sticky top-24">
+        <div className="w-[300px] shrink-0 flex flex-col gap-4 sticky top-24 z-20">
           <div className="relative">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide">
@@ -498,9 +502,24 @@ export default function ProjectShowcase({ projects, title, subtitle }: { project
           {/* ACTIVE CREATORS */}
           {activeCreators.length > 0 && (
             <div className="flex flex-col gap-3 mt-4">
-              <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide px-1">
-                {tHub("activeCreators")}
-              </p>
+              <div className="flex items-center gap-1.5 px-1 relative">
+                <p className="text-[13px] font-bold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wide">
+                  {tHub("activeCreators")}
+                </p>
+                <div className="group/info relative flex items-center">
+                  <svg className="w-3.5 h-3.5 text-gray-400 hover:text-purple-500 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="absolute right-0 top-full mt-2 w-[260px] bg-white dark:bg-[#242526] text-gray-700 dark:text-[#E4E6EB] text-[12px] rounded-xl border border-gray-200 dark:border-[#3A3B3C] shadow-xl p-3 opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-50 pointer-events-none">
+                    <p className="font-bold mb-1.5 text-gray-800 dark:text-[#E4E6EB]">{tHub("activeCreatorsTooltipTitle")}</p>
+                    <ul className="flex flex-col gap-1.5 text-[11px] font-medium opacity-80 leading-relaxed text-left">
+                      <li>{tHub("activeCreatorsTooltip1")}</li>
+                      <li>{tHub("activeCreatorsTooltip2")}</li>
+                      <li>{tHub("activeCreatorsTooltip3")}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
               <div className="flex flex-col gap-1">
                 {activeCreators.map((creator) => (
                   <Link
