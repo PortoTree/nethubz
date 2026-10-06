@@ -77,12 +77,12 @@ async function mapPost(post: any) {
   if (post.taggedUsers) {
     mapped.taggedUsers = post.taggedUsers;
   }
-  
+
   if (mapped.giveaway?.requirements) {
     const followTargets = mapped.giveaway.requirements
       .filter((r: any) => r.type === "FOLLOW_USER" && r.targetId)
       .map((r: any) => r.targetId);
-      
+
     if (followTargets.length > 0) {
       const targets = await Promise.all(followTargets.map((id: string) => getCachedUserAvatar(id)));
       mapped.giveaway.followTargets = targets.filter(Boolean);
@@ -98,7 +98,7 @@ async function mapPost(post: any) {
     mapped.hasSaved = post.savedBy.length > 0;
     delete mapped.savedBy;
   }
-  
+
   return mapped;
 }
 
@@ -254,16 +254,16 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
         ]
       }
     });
-    
+
     const friendIds = friendships.map(f => f.userId === userId ? f.friendId : f.userId);
 
     const visibilityFilter = {
       OR: [
         { visibility: "PUBLIC" },
         { authorId: userId },
-        { 
-          visibility: "FRIENDS", 
-          authorId: { in: friendIds } 
+        {
+          visibility: "FRIENDS",
+          authorId: { in: friendIds }
         }
       ]
     };
@@ -340,14 +340,14 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
 
 export async function deletePost(postId: string, authorId: string) {
   try {
-    const post = await prisma.post.findUnique({ 
-      where: { id: postId }, 
-      include: { hashtags: true, postMedia: { include: { media: true } } } 
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { hashtags: true, postMedia: { include: { media: true } } }
     });
     if (!post || post.authorId !== authorId) {
       return { success: false, error: "Unauthorized or not found" };
     }
-    
+
     const tagsToRemove = post.hashtags.map(h => h.name);
     if (tagsToRemove.length > 0) {
       await prisma.hashtag.updateMany({
@@ -357,7 +357,7 @@ export async function deletePost(postId: string, authorId: string) {
     }
 
     await prisma.post.delete({ where: { id: postId } });
-    
+
     // Check orphaned media and delete from Cloudinary
     if (post.postMedia && post.postMedia.length > 0) {
       const { deleteFromCloudinary } = await import('@/lib/cloudinary');
@@ -378,7 +378,7 @@ export async function deletePost(postId: string, authorId: string) {
 
     revalidateTag("feed_posts", "page");
     revalidateTag(`profile_posts_${authorId}`, "page");
-    
+
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -395,7 +395,7 @@ export async function updatePost(postId: string, authorId: string, content: stri
     const extractedTags = content.match(/#[\w_]+/g)?.map(t => t.slice(1).toLowerCase()) || [];
     const newUniqueTags = [...new Set(extractedTags)];
     const oldTags = post.hashtags.map(h => h.name);
-    
+
     const tagsToAdd = newUniqueTags.filter(t => !oldTags.includes(t));
     const tagsToRemove = oldTags.filter(t => !newUniqueTags.includes(t));
 
@@ -418,10 +418,10 @@ export async function updatePost(postId: string, authorId: string, content: stri
 
     const updatedPost = await prisma.post.update({
       where: { id: postId },
-      data: { 
-        content, 
-        visibility, 
-        label, 
+      data: {
+        content,
+        visibility,
+        label,
         mediaLayout: mediaLayout || undefined,
         taggedUsers: taggedUserIds ? {
           set: taggedUserIds.map(id => ({ id }))
@@ -435,10 +435,10 @@ export async function updatePost(postId: string, authorId: string, content: stri
         postMedia: { include: { media: true } }
       }
     });
-    
+
     revalidateTag("feed_posts", "page");
     revalidateTag(`profile_posts_${authorId}`, "page");
-    
+
     return { success: true, post: await mapPost(updatedPost) };
   } catch (error: any) {
     return { success: false, error: error.message };

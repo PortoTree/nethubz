@@ -11,6 +11,7 @@ function GlobalPostModalContent() {
   const router = useRouter();
   const pathname = usePathname();
   const postId = searchParams.get("postId");
+  const commentId = searchParams.get("commentId");
   
   const { currentUser } = useUser();
   const [modalPost, setModalPost] = useState<any>(null);
@@ -34,9 +35,10 @@ function GlobalPostModalContent() {
   const handleClose = () => {
     setIsOpen(false);
     
-    // Remove postId from URL without full page reload
+    // Remove postId and commentId from URL without full page reload
     const newSearchParams = new URLSearchParams(searchParams.toString());
     newSearchParams.delete("postId");
+    newSearchParams.delete("commentId");
     const newUrl = newSearchParams.toString() ? `${pathname}?${newSearchParams.toString()}` : pathname;
     
     router.replace(newUrl, { scroll: false });
@@ -50,6 +52,7 @@ function GlobalPostModalContent() {
       onClose={handleClose}
       post={modalPost}
       currentUser={currentUser}
+      targetCommentId={commentId || undefined}
     />
   );
 }

@@ -25,6 +25,7 @@ interface PostDetailModalProps {
   onClose: () => void;
   post: any;
   currentUser: any;
+  targetCommentId?: string;
 }
 
 
@@ -537,7 +538,7 @@ function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }
   );
 }
 
-export default function PostDetailModal({ isOpen, onClose, post, currentUser }: PostDetailModalProps) {
+export default function PostDetailModal({ isOpen, onClose, post, currentUser, targetCommentId }: PostDetailModalProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -641,6 +642,24 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
       document.documentElement.style.overflow = prevHtml;
     };
   }, [isOpen, post.id]);
+
+  // Auto-scroll to target comment from notification deep link
+  useEffect(() => {
+    if (!isOpen || !targetCommentId || comments.length === 0) return;
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.getElementById(`comment-${targetCommentId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-blue-400', 'ring-offset-1', 'rounded-xl', 'transition-all');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-blue-400', 'ring-offset-1'), 2500);
+      } else if (attempts < 12) {
+        attempts++;
+        setTimeout(tryScroll, 400);
+      }
+    };
+    setTimeout(tryScroll, 300);
+  }, [isOpen, targetCommentId, comments]);
 
   const fetchComments = async (cursor?: string) => {
     // If cache exists and this is an initial load (no cursor), use cache directly — no network call.

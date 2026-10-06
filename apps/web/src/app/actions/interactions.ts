@@ -164,6 +164,7 @@ export async function addComment(userId: string, targetType: "post" | "project",
 
     // TODO: Create Notification
     let targetOwnerId: string | undefined;
+    let repliedAuthorId: string | undefined;
     
     if (parentId) {
       const parentComment = await prisma.comment.findUnique({ where: { id: parentId } });
@@ -175,8 +176,10 @@ export async function addComment(userId: string, targetType: "post" | "project",
             senderId: userId,
             postId: targetType === "post" ? targetId : undefined,
             projectId: targetType === "project" ? targetId : undefined,
+            commentId: comment.id,
           }
         });
+        repliedAuthorId = parentComment.authorId;
       }
     } else {
       if (targetType === "post") {
@@ -195,6 +198,7 @@ export async function addComment(userId: string, targetType: "post" | "project",
             senderId: userId,
             postId: targetType === "post" ? targetId : undefined,
             projectId: targetType === "project" ? targetId : undefined,
+            commentId: comment.id,
           }
         });
       }
@@ -271,8 +275,8 @@ export async function getComments(targetType: "post" | "project", targetId: stri
 
     let nextCursor: string | undefined = undefined;
     if (comments.length > limit) {
-      const nextItem = comments.pop();
-      nextCursor = nextItem?.id;
+      comments.pop(); // remove extra item
+      nextCursor = comments[comments.length - 1].id;
     }
 
     return { success: true, comments, nextCursor };
@@ -309,8 +313,8 @@ export async function getCommentReplies(commentId: string, cursor?: string, limi
 
     let nextCursor: string | undefined = undefined;
     if (replies.length > limit) {
-      const nextItem = replies.pop();
-      nextCursor = nextItem?.id;
+      replies.pop(); // remove extra item
+      nextCursor = replies[replies.length - 1].id;
     }
 
     return { success: true, replies, nextCursor };

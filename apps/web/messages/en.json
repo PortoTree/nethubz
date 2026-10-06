@@ -448,7 +448,8 @@
     "typeGiveawayEnded": "Your giveaway has ended and winners have been selected.",
     "typeGiveawayReward": "sent you a giveaway reward.",
     "typePostShare": "shared your post.",
-    "typeCommentReply": "replied to your comment on a post/project.",
+    "typeCommentReplyPost": "replied to your comment on a post.",
+    "typeCommentReplyProject": "replied to your comment on a project.",
     "typeProjectLike": "liked your project.",
     "typeProjectComment": "commented on your project.",
     "typeCommentLike": "liked your comment."
