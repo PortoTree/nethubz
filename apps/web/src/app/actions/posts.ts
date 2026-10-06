@@ -92,11 +92,28 @@ async function mapPost(post: any) {
   }
   if (post.likes) {
     mapped.hasLiked = post.likes.length > 0;
+    mapped.myReaction = post.likes.length > 0 ? post.likes[0].type : null;
     delete mapped.likes;
   }
   if (post.savedBy) {
     mapped.hasSaved = post.savedBy.length > 0;
     delete mapped.savedBy;
+  }
+
+  // Fetch top 3 reactions for summary
+  if (post.id) {
+    try {
+      const reactionGroups = await prisma.like.groupBy({
+        by: ['type'],
+        where: { postId: post.id },
+        _count: true,
+        orderBy: { _count: { type: 'desc' } },
+        take: 3
+      });
+      mapped.topReactions = reactionGroups.map((g: any) => g.type);
+    } catch (e) {
+      mapped.topReactions = [];
+    }
   }
 
   return mapped;

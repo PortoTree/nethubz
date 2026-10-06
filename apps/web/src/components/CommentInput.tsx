@@ -44,7 +44,7 @@ export default function CommentInput({
     const onMouseMove = (moveEvent: MouseEvent) => {
       // moving up decreases clientY, which means deltaY is positive, so height increases
       const deltaY = startY - moveEvent.clientY;
-      const newHeight = Math.max(38, Math.min(300, startHeight + deltaY));
+      const newHeight = Math.max(38, Math.min(200, startHeight + deltaY));
       setEditorHeight(newHeight);
     };
 

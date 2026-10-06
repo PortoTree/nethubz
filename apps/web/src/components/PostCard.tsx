@@ -10,6 +10,10 @@ import CreatePostModal from "./CreatePostModal";
 import PostDetailModal from "./PostDetailModal";
 import { MediaRenderer } from "./MediaRenderer";
 import GiveawayCard from "./GiveawayCard";
+import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
+
+import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
+import Image from "next/image";
 
 export function formatPostTime(timestamp: number | Date, t: any, locale: string) {
   const ts = new Date(timestamp).getTime();
@@ -52,29 +56,57 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
   const [isPostDetailModalOpen, setIsPostDetailModalOpen] = useState(false);
 
-  const [isLiked, setIsLiked] = useState(post.hasLiked || false);
+  const [isLiked, setIsLiked] = useState<ReactionType | null>(post.myReaction || null);
   const [likeCount, setLikeCount] = useState(post._count?.likes || 0);
+  const [topReactions, setTopReactions] = useState<ReactionType[]>(post.topReactions || []);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   const [isSaved, setIsSaved] = useState(post.hasSaved || false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [shareCount, setShareCount] = useState(post._count?.shares || 0);
 
-  const handleLike = async () => {
+  const handleLike = async (reactionType: ReactionType = "LIKE") => {
     if (!currentUser || isLikeLoading) return;
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    setLikeCount((prev: number) => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
     setIsLikeLoading(true);
     
-    const res = await toggleLike(currentUser.id, "post", post.id);
-    if (!res.success) {
-      // Revert on failure
-      setIsLiked(!newIsLiked);
-      setLikeCount((prev: number) => !newIsLiked ? prev + 1 : Math.max(0, prev - 1));
-      console.error(res.error);
+    // Optimistic Update
+    const prevReaction = isLiked as ReactionType | null;
+    const isSameReaction = prevReaction === reactionType;
+    const isRemovingLike = prevReaction && isSameReaction;
+    const isAddingLike = !prevReaction;
+
+    if (isRemovingLike) {
+      setIsLiked(null);
+      setLikeCount((prev: number) => Math.max(0, prev - 1));
+    } else {
+      setIsLiked(reactionType);
+      if (isAddingLike) setLikeCount((prev: number) => prev + 1);
     }
-    setIsLikeLoading(false);
+
+    try {
+      const res = await toggleLike(currentUser.id, "post", post.id, reactionType);
+      if (!res.success) {
+        // Revert on error
+        setIsLiked(prevReaction);
+        if (isRemovingLike) setLikeCount((prev: number) => prev + 1);
+        if (isAddingLike) setLikeCount((prev: number) => Math.max(0, prev - 1));
+        console.error(res.error);
+      } else {
+        if (res.action === "updated" || res.action === "liked" || isAddingLike) {
+           setTopReactions((prev: ReactionType[]) => {
+             const newTop = [reactionType, ...prev.filter((r: ReactionType) => r !== reactionType)];
+             return newTop.slice(0, 3);
+           });
+        }
+      }
+    } catch (error) {
+      setIsLiked(prevReaction);
+      if (isRemovingLike) setLikeCount((prev: number) => prev + 1);
+      if (isAddingLike) setLikeCount((prev: number) => Math.max(0, prev - 1));
+      console.error(error);
+    } finally {
+      setIsLikeLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -642,18 +674,43 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         </div>
       )}
 
+      {/* Reaction Summary & Counts */}
+      <div className="px-4 pb-2 flex items-center justify-between text-[#65676B] dark:text-[#B0B3B8] text-[15px]">
+        <div className="flex items-center gap-1.5 cursor-pointer hover:underline">
+          <div className="flex items-center -space-x-1 z-0">
+            {topReactions.length > 0 ? (
+              topReactions.map((r, i) => (
+                <ReactionSummaryPopup key={r} targetId={post.id} targetType="POST" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
+                  <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                     <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
+                  </div>
+                </ReactionSummaryPopup>
+              ))
+            ) : likeCount > 0 ? (
+              <ReactionSummaryPopup targetId={post.id} targetType="POST" likeCount={likeCount} topReactions={topReactions}>
+                <div className="w-[18px] h-[18px] rounded-full bg-blue-500 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                  </svg>
+                </div>
+              </ReactionSummaryPopup>
+            ) : null}
+          </div>
+          {likeCount > 0 && <span onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}>{likeCount}</span>}
+        </div>
+        <div className="flex items-center gap-3">
+          {post._count?.comments > 0 && (
+            <span className="cursor-pointer hover:underline" onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}>
+              {post._count.comments} Komentar
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Footer Actions */}
       <div className="px-4 pb-4 mt-2">
-        <div className="flex items-center gap-1 pt-2 border-t border-gray-100 dark:border-[#3E4042]">
-          <button 
-            onClick={handleLike}
-            className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-[15px] font-semibold transition-colors bg-transparent ${isLiked ? 'text-blue-600 dark:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30' : 'text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C]'}`}
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-            </svg>
-            {t("feed.like") || "Suka"} <span className="ml-0.5">({likeCount})</span>
-          </button>
+        <div className="flex items-center gap-1 pt-1 border-t border-gray-100 dark:border-[#3E4042]">
+          <ReactionButton myReaction={isLiked} onReact={handleLike} count={0} />
           <button 
             onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}
             className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent"

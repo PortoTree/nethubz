@@ -2,7 +2,7 @@
 
 import prisma from "@/utils/prisma";
 
-export async function toggleLike(userId: string, targetType: "post" | "comment" | "project", targetId: string) {
+export async function toggleLike(userId: string, targetType: "post" | "comment" | "project", targetId: string, reactionType: string = "LIKE") {
   try {
     const existingLike = await prisma.like.findFirst({
       where: {
@@ -14,10 +14,22 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
     });
 
     if (existingLike) {
-      await prisma.like.delete({
-        where: { id: existingLike.id },
-      });
-      return { success: true, action: "unliked" };
+      if (existingLike.type === reactionType) {
+        // Same reaction, remove it
+        await prisma.like.delete({
+          where: { id: existingLike.id },
+        });
+        return { success: true, action: "unliked" };
+      } else {
+        // Different reaction, update it
+        await prisma.like.update({
+          where: { id: existingLike.id },
+          data: { type: reactionType },
+        });
+        // We might not want to spam notifications for a reaction change, 
+        // so we just return here.
+        return { success: true, action: "updated" };
+      }
     } else {
       await prisma.like.create({
         data: {
@@ -25,6 +37,7 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
           postId: targetType === "post" ? targetId : undefined,
           commentId: targetType === "comment" ? targetId : undefined,
           projectId: targetType === "project" ? targetId : undefined,
+          type: reactionType,
         },
       });
 
@@ -63,7 +76,8 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
             postId: notifPostId,
             projectId: notifProjectId,
             commentId: targetType === "comment" ? targetId : undefined,
-          }
+            reactionType: reactionType,
+          },
         });
       }
 
@@ -204,8 +218,6 @@ export async function addComment(userId: string, targetType: "post" | "project",
       }
     }
 
-
-    // Handle Mentions
     const mentionRegex = /@\[.*?\]\(([^\)]+)\)/g;
     let match;
     const mentionedUserIds = new Set<string>();
@@ -246,7 +258,7 @@ export async function addComment(userId: string, targetType: "post" | "project",
   }
 }
 
-export async function getComments(targetType: "post" | "project", targetId: string, cursor?: string, limit: number = 10) {
+export async function getComments(targetType: "post" | "project", targetId: string, userId?: string, cursor?: string, limit: number = 10) {
   try {
     const comments = await prisma.comment.findMany({
       where: {
@@ -269,7 +281,8 @@ export async function getComments(targetType: "post" | "project", targetId: stri
         },
         _count: {
           select: { replies: true, likes: true }
-        }
+        },
+        ...(userId ? { likes: { where: { userId } } } : {})
       }
     });
 
@@ -279,14 +292,35 @@ export async function getComments(targetType: "post" | "project", targetId: stri
       nextCursor = comments[comments.length - 1].id;
     }
 
-    return { success: true, comments, nextCursor };
+    const mappedComments = await Promise.all(comments.map(async (c: any) => {
+      const mapped = { ...c };
+      if (c.likes) {
+        mapped.myReaction = c.likes.length > 0 ? c.likes[0].type : null;
+        delete mapped.likes;
+      }
+      try {
+        const reactionGroups = await prisma.like.groupBy({
+          by: ['type'],
+          where: { commentId: c.id },
+          _count: true,
+          orderBy: { _count: { type: 'desc' } },
+          take: 3
+        });
+        mapped.topReactions = reactionGroups.map((g: any) => g.type);
+      } catch (e) {
+        mapped.topReactions = [];
+      }
+      return mapped;
+    }));
+
+    return { success: true, comments: mappedComments, nextCursor };
   } catch (error: any) {
     console.error("Get Comments Error:", error);
     return { success: false, error: error.message };
   }
 }
 
-export async function getCommentReplies(commentId: string, cursor?: string, limit: number = 10) {
+export async function getCommentReplies(commentId: string, userId?: string, cursor?: string, limit: number = 10) {
   try {
     const replies = await prisma.comment.findMany({
       where: {
@@ -317,7 +351,28 @@ export async function getCommentReplies(commentId: string, cursor?: string, limi
       nextCursor = replies[replies.length - 1].id;
     }
 
-    return { success: true, replies, nextCursor };
+    const mappedReplies = await Promise.all(replies.map(async (r: any) => {
+      const mapped = { ...r };
+      if (r.likes) {
+        mapped.myReaction = r.likes.length > 0 ? r.likes[0].type : null;
+        delete mapped.likes;
+      }
+      try {
+        const reactionGroups = await prisma.like.groupBy({
+          by: ['type'],
+          where: { commentId: r.id },
+          _count: true,
+          orderBy: { _count: { type: 'desc' } },
+          take: 3
+        });
+        mapped.topReactions = reactionGroups.map((g: any) => g.type);
+      } catch (e) {
+        mapped.topReactions = [];
+      }
+      return mapped;
+    }));
+
+    return { success: true, replies: mappedReplies, nextCursor };
   } catch (error: any) {
     console.error("Get Comment Replies Error:", error);
     return { success: false, error: error.message };
@@ -340,6 +395,61 @@ export async function deleteComment(userId: string, commentId: string) {
     return { success: true };
   } catch (error: any) {
     console.error("Delete Comment Error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getTargetCommentInfo(commentId: string) {
+  try {
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { id: true, parentId: true }
+    });
+    if (!comment) return { success: false, error: "Not found" };
+    
+    return { 
+      success: true, 
+      parentId: comment.parentId 
+    };
+  } catch (error: any) {
+    console.error("Get Target Comment Info Error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+
+export async function getLikers(targetId: string, targetType: "POST" | "COMMENT" | "PROJECT", limit: number = 10, reactionType?: string) {
+  try {
+    const where: any = {};
+    if (targetType === "POST") where.postId = targetId;
+    if (targetType === "COMMENT") where.commentId = targetId;
+    if (targetType === "PROJECT") where.projectId = targetId;
+    if (reactionType) where.type = reactionType;
+
+    const [likers, totalCount] = await Promise.all([
+      prisma.like.findMany({
+        where,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              username: true,
+              profile: {
+                select: {
+                  displayName: true,
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.like.count({ where })
+    ]);
+
+    return { success: true, likers, totalCount };
+  } catch (error: any) {
+    console.error("Error fetching likers:", error);
     return { success: false, error: error.message };
   }
 }

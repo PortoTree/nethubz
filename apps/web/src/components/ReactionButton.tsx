@@ -1,0 +1,151 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
+import { useTranslations } from "next-intl";
+
+export type ReactionType = "LIKE" | "LOVE" | "HAHA" | "WOW" | "SAD" | "ANGRY" | "IWW" | "WHAT" | "HATE";
+
+export const REACTION_CONFIG: Record<ReactionType, { src: string; label: string; color: string }> = {
+  LIKE: { src: "/react/like.webp", label: "Like", color: "text-blue-600 dark:text-blue-500" },
+  LOVE: { src: "/react/love.webp", label: "Love", color: "text-red-500" },
+  HAHA: { src: "/react/haha.webp", label: "Haha", color: "text-yellow-500" },
+  WOW: { src: "/react/wow.webp", label: "Wow", color: "text-yellow-500" },
+  SAD: { src: "/react/sad.webp", label: "Sad", color: "text-yellow-500" },
+  ANGRY: { src: "/react/angry.webp", label: "Angry", color: "text-orange-500" },
+  IWW: { src: "/react/iww.webp", label: "Iww", color: "text-green-500" },
+  WHAT: { src: "/react/what.webp", label: "What?", color: "text-purple-500" },
+  HATE: { src: "/react/hate.webp", label: "Hate", color: "text-red-700" },
+};
+
+const REACTIONS = Object.keys(REACTION_CONFIG) as ReactionType[];
+
+interface ReactionButtonProps {
+  myReaction: ReactionType | null;
+  onReact: (type: ReactionType) => void;
+  count: number;
+  className?: string;
+  containerClassName?: string;
+  hideText?: boolean;
+}
+
+export function ReactionButton({ myReaction, onReact, count, className, containerClassName, hideText }: ReactionButtonProps) {
+  const t = useTranslations();
+  const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isOpen) setIsOpen(false);
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!isOpen) return;
+      if (buttonRef.current && buttonRef.current.contains(e.target as Node)) return;
+      if (popupRef.current && popupRef.current.contains(e.target as Node)) return;
+      setIsOpen(false);
+    };
+
+    if (isOpen) {
+      window.addEventListener("scroll", handleScroll, true);
+      window.addEventListener("mousedown", handleClickOutside, true);
+    }
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("mousedown", handleClickOutside, true);
+    };
+  }, [isOpen]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      let left = rect.left;
+      if (left + 380 > window.innerWidth) left = window.innerWidth - 390;
+      setPopupPos({ top: rect.top - 55, left: Math.max(10, left) });
+    }
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onReact(myReaction || "LIKE");
+    setIsOpen(false);
+  };
+
+  const renderActiveReaction = () => {
+    if (myReaction && REACTION_CONFIG[myReaction]) {
+      const config = REACTION_CONFIG[myReaction];
+      return (
+        <>
+          <div className="w-5 h-5 relative mr-1">
+            <Image src={config.src} alt={config.label} fill unoptimized priority className="object-contain" />
+          </div>
+          {!hideText && <span className={`${config.color} font-semibold`}>{config.label}</span>}
+        </>
+      );
+    }
+    return (
+      <>
+        <div className="w-5 h-5 relative mr-1.5 shrink-0 opacity-70">
+          <Image src="/react.svg" alt="React" fill unoptimized priority className="object-contain dark:invert" />
+        </div>
+        {!hideText && <span className="text-[#65676B] dark:text-[#B0B3B8] font-semibold">{t("feed.react") || "Reaksi"}</span>}
+      </>
+    );
+  };
+
+  return (
+    <div ref={buttonRef} className={`relative flex ${containerClassName || "flex-1"}`}>
+      {isOpen && mounted && createPortal(
+        <div 
+          ref={popupRef}
+          className="fixed bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3E4042] rounded-full shadow-lg p-1.5 flex gap-1 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          style={{ top: popupPos.top, left: popupPos.left, zIndex: 999999 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {REACTIONS.map((type) => {
+            const config = REACTION_CONFIG[type];
+            return (
+              <button
+                key={type}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReact(type);
+                  setIsOpen(false);
+                }}
+                className="w-10 h-10 relative hover:scale-125 hover:-translate-y-3 transition-all duration-300 origin-bottom flex-shrink-0 group"
+              >
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                  {config.label}
+                </div>
+                <Image src={config.src} alt={config.label} fill unoptimized priority className="object-contain drop-shadow-sm transition-transform duration-300 group-hover:drop-shadow-md" />
+              </button>
+            );
+          })}
+        </div>,
+        document.body
+      )}
+      
+      <button 
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        className={className || "flex-1 flex items-center justify-center py-1.5 rounded-lg text-[15px] transition-colors bg-transparent hover:bg-gray-200 dark:hover:bg-[#3A3B3C] relative group select-none"}
+      >
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm z-50">
+          {t("feed.chooseReaction") || "Pilih reaksi"}
+        </div>
+        {renderActiveReaction()}
+        {count > 0 && hideText && <span className="ml-1.5 text-[#65676B] dark:text-[#B0B3B8]">{count}</span>}
+      </button>
+    </div>
+  );
+}

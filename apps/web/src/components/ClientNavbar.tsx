@@ -3,8 +3,18 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { useUser } from "@/contexts/UserContext";
+import { usePathname } from "next/navigation";
 
-export default function ClientNavbar({ activeTab = "project" }: { activeTab?: string }) {
+export default function ClientNavbar() {
+  const pathname = usePathname();
+  let activeTab = "home";
+  if (pathname.includes("/project")) activeTab = "project";
+  else if (pathname.includes("/product")) activeTab = "product";
+  else if (pathname.includes("/obrolan") || pathname.includes("/chat")) activeTab = "chat";
+  else if (pathname.includes("/friend")) activeTab = "friend";
+  else if (pathname.includes("/community")) activeTab = "community";
+  else if (pathname.includes("/search")) activeTab = "search";
+
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
   const { currentUser } = useUser();

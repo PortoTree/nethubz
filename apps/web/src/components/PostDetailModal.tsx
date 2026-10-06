@@ -17,6 +17,9 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { searchUsersForMention } from '@/app/actions/profile';
 import { getMentionSuggestion } from '@/utils/mentionSuggestion';
 import CommentInput from "./CommentInput";
+import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
+import Image from "next/image";
+import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
 
 import { commentsCache } from "@/utils/cache";
 
@@ -64,8 +67,11 @@ export function CommentItem({
     : null;
   const replyCount = (comment._count?.replies || 0) + (comment.optimisticReplies?.length || 0);
 
-  const [isLiked, setIsLiked] = useState(comment.hasLiked || false);
+  const [isLiked, setIsLiked] = useState<ReactionType | null>(comment.myReaction || null);
   const [likeCount, setLikeCount] = useState(comment._count?.likes || 0);
+  const [topReactions, setTopReactions] = useState<ReactionType[]>(comment.topReactions || []);
+
+  const { targetCommentId: globalTargetCommentId, targetParentId: globalTargetParentId } = comment.globalTarget || {};
 
   useEffect(() => {
     if (comment.optimisticReplies && comment.optimisticReplies.length > 0) {
@@ -73,17 +79,53 @@ export function CommentItem({
     }
   }, [comment.optimisticReplies]);
 
-  const onLikeClick = async () => {
+  useEffect(() => {
+    if (globalTargetParentId && comment.id === globalTargetParentId) {
+      if (!showReplies) {
+        setShowReplies(true);
+        if (replies.length === 0) {
+          fetchReplies();
+        }
+      }
+    }
+  }, [globalTargetParentId, comment.id]);
+
+  const onLikeClick = async (reactionType: ReactionType = "LIKE") => {
     if (!currentUser) return;
-    const newLiked = !isLiked;
-    setIsLiked(newLiked);
-    setLikeCount((prev: number) => newLiked ? prev + 1 : Math.max(0, prev - 1));
-    await handleLikeComment(comment.id);
+    const prevReaction = isLiked;
+    const isSameReaction = prevReaction === reactionType;
+    const isRemovingLike = prevReaction && isSameReaction;
+    const isAddingLike = !prevReaction;
+
+    if (isRemovingLike) {
+      setIsLiked(null);
+      setLikeCount((prev: number) => Math.max(0, prev - 1));
+    } else {
+      setIsLiked(reactionType);
+      if (isAddingLike) setLikeCount((prev: number) => prev + 1);
+    }
+    
+    // Optimistic reaction summary update
+    if (!isRemovingLike) {
+      setTopReactions((prev: ReactionType[]) => {
+         const newTop = [reactionType, ...prev.filter((r: ReactionType) => r !== reactionType)];
+         return newTop.slice(0, 3);
+      });
+    }
+
+    try {
+      await handleLikeComment(comment.id, reactionType);
+    } catch (e) {
+       // simple revert on error
+       setIsLiked(prevReaction);
+       if (isRemovingLike) setLikeCount((prev: number) => prev + 1);
+       if (isAddingLike) setLikeCount((prev: number) => Math.max(0, prev - 1));
+    }
   };
 
   const fetchReplies = async (cursor?: string) => {
     setIsLoading(true);
-    const res = await getCommentReplies(comment.id, cursor, 5);
+    const res = await getCommentReplies(comment.id, currentUser?.id, cursor, 5);
     if (res.success && res.replies) {
       setReplies(prev => cursor ? [...prev, ...res.replies] : res.replies);
       setNextCursor(res.nextCursor);
@@ -256,20 +298,33 @@ export function CommentItem({
           <p className="text-[14.5px] text-gray-900 dark:text-[#E4E6EB] mt-0.5 whitespace-pre-wrap">{renderCommentContent(comment.content)}</p>
 
           <div className="flex items-center justify-between w-full mt-1.5">
-            <div className="flex items-center gap-2 text-[12.5px] font-medium text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-gray-600 dark:text-gray-400">
+              {topReactions.length > 0 && (
+                <div className="flex items-center -space-x-1 z-0 mr-1 cursor-pointer hover:opacity-80">
+                  {topReactions.map((r, i) => (
+                    <ReactionSummaryPopup key={r} targetId={comment.id} targetType="COMMENT" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
+                      <div className="w-[16px] h-[16px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20">
+                        <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
+                      </div>
+                    </ReactionSummaryPopup>
+                  ))}
+                </div>
+              )}
               {targetComment && (
                 <button onClick={(e) => handleJumpToComment(e, targetComment.id)} aria-label="Lihat target komentar" className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors -ml-2">
                   <img src="/answer.svg" alt="Answer" className="w-[14px] h-[14px] opacity-60 dark:invert" />
                 </button>
               )}
-              <button onClick={onLikeClick} className={`flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors ${!targetComment ? '-ml-2' : ''} ${isLiked ? 'text-blue-500' : ''}`}>
-                {isLiked ? (
-                  <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 10.5a1.5 1.5 0 113 0v8a1.5 1.5 0 01-3 0v-8zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
-                ) : (
-                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
-                )}
-                {likeCount > 0 && <span>{likeCount}</span>}
-              </button>
+              
+              <ReactionButton 
+                myReaction={isLiked} 
+                onReact={onLikeClick} 
+                count={likeCount} 
+                hideText={true}
+                containerClassName={`!flex-none ${!targetComment ? '-ml-2' : ''}`}
+                className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors bg-transparent"
+              />
+
               <button onClick={() => {
                 const parentIdForDB = depth >= 2 ? comment.parentId : comment.id;
                 handleReplyClick(comment.author?.username, comment.author?.id, comment.author?.profile?.displayName || comment.author?.username, comment.id, parentIdForDB, currentRootId);
@@ -569,6 +624,21 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [traceInfo, setTraceInfo] = useState<{ sourceId: string, parentId: string, targetId: string, traceId: number } | null>(null);
+  const [targetParentId, setTargetParentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && targetCommentId) {
+      import("@/app/actions/interactions").then(module => {
+        module.getTargetCommentInfo(targetCommentId).then(res => {
+          if (res.success && res.parentId) {
+            setTargetParentId(res.parentId);
+          }
+        });
+      });
+    } else {
+      setTargetParentId(null);
+    }
+  }, [isOpen, targetCommentId]);
 
   // Focus helper for MentionsInput
   const handleReplyClick = (username: string, id: string, displayName: string, exactCommentId: string, parentIdForDB?: string, rootId?: string) => {
@@ -683,7 +753,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
       }
       setIsLoadingComments(true);
     }
-    const res = await getComments("post", post.id, cursor, 20);
+    const res = await getComments("post", post.id, currentUser?.id, cursor, 20);
     if (res.success) {
       if (cursor) {
         setComments(prev => {
@@ -754,10 +824,10 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
     setIsSubmitting(false);
   };
 
-  const handleLikeComment = async (commentId: string) => {
+  const handleLikeComment = async (commentId: string, reactionType: string = "LIKE") => {
     if (!currentUser) return;
     try {
-      await toggleLike(currentUser.id, "comment", commentId);
+      await toggleLike(currentUser.id, "comment", commentId, reactionType);
       // Optional: optimistic UI update for comment likes here
     } catch (error) {
       console.error("Error toggling comment like:", error);
@@ -849,7 +919,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
                   {comments.map(c => (
                     <CommentItem
                       key={c.id}
-                      comment={c}
+                      comment={{...c, globalTarget: { targetCommentId, targetParentId }}}
                       locale={locale}
                       t={t}
                       router={router}

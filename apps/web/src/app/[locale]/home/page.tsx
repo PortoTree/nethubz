@@ -682,7 +682,6 @@ export default function Beranda() {
     <>
       <main className="min-h-screen bg-[#F3F2EF] dark:bg-[#18191A] text-black dark:text-[#E4E6EB] pb-10 pt-[56px]">
         {/* Navbar Fixed Top */}
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} themeLoaded={themeLoaded} currentUser={currentUser} />
 
         {/* Inline Styles for Scrollbars to bypass HMR issues */}
         <style

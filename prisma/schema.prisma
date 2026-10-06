@@ -307,6 +307,7 @@ model Like {
   postId    String?
   commentId String?
   projectId String?
+  type      String   @default("LIKE") // Values: LIKE, LOVE, HAHA, WOW, SAD, ANGRY, IWW
   createdAt DateTime @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -364,6 +365,8 @@ model Notification {
 
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  reactionType String? // To store which reaction was given (LIKE, LOVE, HAHA, etc)
 
   createdAt DateTime @default(now())
 }

@@ -19,6 +19,22 @@ import { getOptimizedUrl } from "@/utils/cloudinary";
 const navProfileCache = new Map<string, { avatarUrl: string | null, displayName: string | null }>();
 let globalNotifsCache: { list: any[], unread: number, userId: string } | null = null;
 
+const getReactionLabel = (type?: string) => {
+  if (!type) return "Like";
+  const map: Record<string, string> = {
+    LIKE: "Like", LOVE: "Love", HAHA: "Haha", WOW: "Wow", SAD: "Sad", ANGRY: "Angry", IWW: "Iww", WHAT: "What?", HATE: "Hate"
+  };
+  return map[type] || "Like";
+};
+
+const getReactionIconUrl = (type?: string) => {
+  if (!type) return null;
+  const map: Record<string, string> = {
+    LIKE: "/react/like.webp", LOVE: "/react/love.webp", HAHA: "/react/haha.webp", WOW: "/react/wow.webp", SAD: "/react/sad.webp", ANGRY: "/react/angry.webp", IWW: "/react/iww.webp", WHAT: "/react/what.webp", HATE: "/react/hate.webp"
+  };
+  return map[type] || null;
+};
+
 export default function Navbar({
   activeTab = "home",
   setActiveTab = () => { },
@@ -33,12 +49,8 @@ export default function Navbar({
   const pathname = usePathname();
 
   const handleTabNavigation = (tabName: string, routeName: string) => {
-    if (pathname.includes("/p/") || pathname.includes("/project")) {
-      router.push(`/${locale}/${routeName}`);
-    } else {
-      setActiveTab(tabName);
-      window.history.pushState(null, "", `/${locale}/${routeName}`);
-    }
+    router.push(`/${locale}/${routeName}`);
+    setActiveTab(tabName);
   };
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -1011,10 +1023,10 @@ export default function Navbar({
                         if (!notif.isRead) await handleMarkOneRead(notif.id);
                         setIsNotifPanelOpen(false);
                         if (notif.postId) {
-                          router.push(`${pathname}?postId=${notif.postId}`);
+                          router.push(`${pathname}?postId=${notif.postId}${notif.commentId ? `&commentId=${notif.commentId}` : ''}`);
                         } else if (notif.projectId) {
                           const projectOwner = notif.project?.user?.username || currentUser?.username || notif.sender?.username;
-                          router.push(`/${locale}/project/${projectOwner}/${notif.projectId}`);
+                          router.push(`/${locale}/project/${projectOwner}/${notif.projectId}${notif.commentId ? `?commentId=${notif.commentId}` : ''}`);
                         } else {
                           router.push(`/${locale}/p/${notif.sender?.username}/${notif.senderId}`);
                         }
@@ -1024,9 +1036,9 @@ export default function Navbar({
                       <div className="flex items-start gap-3">
                         <div className="relative shrink-0">
                           <img src={notif.sender ? (notif.sender.profile?.avatarUrl || "/default-avatar.svg") : "/navigasi/giveaway.svg"} className="w-14 h-14 rounded-full border border-gray-200 dark:border-[#3E4042] object-cover p-2 bg-gray-100 dark:bg-[#3A3B3C]" />
-                          <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526] ${notif.type === "FOLLOW" ? "bg-emerald-500" :
+                          <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526] overflow-hidden ${notif.type === "FOLLOW" ? "bg-emerald-500" :
                               notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
-                                notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE" ? "bg-red-500" :
+                                (notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") ? (notif.reactionType ? "bg-transparent" : "bg-red-500") :
                                   notif.type === "POST_TAG" ? "bg-emerald-600" :
                                     notif.type === "COMMENT_MENTION" ? "bg-purple-500" :
                                       "bg-[#2D88FF]"
@@ -1038,7 +1050,11 @@ export default function Navbar({
                               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
                             )}
                             {(notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") && (
-                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+                              notif.reactionType ? (
+                                <img src={getReactionIconUrl(notif.reactionType) || "/react/like.webp"} alt="React" className="w-full h-full object-cover scale-[1.15]" />
+                              ) : (
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+                              )
                             )}
                             {notif.type === "POST_TAG" && (
                               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" /></svg>
@@ -1067,11 +1083,11 @@ export default function Navbar({
                             {notif.type === "FRIEND_REQUEST" && ` ${t("notif.typeFriendRequest")}`}
                             {notif.type === "FRIEND_ACCEPT" && ` ${t("notif.typeFriendAccept")}`}
                             {notif.type === "FRIEND_NOW" && ` ${t("notif.typeFriendNow")}`}
-                            {notif.type === "POST_LIKE" && ` ${t("notif.typePostLike")}`}
+                            {notif.type === "POST_LIKE" && (notif.reactionType ? ` telah beraksi "${getReactionLabel(notif.reactionType)}" pada postingan Anda.` : ` ${t("notif.typePostLike")}`)}
                             {notif.type === "POST_COMMENT" && ` ${t("notif.typePostComment")}`}
-                            {notif.type === "PROJECT_LIKE" && ` ${t("notif.typeProjectLike")}`}
+                            {notif.type === "PROJECT_LIKE" && (notif.reactionType ? ` telah beraksi "${getReactionLabel(notif.reactionType)}" pada proyek Anda.` : ` ${t("notif.typeProjectLike")}`)}
                             {notif.type === "PROJECT_COMMENT" && ` ${t("notif.typeProjectComment")}`}
-                            {notif.type === "COMMENT_LIKE" && ` ${t("notif.typeCommentLike")}`}
+                            {notif.type === "COMMENT_LIKE" && (notif.reactionType ? ` telah beraksi "${getReactionLabel(notif.reactionType)}" pada komentar Anda.` : ` ${t("notif.typeCommentLike")}`)}
                             {notif.type === "POST_TAG" && ` ${t("notif.typePostTag")}`}
                             {notif.type === "COMMENT_MENTION" && notif.postId && ` ${t("notif.typeCommentMentionPost")}`}
                             {notif.type === "COMMENT_MENTION" && notif.projectId && ` ${t("notif.typeCommentMentionProject")}`}

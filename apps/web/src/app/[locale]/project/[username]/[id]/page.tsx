@@ -200,7 +200,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
 
   const fetchComments = useCallback(async (cursor?: string) => {
     if (!cursor) setIsLoadingComments(true);
-    const res = await getComments("project", id, cursor, 20);
+    const res = await getComments("project", id, user?.id, cursor, 20);
     if (res.success) {
       if (cursor) setComments(prev => [...prev, ...(res.comments || [])]);
       else setComments(res.comments || []);
@@ -251,9 +251,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
     else { navigator.clipboard.writeText(url); alert("Link disalin!"); }
   };
 
-  const handleLikeComment = async (commentId: string) => {
+  const handleLikeComment = async (commentId: string, reactionType: string = "LIKE") => {
     if (!user) return;
-    await toggleLike(user.id, "comment", commentId);
+    await toggleLike(user.id, "comment", commentId, reactionType);
   };
 
   const handleReplyClick = (uname: string, uid: string, displayName: string, exactCommentId: string, parentIdForDB?: string, rootId?: string) => {

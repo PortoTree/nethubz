@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { getAllProjects } from "@/app/actions/projects";
-import ClientNavbar from "@/components/ClientNavbar";
 import ProjectShowcase from "@/components/ProjectShowcase";
 
 export default async function ProjectPage({
@@ -16,7 +15,6 @@ export default async function ProjectPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-24 pb-10">
-      <ClientNavbar activeTab="project" />
       <div className="max-w-[1200px] mx-auto w-full px-4">
         <ProjectShowcase 
           projects={projects} 
