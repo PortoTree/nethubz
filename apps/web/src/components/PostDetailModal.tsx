@@ -95,7 +95,7 @@ function CommentItem({
           <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] rounded-bl-[12px] z-30 ${isParentReplying ? 'border-b-gray-300 dark:border-b-[#4E4F50] border-l-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'}`} />
         )}
         {depth > 0 && isLast && (
-          <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${isExpanded ? 'bg-white dark:bg-[#242526]' : 'bg-gray-50 dark:bg-[#18191A]'}`} />
+          <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
         )}
         {(showReplies || inputElement) && depth < 2 && (
           <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`} />
@@ -175,28 +175,28 @@ function CommentItem({
                     />
                   ))}
 
-                  {inputElement && (
-                    <div className="relative mt-3">
-                      <div className="absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] border-blue-500 rounded-bl-[12px] z-30" />
-                      {!isLoading && (
-                        <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${isExpanded ? 'bg-white dark:bg-[#242526]' : 'bg-gray-50 dark:bg-[#18191A]'}`} />
-                      )}
-                      <div className="relative z-40">
-                        {inputElement}
-                      </div>
-                    </div>
-                  )}
-
                   {isLoading && (
                     <div className="relative mt-3">
                       <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} rounded-bl-[12px] z-30`} />
-                      <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${isExpanded ? 'bg-white dark:bg-[#242526]' : 'bg-gray-50 dark:bg-[#18191A]'}`} />
+                      <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
                       <div className="relative z-40 flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse shrink-0"></div>
                         <div className="flex-1 flex flex-col gap-2 pt-1">
                           <div className="h-3 bg-gray-200 dark:bg-[#3A3B3C] rounded-full w-1/3 animate-pulse"></div>
                           <div className="h-3 bg-gray-200 dark:bg-[#3A3B3C] rounded-full w-2/3 animate-pulse"></div>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {inputElement && (
+                    <div className="relative mt-3">
+                      <div className="absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] border-blue-500 rounded-bl-[12px] z-30" />
+                      {!isLoading && (
+                        <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
+                      )}
+                      <div className="relative z-40">
+                        {inputElement}
                       </div>
                     </div>
                   )}
@@ -216,7 +216,7 @@ function CommentItem({
       {isReplying && depth >= 2 && inputElement && (
         <div className="relative mt-3">
           {isLast && (
-            <div className={`absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 ${isExpanded ? 'bg-white dark:bg-[#242526]' : 'bg-gray-50 dark:bg-[#18191A]'}`} />
+            <div className="absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
           )}
           <div className="relative z-40">
             {inputElement}
@@ -249,7 +249,7 @@ function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }
 
   const handleDrag = (e: MouseEvent) => {
     const delta = e.clientY - startY.current;
-    setInputHeight(Math.max(80, Math.min(600, startHeight.current + delta)));
+    setInputHeight(Math.max(120, Math.min(600, startHeight.current + delta)));
   };
 
   const handleDragEnd = () => {
@@ -613,7 +613,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
   return createPortal(
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-2 md:p-4 bg-black/40 dark:bg-black/60 overscroll-contain" onWheel={e => e.stopPropagation()}>
 
-      <div className="w-full max-w-4xl h-full h-[95vh] max-h-[95vh] bg-white dark:bg-[#242526] rounded-xl flex flex-col md:flex-row overflow-hidden shadow-2xl border border-gray-200 dark:border-[#3E4042] relative" onClick={e => e.stopPropagation()}>
+      <div className={`w-full ${isExpanded ? 'max-w-2xl' : 'max-w-4xl'} h-full h-[95vh] max-h-[95vh] bg-white dark:bg-[#242526] rounded-xl flex flex-col md:flex-row overflow-hidden shadow-2xl border border-gray-200 dark:border-[#3E4042] relative transition-all duration-300`} onClick={e => e.stopPropagation()}>
 
         {/* LEFT COLUMN - POST CONTENT */}
         {!isExpanded && (
@@ -625,8 +625,8 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
         )}
 
         {/* RIGHT COLUMN - COMMENTS */}
-        <div className={`w-full flex flex-col h-full relative ${isExpanded ? 'md:w-full lg:w-full bg-gray-100 dark:bg-black/40' : 'md:w-[50%] lg:w-[48%] bg-gray-50 dark:bg-[#18191A]'}`}>
-          <div className={`flex flex-col h-full w-full ${isExpanded ? 'max-w-3xl mx-auto bg-white dark:bg-[#242526] border-x border-gray-200 dark:border-[#3E4042] shadow-2xl' : ''}`}>
+        <div className={`w-full flex flex-col h-full relative ${isExpanded ? 'md:w-full lg:w-full bg-gray-50 dark:bg-[#18191A]' : 'md:w-[50%] lg:w-[48%] bg-gray-50 dark:bg-[#18191A]'}`}>
+          <div className="flex flex-col h-full w-full">
             <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] shrink-0 bg-white dark:bg-[#242526] flex items-center justify-between">
               <h2 className="font-bold text-[18px] text-gray-900 dark:text-white">{t("postModal.title") || "Komentar"}</h2>
               <div className="flex items-center gap-2">
