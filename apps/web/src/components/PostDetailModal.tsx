@@ -29,7 +29,7 @@ interface PostDetailModalProps {
 }
 
 
-function CommentItem({
+export function CommentItem({
   comment,
   locale,
   t,
@@ -108,13 +108,21 @@ function CommentItem({
     if (match) {
       const parts = match[2].split('/');
       const targetUserId = parts[1] || parts[0];
+      const targetCommentId = parts[2];
       const currentIndex = currentThreadComments.findIndex((c: any) => c.id === comment.id);
       if (currentIndex > 0) {
         for (let i = currentIndex - 1; i >= 0; i--) {
-          const cAuthor = currentThreadComments[i].author;
-          if (cAuthor?.id === targetUserId || cAuthor?.username === targetUserId) {
-            targetComment = currentThreadComments[i];
-            break;
+          const c = currentThreadComments[i];
+          if (targetCommentId) {
+            if (c.id === targetCommentId) {
+              targetComment = c;
+              break;
+            }
+          } else {
+            if (c.author?.id === targetUserId || c.author?.username === targetUserId) {
+              targetComment = c;
+              break;
+            }
           }
         }
       }
@@ -220,20 +228,20 @@ function CommentItem({
           <div className="absolute -left-[33px] top-[14px] w-[49px] h-[18px] border-t-[2px] border-l-[2px] border-blue-500 rounded-tl-[12px] z-40 pointer-events-none" />
         )}
         {depth > 0 && isLast && (
-          <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
+          <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
         )}
         {(showReplies || inputElement) && depth < 2 && (
-          <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`}>
+          <div className={`absolute left-[15px] top-[32px] bottom-[24px] w-[2px] ${isReplying ? 'bg-blue-500' : 'bg-gray-300 dark:bg-[#4E4F50]'} z-10`}>
             {isTracingParentLine && (
               <div
-                className="absolute -left-[2px] w-[2px] bg-blue-500"
+                className="absolute left-0 w-[2px] bg-blue-500"
                 style={traceStyle}
               />
             )}
           </div>
         )}
         {isReplying && depth >= 2 && inputElement && (
-          <div className="absolute left-[15px] top-[32px] bottom-[-28px] border-l-[2px] border-blue-500 z-10" />
+          <div className="absolute left-[15px] top-[32px] bottom-[-28px] w-[2px] bg-blue-500 z-10" />
         )}
         <img src={comment.author?.profile?.avatarUrl || "/default-avatar.svg"} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 cursor-pointer relative z-50" onClick={() => router.push(`/${locale}/p/${comment.author?.username}/${comment.author?.id}`)} />
         <div className="flex-1 group/comment relative z-40">
@@ -322,7 +330,7 @@ function CommentItem({
                   {isLoading && (
                     <div className="relative mt-3">
                       <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} rounded-bl-[12px] z-30`} />
-                      <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
+                      <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
                       <div className="relative z-40 flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse shrink-0"></div>
                         <div className="flex-1 flex flex-col gap-2 pt-1">
@@ -337,7 +345,7 @@ function CommentItem({
                     <div id={`comment-input-${replyingTo?.commentId}`} className="relative mt-3">
                       <div className="absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] border-blue-500 rounded-bl-[12px] z-30" />
                       {!isLoading && (
-                        <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
+                        <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
                       )}
                       <div className="relative z-40">
                         {inputElement}
@@ -360,7 +368,7 @@ function CommentItem({
       {isReplying && depth >= 2 && inputElement && (
         <div className="relative mt-3">
           {isLast && (
-            <div className="absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
+            <div className="absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
           )}
           <div className="relative z-40">
             {inputElement}
@@ -371,7 +379,7 @@ function CommentItem({
   );
 }
 
-function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }: { currentUser: any, onSubmit: (text: string) => Promise<void>, onCancel: () => void, initialMention: any, t: any }) {
+export function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }: { currentUser: any, onSubmit: (text: string) => Promise<void>, onCancel: () => void, initialMention: any, t: any }) {
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
@@ -462,7 +470,7 @@ function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }
     e.preventDefault();
     if (!text.trim() || isSubmitting) return;
     setIsSubmitting(true);
-    const mentionString = `@[${initialMention.displayName}](${initialMention.username}/${initialMention.id})`;
+    const mentionString = `@[${initialMention.displayName}](${initialMention.username}/${initialMention.id}${initialMention.commentId ? `/${initialMention.commentId}` : ''})`;
     await onSubmit(`${mentionString} ${text}`);
     setIsSubmitting(false);
   };
@@ -861,7 +869,8 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
                             initialMention={{
                               username: (replyingTo as any).username,
                               id: (replyingTo as any).id,
-                              displayName: replyingTo.name
+                              displayName: replyingTo.name,
+                              commentId: replyingTo.commentId
                             }}
                             onCancel={() => setReplyingTo(null)}
                             onSubmit={(text) => handleInlineSubmit(text, replyingTo.parentId!)}

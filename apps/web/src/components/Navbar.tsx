@@ -1013,7 +1013,8 @@ export default function Navbar({
                         if (notif.postId) {
                           router.push(`${pathname}?postId=${notif.postId}`);
                         } else if (notif.projectId) {
-                          router.push(`/${locale}/project/${notif.sender?.username}/${notif.projectId}`);
+                          const projectOwner = notif.project?.user?.username || currentUser?.username || notif.sender?.username;
+                          router.push(`/${locale}/project/${projectOwner}/${notif.projectId}`);
                         } else {
                           router.push(`/${locale}/p/${notif.sender?.username}/${notif.senderId}`);
                         }

@@ -171,7 +171,7 @@ export async function getProjectsByUsername(username: string) {
     return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
   }
 }
-export async function getProjectById(id: string) {
+export async function getProjectById(id: string, currentUserId?: string) {
   try {
     const project = await prisma.project.findUnique({
       where: { id },
@@ -179,6 +179,12 @@ export async function getProjectById(id: string) {
         user: {
           include: {
             profile: true
+          }
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true
           }
         }
       }
@@ -188,7 +194,18 @@ export async function getProjectById(id: string) {
       return { success: false, project: null, error: "Project not found" };
     }
 
-    return { success: true, project };
+    let hasLiked = false;
+    if (currentUserId) {
+      const like = await prisma.like.findFirst({
+        where: {
+          projectId: id,
+          userId: currentUserId
+        }
+      });
+      hasLiked = !!like;
+    }
+
+    return { success: true, project: { ...project, hasLiked } };
   } catch (error: any) {
     console.error("getProjectById Error:", error);
     return { success: false, project: null, error: error.message || "Failed to fetch project" };

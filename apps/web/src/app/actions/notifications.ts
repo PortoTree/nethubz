@@ -35,6 +35,15 @@ export async function getNotifications(token: string, userId: string) {
               }
             }
           }
+        },
+        project: {
+          select: {
+            user: {
+              select: {
+                username: true
+              }
+            }
+          }
         }
       },
       take: 20
