@@ -37,7 +37,7 @@ function CommentItem({
   handleLikeComment,
   handleReplyClick,
   renderCommentContent,
-  replyingToId,
+  replyingTo,
   renderInput,
   depth = 0,
   isLast = false,
@@ -45,13 +45,22 @@ function CommentItem({
   parentCommentId,
   allThreadComments = [],
   traceInfo = null,
-  setTraceInfo = () => {}
+  setTraceInfo = () => {},
+  rootId
 }: any) {
+  const currentRootId = depth === 0 ? comment.id : rootId;
   const [replies, setReplies] = useState<any[]>([]);
   const [showReplies, setShowReplies] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const inputElement = renderInput ? renderInput(comment.id) : null;
+  const nextThreadComments = [comment, ...Array.from(new Map([...replies, ...(comment.optimisticReplies || [])].map(r => [r.id, r])).values())];
+  const currentThreadComments = depth === 0 ? nextThreadComments : allThreadComments;
+
+  // Render input if this is the parent comment of the thread being replied to
+  const isThreadActive = replyingTo?.parentId === comment.id;
+  const inputElement = isThreadActive && renderInput
+    ? renderInput(replyingTo?.commentId) 
+    : null;
   const replyCount = (comment._count?.replies || 0) + (comment.optimisticReplies?.length || 0);
 
   const [isLiked, setIsLiked] = useState(comment.hasLiked || false);
@@ -88,11 +97,9 @@ function CommentItem({
     setShowReplies(!showReplies);
   };
 
-  const isReplying = replyingToId === comment.id;
-  const isParentReplying = replyingToId === parentCommentId;
+  const isReplying = replyingTo?.commentId === comment.id;
+  const isParentReplying = replyingTo?.commentId === parentCommentId;
 
-  const nextThreadComments = [comment, ...Array.from(new Map([...replies, ...(comment.optimisticReplies || [])].map(r => [r.id, r])).values())];
-  const currentThreadComments = depth === 0 ? nextThreadComments : allThreadComments;
 
   let targetComment: any = null;
   if (depth > 0 && comment.content) {
@@ -113,15 +120,26 @@ function CommentItem({
     }
   }
 
-  const isTracingThisLine = traceInfo && traceInfo.sourceId === comment.id;
-  const isTracingParentLine = traceInfo && traceInfo.parentId === comment.id;
-  const isTargetOfTrace = traceInfo && traceInfo.targetId === comment.id && traceInfo.targetId !== traceInfo.parentId;
+  const effectiveTraceInfo = traceInfo || (
+    replyingTo && replyingTo.rootId === currentRootId ? {
+      parentId: replyingTo.parentId || comment.id,
+      targetId: replyingTo.commentId,
+      sourceId: `input-${replyingTo.commentId}`
+    } : null
+  );
+
+  const isTracingThisLine = effectiveTraceInfo && effectiveTraceInfo.sourceId === comment.id;
+  const isTracingParentLine = effectiveTraceInfo && effectiveTraceInfo.parentId === comment.id;
+  const isTargetOfTrace = effectiveTraceInfo && effectiveTraceInfo.targetId === comment.id && effectiveTraceInfo.targetId !== effectiveTraceInfo.parentId;
 
   let isBetweenTrace = false;
-  if (traceInfo && traceInfo.parentId === parentCommentId) {
-    const sourceIndex = currentThreadComments.findIndex((c: any) => c.id === traceInfo.sourceId);
+  if (effectiveTraceInfo && effectiveTraceInfo.parentId === parentCommentId) {
+    let sourceIndex = currentThreadComments.findIndex((c: any) => c.id === effectiveTraceInfo.sourceId);
+    if (sourceIndex === -1 && effectiveTraceInfo.sourceId.startsWith('input-')) {
+      sourceIndex = currentThreadComments.length;
+    }
     const myIndex = currentThreadComments.findIndex((c: any) => c.id === comment.id);
-    const targetIndex = currentThreadComments.findIndex((c: any) => c.id === traceInfo.targetId);
+    const targetIndex = currentThreadComments.findIndex((c: any) => c.id === effectiveTraceInfo.targetId);
     const startIndex = targetIndex >= 0 ? targetIndex : 0;
     
     if (myIndex > startIndex && myIndex < sourceIndex) {
@@ -131,34 +149,52 @@ function CommentItem({
 
   const [traceStyle, setTraceStyle] = useState<{ top: string, height: string, bottom: string }>({ top: '0', height: '100%', bottom: '0' });
 
+  const traceSourceId = effectiveTraceInfo?.sourceId;
+  const traceTargetId = effectiveTraceInfo?.targetId;
+
   useEffect(() => {
-    if (isTracingParentLine && traceInfo) {
-      const sourceEl = document.getElementById(`comment-${traceInfo.sourceId}`);
-      const parentEl = document.getElementById(`comment-${comment.id}`);
-      const targetEl = document.getElementById(`comment-${traceInfo.targetId}`);
-      
-      if (sourceEl && parentEl) {
-        const sourceRect = sourceEl.getBoundingClientRect();
-        const parentRect = parentEl.getBoundingClientRect();
-        const deltaYBottom = sourceRect.top - parentRect.top;
+    let timeoutId: NodeJS.Timeout;
+
+    if (isTracingParentLine && traceSourceId && traceTargetId) {
+      // Delay slightly to ensure DOM (and heavy components like TipTap) are fully mounted and painted
+      timeoutId = setTimeout(() => {
+        const sourceEl = document.getElementById(`comment-${traceSourceId}`);
+        const parentEl = document.getElementById(`comment-${comment.id}`);
+        const targetEl = document.getElementById(`comment-${traceTargetId}`);
         
-        let deltaYTop = 0;
-        let isSiblingTarget = false;
-        if (targetEl && traceInfo.targetId !== comment.id) {
-           const targetRect = targetEl.getBoundingClientRect();
-           deltaYTop = targetRect.top - parentRect.top;
-           isSiblingTarget = true;
+        if (sourceEl && parentEl) {
+          const sourceRect = sourceEl.getBoundingClientRect();
+          const parentRect = parentEl.getBoundingClientRect();
+          const deltaYBottom = sourceRect.top - parentRect.top;
+          
+          let deltaYTop = 0;
+          let isSiblingTarget = false;
+          if (targetEl && traceTargetId !== comment.id) {
+             const targetRect = targetEl.getBoundingClientRect();
+             deltaYTop = targetRect.top - parentRect.top;
+             isSiblingTarget = true;
+          }
+          
+          const top = Math.max(0, isSiblingTarget ? deltaYTop : 0);
+          const height = Math.max(0, (deltaYBottom - 48) - top);
+          
+          setTraceStyle(prev => {
+            if (prev.top === `${top}px` && prev.height === `${height}px`) return prev;
+            return { top: `${top}px`, height: `${height}px`, bottom: 'auto' };
+          });
         }
-        
-        const top = Math.max(0, isSiblingTarget ? deltaYTop : 0);
-        const height = Math.max(0, (deltaYBottom - 48) - top);
-        
-        setTraceStyle({ top: `${top}px`, height: `${height}px`, bottom: 'auto' });
-      }
+      }, 50);
     } else {
-      setTraceStyle({ top: '0', height: '100%', bottom: '0' });
+      setTraceStyle(prev => {
+        if (prev.top === '0' && prev.height === '100%') return prev;
+        return { top: '0', height: '100%', bottom: '0' };
+      });
     }
-  }, [isTracingParentLine, traceInfo, comment.id]);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isTracingParentLine, traceSourceId, traceTargetId, comment.id]);
 
   const handleJumpToComment = (e: React.MouseEvent, targetId: string) => {
     e.stopPropagation();
@@ -227,7 +263,7 @@ function CommentItem({
               </button>
               <button onClick={() => {
                 const parentIdForDB = depth >= 2 ? comment.parentId : comment.id;
-                handleReplyClick(comment.author?.username, comment.author?.id, comment.author?.profile?.displayName || comment.author?.username, comment.id, parentIdForDB);
+                handleReplyClick(comment.author?.username, comment.author?.id, comment.author?.profile?.displayName || comment.author?.username, comment.id, parentIdForDB, currentRootId);
               }} className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-3 py-1.5 rounded-full transition-colors">
                 <img src="/reply.svg" alt="Reply" className="w-[16px] h-[16px] opacity-60 dark:invert" />
                 {t("postModal.reply") || "Balas"}
@@ -269,7 +305,7 @@ function CommentItem({
                       handleLikeComment={handleLikeComment}
                       handleReplyClick={handleReplyClick}
                       renderCommentContent={renderCommentContent}
-                      replyingToId={replyingToId}
+                      replyingTo={replyingTo}
                       renderInput={renderInput}
                       depth={depth + 1}
                       isLast={index === arr.length - 1 && !inputElement && !isLoading}
@@ -278,6 +314,8 @@ function CommentItem({
                       allThreadComments={nextThreadComments}
                       traceInfo={traceInfo}
                       setTraceInfo={setTraceInfo}
+                      rootId={currentRootId}
+                      replyingTo={replyingTo}
                     />
                   ))}
 
@@ -296,7 +334,7 @@ function CommentItem({
                   )}
 
                   {inputElement && (
-                    <div className="relative mt-3">
+                    <div id={`comment-input-${replyingTo?.commentId}`} className="relative mt-3">
                       <div className="absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] border-blue-500 rounded-bl-[12px] z-30" />
                       {!isLoading && (
                         <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
@@ -524,8 +562,8 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
   const [traceInfo, setTraceInfo] = useState<{ sourceId: string, parentId: string, targetId: string, traceId: number } | null>(null);
 
   // Focus helper for MentionsInput
-  const handleReplyClick = (username: string, id: string, displayName: string, exactCommentId: string, parentIdForDB?: string) => {
-    setReplyingTo({ commentId: exactCommentId, name: displayName, parentId: parentIdForDB, username, id });
+  const handleReplyClick = (username: string, id: string, displayName: string, exactCommentId: string, parentIdForDB?: string, rootId?: string) => {
+    setReplyingTo({ commentId: exactCommentId, name: displayName, parentId: parentIdForDB, username, id, rootId });
   };
 
   const getMentionsText = (ed: any) => {
@@ -791,10 +829,11 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
                       handleLikeComment={handleLikeComment}
                       handleReplyClick={handleReplyClick}
                       renderCommentContent={renderCommentContent}
-                      replyingToId={replyingTo?.commentId}
+                      replyingTo={replyingTo}
                       isExpanded={isExpanded}
                       traceInfo={traceInfo}
                       setTraceInfo={setTraceInfo}
+                      rootId={c.id}
                       renderInput={(commentId: string) => {
                         if (replyingTo?.commentId !== commentId) return null;
                         return (
