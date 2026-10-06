@@ -315,7 +315,6 @@ function CommentItem({
                       traceInfo={traceInfo}
                       setTraceInfo={setTraceInfo}
                       rootId={currentRootId}
-                      replyingTo={replyingTo}
                     />
                   ))}
 
@@ -556,7 +555,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
   const emojiRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<{ commentId: string, name: string, parentId?: string } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{ commentId: string, name: string, parentId?: string, username?: string, id?: string, rootId?: string } | null>(null);
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [traceInfo, setTraceInfo] = useState<{ sourceId: string, parentId: string, targetId: string, traceId: number } | null>(null);
