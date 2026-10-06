@@ -42,7 +42,10 @@ function CommentItem({
   depth = 0,
   isLast = false,
   isExpanded = false,
-  parentCommentId
+  parentCommentId,
+  allThreadComments = [],
+  traceInfo = null,
+  setTraceInfo = () => {}
 }: any) {
   const [replies, setReplies] = useState<any[]>([]);
   const [showReplies, setShowReplies] = useState(false);
@@ -88,17 +91,109 @@ function CommentItem({
   const isReplying = replyingToId === comment.id;
   const isParentReplying = replyingToId === parentCommentId;
 
+  const nextThreadComments = [comment, ...Array.from(new Map([...replies, ...(comment.optimisticReplies || [])].map(r => [r.id, r])).values())];
+  const currentThreadComments = depth === 0 ? nextThreadComments : allThreadComments;
+
+  let targetComment: any = null;
+  if (depth > 0 && comment.content) {
+    const match = comment.content.match(/@\[(.*?)\]\(([^\)]+)\)/);
+    if (match) {
+      const parts = match[2].split('/');
+      const targetUserId = parts[1] || parts[0];
+      const currentIndex = currentThreadComments.findIndex((c: any) => c.id === comment.id);
+      if (currentIndex > 0) {
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          const cAuthor = currentThreadComments[i].author;
+          if (cAuthor?.id === targetUserId || cAuthor?.username === targetUserId) {
+            targetComment = currentThreadComments[i];
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  const isTracingThisLine = traceInfo && traceInfo.sourceId === comment.id;
+  const isTracingParentLine = traceInfo && traceInfo.parentId === comment.id;
+  const isTargetOfTrace = traceInfo && traceInfo.targetId === comment.id && traceInfo.targetId !== traceInfo.parentId;
+
+  let isBetweenTrace = false;
+  if (traceInfo && traceInfo.parentId === parentCommentId) {
+    const sourceIndex = currentThreadComments.findIndex((c: any) => c.id === traceInfo.sourceId);
+    const myIndex = currentThreadComments.findIndex((c: any) => c.id === comment.id);
+    const targetIndex = currentThreadComments.findIndex((c: any) => c.id === traceInfo.targetId);
+    const startIndex = targetIndex >= 0 ? targetIndex : 0;
+    
+    if (myIndex > startIndex && myIndex < sourceIndex) {
+      isBetweenTrace = true;
+    }
+  }
+
+  const [traceStyle, setTraceStyle] = useState<{ top: string, height: string, bottom: string }>({ top: '0', height: '100%', bottom: '0' });
+
+  useEffect(() => {
+    if (isTracingParentLine && traceInfo) {
+      const sourceEl = document.getElementById(`comment-${traceInfo.sourceId}`);
+      const parentEl = document.getElementById(`comment-${comment.id}`);
+      const targetEl = document.getElementById(`comment-${traceInfo.targetId}`);
+      
+      if (sourceEl && parentEl) {
+        const sourceRect = sourceEl.getBoundingClientRect();
+        const parentRect = parentEl.getBoundingClientRect();
+        const deltaYBottom = sourceRect.top - parentRect.top;
+        
+        let deltaYTop = 0;
+        let isSiblingTarget = false;
+        if (targetEl && traceInfo.targetId !== comment.id) {
+           const targetRect = targetEl.getBoundingClientRect();
+           deltaYTop = targetRect.top - parentRect.top;
+           isSiblingTarget = true;
+        }
+        
+        const top = Math.max(0, isSiblingTarget ? deltaYTop : 0);
+        const height = Math.max(0, (deltaYBottom - 48) - top);
+        
+        setTraceStyle({ top: `${top}px`, height: `${height}px`, bottom: 'auto' });
+      }
+    } else {
+      setTraceStyle({ top: '0', height: '100%', bottom: '0' });
+    }
+  }, [isTracingParentLine, traceInfo, comment.id]);
+
+  const handleJumpToComment = (e: React.MouseEvent, targetId: string) => {
+    e.stopPropagation();
+    const currentTraceId = Date.now();
+    setTraceInfo({ sourceId: comment.id, parentId: parentCommentId, targetId, traceId: currentTraceId });
+    const el = document.getElementById(`comment-${targetId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    setTimeout(() => {
+      setTraceInfo((prev: any) => prev?.traceId === currentTraceId ? null : prev);
+    }, 3000); // Remove trace after 3s
+  };
+
   return (
     <>
-      <div className={`flex gap-3 group relative ${depth > 0 ? 'mt-3' : ''}`}>
+      <div id={`comment-${comment.id}`} className={`flex gap-3 group relative ${depth > 0 ? 'mt-3' : ''}`}>
         {depth > 0 && (
-          <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] rounded-bl-[12px] z-30 ${isParentReplying ? 'border-b-gray-300 dark:border-b-[#4E4F50] border-l-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'}`} />
+          <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] rounded-bl-[12px] z-30 ${isTracingThisLine ? 'border-b-blue-500 border-l-blue-500' : ((isParentReplying || isBetweenTrace) ? 'border-b-gray-300 dark:border-b-[#4E4F50] border-l-blue-500' : 'border-gray-300 dark:border-[#4E4F50]')}`} />
+        )}
+        {depth > 0 && isTargetOfTrace && (
+          <div className="absolute -left-[33px] top-[14px] w-[49px] h-[18px] border-t-[2px] border-l-[2px] border-blue-500 rounded-tl-[12px] z-40 pointer-events-none" />
         )}
         {depth > 0 && isLast && (
           <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-gray-50 dark:bg-[#18191A]" />
         )}
         {(showReplies || inputElement) && depth < 2 && (
-          <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`} />
+          <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`}>
+            {isTracingParentLine && (
+               <div 
+                 className="absolute -left-[2px] w-[2px] bg-blue-500" 
+                 style={traceStyle} 
+               />
+            )}
+          </div>
         )}
         {isReplying && depth >= 2 && inputElement && (
           <div className="absolute left-[15px] top-[32px] bottom-[-28px] border-l-[2px] border-blue-500 z-10" />
@@ -112,27 +207,35 @@ function CommentItem({
             <h4 className="font-semibold text-[13px] text-gray-900 dark:text-[#E4E6EB] cursor-pointer hover:underline" onClick={() => router.push(`/${locale}/p/${comment.author?.username}/${comment.author?.id}`)}>
               {comment.author?.profile?.displayName || comment.author?.username}
             </h4>
-            <span className="text-[12px] text-gray-500 dark:text-gray-400 font-normal">
-              {formatPostTime(comment.createdAt, t, locale)}
-            </span>
           </div>
           <p className="text-[14.5px] text-gray-900 dark:text-[#E4E6EB] mt-0.5 whitespace-pre-wrap">{renderCommentContent(comment.content)}</p>
 
-          <div className="flex items-center gap-2 mt-1.5 text-[12.5px] font-medium text-gray-600 dark:text-gray-400">
-            <button onClick={onLikeClick} className={`flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors -ml-2 ${isLiked ? 'text-blue-500' : ''}`}>
-              {isLiked ? (
-                <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 10.5a1.5 1.5 0 113 0v8a1.5 1.5 0 01-3 0v-8zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
-              ) : (
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+          <div className="flex items-center justify-between w-full mt-1.5">
+            <div className="flex items-center gap-2 text-[12.5px] font-medium text-gray-600 dark:text-gray-400">
+              {targetComment && (
+                <button onClick={(e) => handleJumpToComment(e, targetComment.id)} aria-label="Lihat target komentar" className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors -ml-2">
+                  <img src="/answer.svg" alt="Answer" className="w-[14px] h-[14px] opacity-60 dark:invert" />
+                </button>
               )}
-              {likeCount > 0 && <span>{likeCount}</span>}
-            </button>
-            <button onClick={() => {
-              const parentIdForDB = depth >= 2 ? comment.parentId : comment.id;
-              handleReplyClick(comment.author?.username, comment.author?.id, comment.author?.profile?.displayName || comment.author?.username, comment.id, parentIdForDB);
-            }} className="hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-3 py-1.5 rounded-full transition-colors">
-              {t("postModal.reply") || "Balas"}
-            </button>
+              <button onClick={onLikeClick} className={`flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors ${!targetComment ? '-ml-2' : ''} ${isLiked ? 'text-blue-500' : ''}`}>
+                {isLiked ? (
+                  <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 10.5a1.5 1.5 0 113 0v8a1.5 1.5 0 01-3 0v-8zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>
+                ) : (
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                )}
+                {likeCount > 0 && <span>{likeCount}</span>}
+              </button>
+              <button onClick={() => {
+                const parentIdForDB = depth >= 2 ? comment.parentId : comment.id;
+                handleReplyClick(comment.author?.username, comment.author?.id, comment.author?.profile?.displayName || comment.author?.username, comment.id, parentIdForDB);
+              }} className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-3 py-1.5 rounded-full transition-colors">
+                <img src="/reply.svg" alt="Reply" className="w-[16px] h-[16px] opacity-60 dark:invert" />
+                {t("postModal.reply") || "Balas"}
+              </button>
+            </div>
+            <span className="text-[12px] text-gray-500 dark:text-gray-400 font-normal ml-2">
+              {formatPostTime(comment.createdAt, t, locale)}
+            </span>
           </div>
 
           {(replyCount > 0 || inputElement) && depth < 2 && (
@@ -172,6 +275,9 @@ function CommentItem({
                       isLast={index === arr.length - 1 && !inputElement && !isLoading}
                       isExpanded={isExpanded}
                       parentCommentId={comment.id}
+                      allThreadComments={nextThreadComments}
+                      traceInfo={traceInfo}
+                      setTraceInfo={setTraceInfo}
                     />
                   ))}
 
@@ -318,7 +424,8 @@ function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMention, t }
     e.preventDefault();
     if (!text.trim() || isSubmitting) return;
     setIsSubmitting(true);
-    await onSubmit(text);
+    const mentionString = `@[${initialMention.displayName}](${initialMention.username}/${initialMention.id})`;
+    await onSubmit(`${mentionString} ${text}`);
     setIsSubmitting(false);
   };
 
@@ -414,6 +521,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
   const [replyingTo, setReplyingTo] = useState<{ commentId: string, name: string, parentId?: string } | null>(null);
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [traceInfo, setTraceInfo] = useState<{ sourceId: string, parentId: string, targetId: string, traceId: number } | null>(null);
 
   // Focus helper for MentionsInput
   const handleReplyClick = (username: string, id: string, displayName: string, exactCommentId: string, parentIdForDB?: string) => {
@@ -685,6 +793,8 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser }: 
                       renderCommentContent={renderCommentContent}
                       replyingToId={replyingTo?.commentId}
                       isExpanded={isExpanded}
+                      traceInfo={traceInfo}
+                      setTraceInfo={setTraceInfo}
                       renderInput={(commentId: string) => {
                         if (replyingTo?.commentId !== commentId) return null;
                         return (
