@@ -15,6 +15,11 @@ import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
 import { formatPostTime } from "@/components/PostCard";
 import { CommentItem, InlineReplyInput } from "@/components/PostDetailModal";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Mention from "@tiptap/extension-mention";
+import Placeholder from "@tiptap/extension-placeholder";
+import { getMentionSuggestion } from "@/utils/mentionSuggestion";
 
 
 // ─── Gallery ─────────────────────────────────────────────────────────────────
@@ -111,6 +116,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const emojiRef = useRef<HTMLDivElement>(null);
 
   // Comments
   const [comments, setComments] = useState<any[]>([]);
@@ -230,11 +237,64 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
     }
   };
 
-  const handleTopLevelSubmit = async () => {
+  const getMentionsText = (ed: any) => {
+    const json = ed.getJSON();
+    let text = '';
+    const parseNode = (node: any) => {
+      if (node.type === 'text') text += node.text;
+      if (node.type === 'mention') text += `@[${node.attrs.label}](${node.attrs.id})`;
+      if (node.content) node.content.forEach(parseNode);
+    };
+    if (json.content) json.content.forEach(parseNode);
+    return text.trim();
+  };
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      StarterKit.configure({ bold: false, italic: false, strike: false, code: false, codeBlock: false, heading: false, bulletList: false, orderedList: false, listItem: false, blockquote: false, horizontalRule: false }),
+      Placeholder.configure({
+        placeholder: t("writeComment") || "Tulis komentar...",
+        emptyEditorClass: 'is-editor-empty text-gray-400',
+      }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'text-blue-500 dark:text-blue-400 font-bold underline cursor-pointer bg-blue-50 dark:bg-blue-900/30 rounded px-1',
+        },
+        suggestion: getMentionSuggestion(),
+      }),
+    ],
+    onUpdate: ({ editor }) => {
+      setCommentInput(getMentionsText(editor));
+    },
+    editorProps: {
+      attributes: {
+        class: 'w-full min-h-[24px] max-h-[120px] overflow-y-auto outline-none custom-scrollbar',
+      },
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          if (document.getElementById('mention-popup-container')) {
+            return false;
+          }
+          event.preventDefault();
+          handleTopLevelSubmit();
+          return true;
+        }
+        return false;
+      },
+    },
+  });
+
+  const handleTopLevelSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user || !commentInput.trim() || isSubmitting) return;
     setIsSubmitting(true);
     const res = await addComment(user.id, "project", id, commentInput);
-    if (res.success && res.comment) { setComments(prev => [res.comment, ...prev]); setCommentInput(""); }
+    if (res.success && res.comment) { 
+      setComments(prev => [res.comment, ...prev]); 
+      setCommentInput(""); 
+      if (editor) editor.commands.clearContent();
+    }
     setIsSubmitting(false);
   };
   const renderCommentContent = (content: string) => {
@@ -435,18 +495,24 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
                     <div className="w-9 h-9 shrink-0 rounded-full bg-gray-200 dark:bg-[#3A3B3C] overflow-hidden flex items-center justify-center">
                       {user?.profile?.avatarUrl ? <img src={getOptimizedUrl(user.profile.avatarUrl, 'thumb')} alt="You" className="w-full h-full object-cover" /> : <span className="text-gray-500 font-bold text-sm">{user?.username?.[0]?.toUpperCase() || "?"}</span>}
                     </div>
-                    <div className="flex-1 flex gap-2">
-                      <input
-                        value={commentInput}
-                        onChange={e => setCommentInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleTopLevelSubmit(); } }}
-                        placeholder={t("writeComment") || "Tulis komentar..."}
-                        className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-xl px-4 py-2 text-[14px] text-gray-900 dark:text-[#E4E6EB] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 border border-transparent focus:border-purple-300 dark:focus:border-purple-500/50 transition-all"
-                      />
+                    <div className="flex-1 flex gap-2 items-end">
+                      <form 
+                        className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-xl px-4 py-2 min-h-[40px] text-[14px] text-gray-900 dark:text-[#E4E6EB] border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-all cursor-text overflow-hidden"
+                        onClick={() => editor?.chain().focus().run()}
+                        onSubmit={handleTopLevelSubmit}
+                      >
+                        <style>{`
+                          .ProseMirror { outline: none; white-space: pre-wrap; word-break: break-word; color: #111827; min-height: 100%; }
+                          :is(.dark .ProseMirror) { color: #E4E6EB; }
+                          .ProseMirror p.is-editor-empty:first-child::before { color: #9ca3af; content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+                          .ProseMirror p { margin: 0; }
+                        `}</style>
+                        <EditorContent editor={editor} />
+                      </form>
                       <button
                         onClick={handleTopLevelSubmit}
                         disabled={!commentInput.trim() || isSubmitting}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold rounded-xl text-[14px] transition-colors shrink-0"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold rounded-xl text-[14px] transition-colors shrink-0 self-end h-[40px] flex items-center justify-center"
                       >
                         {isSubmitting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <svg className="w-4 h-4 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>}
                       </button>

@@ -431,6 +431,7 @@ export function InlineReplyInput({ currentUser, onSubmit, onCancel, initialMenti
   };
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({ bold: false, italic: false, strike: false, code: false, codeBlock: false, heading: false, bulletList: false, orderedList: false, listItem: false, blockquote: false, horizontalRule: false }),
       Placeholder.configure({
@@ -588,6 +589,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
   };
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({ bold: false, italic: false, strike: false, code: false, codeBlock: false, heading: false, bulletList: false, orderedList: false, listItem: false, blockquote: false, horizontalRule: false }),
       Placeholder.configure({
