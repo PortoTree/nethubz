@@ -30,16 +30,28 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
 
       // TODO: Create Notification
       let targetOwnerId: string | undefined;
+      let notifPostId: string | undefined;
+      let notifProjectId: string | undefined;
       
       if (targetType === "post") {
         const post = await prisma.post.findUnique({ where: { id: targetId } });
-        if (post) targetOwnerId = post.authorId;
+        if (post) {
+          targetOwnerId = post.authorId;
+          notifPostId = targetId;
+        }
       } else if (targetType === "project") {
         const project = await prisma.project.findUnique({ where: { id: targetId } });
-        if (project) targetOwnerId = project.userId;
+        if (project) {
+          targetOwnerId = project.userId;
+          notifProjectId = targetId;
+        }
       } else if (targetType === "comment") {
         const comment = await prisma.comment.findUnique({ where: { id: targetId } });
-        if (comment) targetOwnerId = comment.authorId;
+        if (comment) {
+          targetOwnerId = comment.authorId;
+          notifPostId = comment.postId || undefined;
+          notifProjectId = comment.projectId || undefined;
+        }
       }
       
       if (targetOwnerId && targetOwnerId !== userId) {
@@ -48,8 +60,9 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
             type: targetType === "post" ? "POST_LIKE" : targetType === "project" ? "PROJECT_LIKE" : "COMMENT_LIKE" as any,
             userId: targetOwnerId,
             senderId: userId,
-            postId: targetType === "post" ? targetId : undefined,
-            projectId: targetType === "project" ? targetId : undefined,
+            postId: notifPostId,
+            projectId: notifProjectId,
+            commentId: targetType === "comment" ? targetId : undefined,
           }
         });
       }
@@ -187,7 +200,42 @@ export async function addComment(userId: string, targetType: "post" | "project",
       }
     }
 
+
+    // Handle Mentions
+    const mentionRegex = /@\[.*?\]\(([^\)]+)\)/g;
+    let match;
+    const mentionedUserIds = new Set<string>();
+    while ((match = mentionRegex.exec(content)) !== null) {
+      const parts = match[1].split('/');
+      const id = parts[1] || parts[0];
+      if (id !== userId) {
+        mentionedUserIds.add(id);
+      }
+    }
+
+    if (mentionedUserIds.size > 0) {
+      try {
+        await Promise.all(
+          Array.from(mentionedUserIds).map(mentionedId =>
+            prisma.notification.create({
+              data: {
+                type: "COMMENT_MENTION" as any,
+                userId: mentionedId,
+                senderId: userId,
+                postId: targetType === "post" ? targetId : undefined,
+                projectId: targetType === "project" ? targetId : undefined,
+                commentId: comment.id,
+              }
+            })
+          )
+        );
+      } catch (e) {
+        console.error("Failed to create mention notifications:", e);
+      }
+    }
+
     return { success: true, comment };
+
   } catch (error: any) {
     console.error("Add Comment Error:", error);
     return { success: false, error: error.message };
@@ -230,6 +278,44 @@ export async function getComments(targetType: "post" | "project", targetId: stri
     return { success: true, comments, nextCursor };
   } catch (error: any) {
     console.error("Get Comments Error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getCommentReplies(commentId: string, cursor?: string, limit: number = 10) {
+  try {
+    const replies = await prisma.comment.findMany({
+      where: {
+        parentId: commentId,
+      },
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: { createdAt: "asc" }, // Replies are usually oldest first
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            profile: {
+              select: { displayName: true, avatarUrl: true }
+            }
+          }
+        },
+        _count: {
+          select: { replies: true, likes: true }
+        }
+      }
+    });
+
+    let nextCursor: string | undefined = undefined;
+    if (replies.length > limit) {
+      const nextItem = replies.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return { success: true, replies, nextCursor };
+  } catch (error: any) {
+    console.error("Get Comment Replies Error:", error);
     return { success: false, error: error.message };
   }
 }

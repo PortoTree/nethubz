@@ -44,14 +44,14 @@ export const MentionList = forwardRef((props: any, ref) => {
 
   if (!props.items.length) {
     return (
-      <div className="bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3A3B3C] rounded-lg shadow-xl p-3 text-sm text-gray-500">
+      <div id="mention-popup-container" className="bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3A3B3C] rounded-lg shadow-xl p-3 text-sm text-gray-500">
         No result
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3A3B3C] rounded-lg shadow-xl py-2 min-w-[240px] max-h-[250px] overflow-y-auto z-50">
+    <div id="mention-popup-container" className="bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3A3B3C] rounded-lg shadow-xl py-2 min-w-[240px] max-h-[250px] overflow-y-auto z-50">
       {props.items.map((item: any, index: number) => (
         <button
           className={`flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] transition-colors ${index === selectedIndex ? 'bg-gray-100 dark:bg-[#3A3B3C]' : ''

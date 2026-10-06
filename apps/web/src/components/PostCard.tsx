@@ -155,10 +155,12 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         const username = part.slice(1);
         const taggedUser = post.taggedUsers?.find((u: any) => u.username === username);
         if (taggedUser) {
+          const isCurrentUser = currentUser?.id === taggedUser.id || currentUser?.username === taggedUser.username;
+          const colorClass = isCurrentUser ? "text-blue-500 font-semibold bg-blue-50 dark:bg-[#263951] px-1 rounded" : "text-sky-500 dark:text-sky-400";
           return (
             <span 
               key={i} 
-              className="text-blue-500 hover:underline cursor-pointer font-semibold bg-blue-50 dark:bg-[#263951] px-1 rounded"
+              className={`${colorClass} hover:underline cursor-pointer`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (onProfileClick) onProfileClick(taggedUser);
@@ -169,7 +171,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
             </span>
           );
         } else {
-          return <span key={i} className="text-blue-500 font-semibold bg-blue-50 dark:bg-[#263951] px-1 rounded">{part}</span>;
+          return <span key={i} className="text-sky-500 dark:text-sky-400">{part}</span>;
         }
       } else if (part.match(/^#[\w_]+$/)) {
         const tag = part.slice(1).toLowerCase();

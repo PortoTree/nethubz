@@ -448,6 +448,7 @@
     "timeYesterday": "Kemarin",
     "typeFriendNow": "Kamu sekarang berteman.",
     "typePostTag": "telah menandai Anda dalam postingan. Klik untuk melihat.",
+    "typeCommentMention": "menyebut Anda dalam sebuah komentar",
     "typeGiveawayJoined": "mengadakan giveaway yang berhasil kamu ikuti.",
     "typeGiveawayWon": "telah memilih kamu sebagai pemenang giveaway! 🎉",
     "typeGiveawayEnded": "Giveaway kamu telah berakhir dan pemenang sudah ditentukan.",
@@ -994,6 +995,10 @@
     "reply": "Balas",
     "loadMore": "Muat lebih banyak",
     "more": "Opsi lainnya",
-    "writeComment": "Tulis komentar..."
+    "writeComment": "Tulis komentar...",
+    "hideReplies": "Sembunyikan balasan",
+    "viewReplies": "Lihat {count} balasan",
+    "loadMoreReplies": "Muat balasan lainnya",
+    "writeReply": "Tulis balasan..."
   }
 }

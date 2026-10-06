@@ -442,6 +442,7 @@
     "timeYesterday": "Yesterday",
     "typeFriendNow": "You are now friends.",
     "typePostTag": "tagged you in a post. Click to view.",
+    "typeCommentMention": "mentioned you in a comment",
     "typeGiveawayJoined": "is hosting a giveaway that you successfully joined.",
     "typeGiveawayWon": "chose you as a giveaway winner! 🎉",
     "typeGiveawayEnded": "Your giveaway has ended and winners have been selected.",
@@ -988,6 +989,10 @@
     "reply": "Reply",
     "loadMore": "Load more",
     "more": "More options",
-    "writeComment": "Write a comment..."
+    "writeComment": "Write a comment...",
+    "hideReplies": "Hide replies",
+    "viewReplies": "View {count} replies",
+    "loadMoreReplies": "Load more replies",
+    "writeReply": "Write a reply..."
   }
 }

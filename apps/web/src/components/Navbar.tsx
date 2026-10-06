@@ -1027,7 +1027,7 @@ export default function Navbar({
                         notif.type === "FOLLOW" ? "bg-emerald-500" :
                         notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
                         notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE" ? "bg-red-500" :
-                        notif.type === "POST_TAG" ? "bg-purple-500" :
+                        notif.type === "POST_TAG" || notif.type === "COMMENT_MENTION" ? "bg-purple-500" :
                         "bg-[#2D88FF]"
                       }`}>
                         {notif.type === "FOLLOW" && (
@@ -1039,7 +1039,7 @@ export default function Navbar({
                         {(notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                         )}
-                        {notif.type === "POST_TAG" && (
+                        {(notif.type === "POST_TAG" || notif.type === "COMMENT_MENTION") && (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" /></svg>
                         )}
                         {(notif.type === "GIVEAWAY_JOINED" || notif.type === "GIVEAWAY_WON" || notif.type === "GIVEAWAY_REWARD" || notif.type === "GIVEAWAY_ENDED") && (
@@ -1069,6 +1069,7 @@ export default function Navbar({
                         {notif.type === "PROJECT_COMMENT" && ` ${t("notif.typeProjectComment")}`}
                         {notif.type === "COMMENT_LIKE" && ` ${t("notif.typeCommentLike")}`}
                         {notif.type === "POST_TAG" && ` ${t("notif.typePostTag")}`}
+                        {notif.type === "COMMENT_MENTION" && ` ${t("notif.typeCommentMention")}`}
                         {notif.type === "COMMENT_REPLY" && ` ${t("notif.typeCommentReply")}`}
                         {notif.type === "POST_SHARE" && ` ${t("notif.typePostShare")}`}
                         {notif.type === "GIVEAWAY_JOINED" && ` ${t("notif.typeGiveawayJoined")}`}
