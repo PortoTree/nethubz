@@ -45,7 +45,7 @@ function CommentItem({
   parentCommentId,
   allThreadComments = [],
   traceInfo = null,
-  setTraceInfo = () => {},
+  setTraceInfo = () => { },
   rootId
 }: any) {
   const currentRootId = depth === 0 ? comment.id : rootId;
@@ -59,7 +59,7 @@ function CommentItem({
   // Render input if this is the parent comment of the thread being replied to
   const isThreadActive = replyingTo?.parentId === comment.id;
   const inputElement = isThreadActive && renderInput
-    ? renderInput(replyingTo?.commentId) 
+    ? renderInput(replyingTo?.commentId)
     : null;
   const replyCount = (comment._count?.replies || 0) + (comment.optimisticReplies?.length || 0);
 
@@ -141,7 +141,7 @@ function CommentItem({
     const myIndex = currentThreadComments.findIndex((c: any) => c.id === comment.id);
     const targetIndex = currentThreadComments.findIndex((c: any) => c.id === effectiveTraceInfo.targetId);
     const startIndex = targetIndex >= 0 ? targetIndex : 0;
-    
+
     if (myIndex > startIndex && myIndex < sourceIndex) {
       isBetweenTrace = true;
     }
@@ -161,23 +161,23 @@ function CommentItem({
         const sourceEl = document.getElementById(`comment-${traceSourceId}`);
         const parentEl = document.getElementById(`comment-${comment.id}`);
         const targetEl = document.getElementById(`comment-${traceTargetId}`);
-        
+
         if (sourceEl && parentEl) {
           const sourceRect = sourceEl.getBoundingClientRect();
           const parentRect = parentEl.getBoundingClientRect();
           const deltaYBottom = sourceRect.top - parentRect.top;
-          
+
           let deltaYTop = 0;
           let isSiblingTarget = false;
           if (targetEl && traceTargetId !== comment.id) {
-             const targetRect = targetEl.getBoundingClientRect();
-             deltaYTop = targetRect.top - parentRect.top;
-             isSiblingTarget = true;
+            const targetRect = targetEl.getBoundingClientRect();
+            deltaYTop = targetRect.top - parentRect.top;
+            isSiblingTarget = true;
           }
-          
+
           const top = Math.max(0, isSiblingTarget ? deltaYTop : 0);
           const height = Math.max(0, (deltaYBottom - 48) - top);
-          
+
           setTraceStyle(prev => {
             if (prev.top === `${top}px` && prev.height === `${height}px`) return prev;
             return { top: `${top}px`, height: `${height}px`, bottom: 'auto' };
@@ -224,10 +224,10 @@ function CommentItem({
         {(showReplies || inputElement) && depth < 2 && (
           <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`}>
             {isTracingParentLine && (
-               <div 
-                 className="absolute -left-[2px] w-[2px] bg-blue-500" 
-                 style={traceStyle} 
-               />
+              <div
+                className="absolute -left-[2px] w-[2px] bg-blue-500"
+                style={traceStyle}
+              />
             )}
           </div>
         )}
@@ -277,7 +277,7 @@ function CommentItem({
           {(replyCount > 0 || inputElement) && depth < 2 && (
             <div className="mt-2 ml-1 relative">
               {replyCount > 0 && (
-                <button onClick={handleToggleReplies} className="flex items-center gap-1 text-blue-500 hover:underline text-[13px] font-semibold relative z-10">
+                <button onClick={handleToggleReplies} className="flex items-center gap-1 text-[#A8A8A8] hover:underline text-[13px] font-semibold relative z-10">
                   {showReplies ? (
                     <>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
