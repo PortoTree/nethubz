@@ -128,11 +128,48 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
   const [isExpanded, setIsExpanded] = useState(false);
   const [commentInput, setCommentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editorHeight, setEditorHeight] = useState(40);
+
+  const handleEditorMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = editorHeight;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      // moving up decreases clientY, which means deltaY is positive, so height increases
+      const deltaY = startY - moveEvent.clientY;
+      const newHeight = Math.max(40, Math.min(200, startHeight + deltaY));
+      setEditorHeight(newHeight);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }, [editorHeight]);
 
   // Collab
   const [isCollabModalOpen, setIsCollabModalOpen] = useState(false);
   const [collabMessage, setCollabMessage] = useState("");
   const [isCollabMessageSent, setIsCollabMessageSent] = useState(false);
+
+  // Close emoji picker on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (emojiRef.current && !emojiRef.current.contains(event.target as Node)) {
+        setIsEmojiOpen(false);
+      }
+    }
+    if (isEmojiOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEmojiOpen]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -422,7 +459,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
             <div className="flex flex-col lg:flex-row gap-8">
 
               {/* Left Column: Comments */}
-              <div className="flex-1 lg:max-w-[60%] border border-gray-200 dark:border-[#3A3B3C] rounded-2xl bg-white dark:bg-[#242526] flex flex-col min-h-[500px]">
+              <div className="flex-1 lg:max-w-[60%] border border-gray-200 dark:border-[#3A3B3C] rounded-2xl bg-white dark:bg-[#242526] flex flex-col h-[500px] min-h-[500px] max-h-[1200px] resize-y overflow-hidden">
                 <div className="p-4 border-b border-gray-200 dark:border-[#3A3B3C] bg-gray-50 dark:bg-[#1f2021] rounded-t-2xl">
                   <h3 className="text-[17px] font-bold text-gray-900 dark:text-[#E4E6EB] flex items-center gap-2">
                     <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
@@ -491,23 +528,56 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ local
 
                 {/* Comment Input */}
                 <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] bg-white dark:bg-[#242526] rounded-b-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 shrink-0 rounded-full bg-gray-200 dark:bg-[#3A3B3C] overflow-hidden flex items-center justify-center">
+                  <div className="flex items-end gap-3">
+                    <div className="w-9 h-9 shrink-0 rounded-full bg-gray-200 dark:bg-[#3A3B3C] overflow-hidden flex items-center justify-center mb-0.5">
                       {user?.profile?.avatarUrl ? <img src={getOptimizedUrl(user.profile.avatarUrl, 'thumb')} alt="You" className="w-full h-full object-cover" /> : <span className="text-gray-500 font-bold text-sm">{user?.username?.[0]?.toUpperCase() || "?"}</span>}
                     </div>
                     <div className="flex-1 flex gap-2 items-end">
                       <form 
-                        className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-xl px-4 py-2 min-h-[40px] text-[14px] text-gray-900 dark:text-[#E4E6EB] border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-all cursor-text overflow-hidden"
+                        className="flex-1 bg-gray-100 dark:bg-[#3A3B3C] rounded-xl flex flex-col text-[14px] text-gray-900 dark:text-[#E4E6EB] border border-transparent focus-within:border-purple-300 dark:focus-within:border-purple-500/50 transition-colors cursor-text"
                         onClick={() => editor?.chain().focus().run()}
                         onSubmit={handleTopLevelSubmit}
                       >
-                        <style>{`
-                          .ProseMirror { outline: none; white-space: pre-wrap; word-break: break-word; color: #111827; min-height: 100%; }
-                          :is(.dark .ProseMirror) { color: #E4E6EB; }
-                          .ProseMirror p.is-editor-empty:first-child::before { color: #9ca3af; content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
-                          .ProseMirror p { margin: 0; }
-                        `}</style>
-                        <EditorContent editor={editor} />
+                        {/* Top drag handle */}
+                        <div 
+                          onMouseDown={handleEditorMouseDown}
+                          className="w-full flex justify-center py-1 cursor-ns-resize hover:bg-gray-200/50 dark:hover:bg-[#4E4F50]/50 transition-colors group shrink-0 rounded-t-xl"
+                        >
+                          <div className="w-8 h-1 rounded-full bg-gray-300 dark:bg-gray-500 group-hover:bg-gray-400 dark:group-hover:bg-gray-400" />
+                        </div>
+                        
+                        <div 
+                          className="px-3 pb-2 w-full flex flex-row items-end" 
+                          style={{ height: `${editorHeight}px`, minHeight: `${editorHeight}px`, maxHeight: `${editorHeight}px` }}
+                        >
+                          {/* Emoji Button */}
+                          <div ref={emojiRef} className="relative shrink-0 mr-2 self-end">
+                            <button type="button" onClick={(e) => { e.stopPropagation(); setIsEmojiOpen(o => !o); }} className="text-gray-400 hover:text-purple-500 transition-colors">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </button>
+                            {isEmojiOpen && (
+                              <div className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden picker-container">
+                                <style>{`.picker-container em-emoji-picker{height:280px !important;min-height:280px !important;max-height:280px !important;width:328px !important;max-width:calc(100vw - 2rem) !important;}`}</style>
+                                <Picker data={data} onEmojiSelect={(e: any) => {
+                                  if (editor) {
+                                    editor.chain().focus().insertContent(e.native).run();
+                                    setIsEmojiOpen(false);
+                                  }
+                                }} theme={typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"} previewPosition="none" skinTonePosition="search" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 overflow-y-auto custom-scrollbar h-full pt-1">
+                            <style>{`
+                              .ProseMirror { outline: none; white-space: pre-wrap; word-break: break-word; color: #111827; min-height: 100%; }
+                              :is(.dark .ProseMirror) { color: #E4E6EB; }
+                              .ProseMirror p.is-editor-empty:first-child::before { color: #9ca3af; content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+                              .ProseMirror p { margin: 0; }
+                            `}</style>
+                            <EditorContent editor={editor} className="h-full" />
+                          </div>
+                        </div>
                       </form>
                       <button
                         onClick={handleTopLevelSubmit}

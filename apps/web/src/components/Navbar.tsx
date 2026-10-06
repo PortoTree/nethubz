@@ -1073,7 +1073,8 @@ export default function Navbar({
                             {notif.type === "PROJECT_COMMENT" && ` ${t("notif.typeProjectComment")}`}
                             {notif.type === "COMMENT_LIKE" && ` ${t("notif.typeCommentLike")}`}
                             {notif.type === "POST_TAG" && ` ${t("notif.typePostTag")}`}
-                            {notif.type === "COMMENT_MENTION" && ` ${t("notif.typeCommentMention")}`}
+                            {notif.type === "COMMENT_MENTION" && notif.postId && ` ${t("notif.typeCommentMentionPost")}`}
+                            {notif.type === "COMMENT_MENTION" && notif.projectId && ` ${t("notif.typeCommentMentionProject")}`}
                             {notif.type === "COMMENT_REPLY" && notif.postId && ` ${t("notif.typeCommentReplyPost")}`}
                             {notif.type === "COMMENT_REPLY" && notif.projectId && ` ${t("notif.typeCommentReplyProject")}`}
                             {notif.type === "POST_SHARE" && ` ${t("notif.typePostShare")}`}
