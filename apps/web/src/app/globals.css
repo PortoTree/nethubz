@@ -246,3 +246,9 @@ html.dark::-webkit-scrollbar-thumb:hover {
   90% { left: 200%; opacity: 0; }
   100% { left: 200%; opacity: 0; }
 }
+
+
+/* TopLoader Custom Gradient */
+#nprogress .bar {
+  background: linear-gradient(to right, #10B981, #34D399) !important;
+}

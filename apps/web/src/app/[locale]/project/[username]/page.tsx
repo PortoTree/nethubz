@@ -12,6 +12,7 @@ export default async function UserProjectPage({
   
   const { success, projects, user } = await getProjectsByUsername(decodedUsername);
 
+  console.log("GET PROJECTS RES:", {success, user: !!user, projectCount: projects?.length});
   if (!success || !user) {
     notFound();
   }

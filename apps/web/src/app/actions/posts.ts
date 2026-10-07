@@ -252,6 +252,7 @@ export async function createPost(data: {
     }
 
     revalidateTag("feed_posts", "page");
+    revalidateTag("global_posts", "page");
     revalidateTag(`profile_posts_${data.authorId}`, "page");
 
     return { success: true, post: await mapPost(newPost) };
@@ -394,6 +395,7 @@ export async function deletePost(postId: string, authorId: string) {
     }
 
     revalidateTag("feed_posts", "page");
+    revalidateTag("global_posts", "page");
     revalidateTag(`profile_posts_${authorId}`, "page");
 
     return { success: true };
@@ -454,6 +456,7 @@ export async function updatePost(postId: string, authorId: string, content: stri
     });
 
     revalidateTag("feed_posts", "page");
+    revalidateTag("global_posts", "page");
     revalidateTag(`profile_posts_${authorId}`, "page");
 
     return { success: true, post: await mapPost(updatedPost) };
@@ -462,98 +465,70 @@ export async function updatePost(postId: string, authorId: string, content: stri
   }
 }
 
-export async function getExplorePosts(tag?: string) {
-  try {
-    const whereClause: any = {
-      visibility: "PUBLIC",
-    };
-    if (tag) {
-      whereClause.hashtags = {
-        some: { name: tag }
+export const getExplorePosts = async (tag?: string) => {
+  return unstable_cache(
+    async () => {
+    try {
+    console.log(`🔥 DB FETCH (CACHE MISS): getExplorePosts ${tag}`);
+      const whereClause: any = {
+        visibility: "PUBLIC",
       };
-    } else {
-      whereClause.label = "MENCARI";
-    }
-
-    const posts = await prisma.post.findMany({
-      where: whereClause,
-      include: {
-        author: {
-          include: { profile: true }
-        },
-        postMedia: {
-          include: { media: true },
-          orderBy: { order: 'asc' }
-        },
-        taggedUsers: {
-          select: {
-            id: true,
-            username: true,
-            profile: {
-              select: {
-                displayName: true,
-                avatarUrl: true,
-                coverUrl: true
-              }
-            }
-          }
-        },
-        gallery: {
-          select: { id: true, name: true }
-        },
-        _count: {
-          select: { likes: true, comments: true }
-        },
-        project: true
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50
-    });
-    return { success: true, posts: await Promise.all(posts.map(mapPost)) };
-  } catch (error: any) {
-    console.error("Error fetching explore posts:", error);
-    return { success: false, error: error.message };
-  }
-}
-
-export async function getPostById(postId: string) {
-  try {
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      include: {
-        author: {
-          include: { profile: true }
-        },
-        postMedia: {
-          include: { media: true },
-          orderBy: { order: 'asc' }
-        },
-        taggedUsers: {
-          select: {
-            id: true,
-            username: true,
-            profile: {
-              select: {
-                displayName: true,
-                avatarUrl: true,
-                coverUrl: true
-              }
-            }
-          }
-        },
-        gallery: {
-          select: { id: true, name: true }
-        },
-        _count: {
-          select: { likes: true, comments: true }
-        },
-        project: true
+      if (tag) {
+        whereClause.hashtags = {
+          some: { name: tag }
+        };
+      } else {
+        whereClause.label = "MENCARI";
       }
-    });
-    if (!post) return { success: false, error: "Post not found" };
-    return { success: true, post: await mapPost(post) };
-  } catch (error: any) {
-    console.error("Error fetching post by ID:", error);
-    return { success: false, error: error.message };
-  }
-}
+
+      const posts = await prisma.post.findMany({
+        where: whereClause,
+        include: {
+          author: { include: { profile: true } },
+          postMedia: { include: { media: true }, orderBy: { order: 'asc' } },
+          taggedUsers: { select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true, coverUrl: true } } } },
+          gallery: { select: { id: true, name: true } },
+          _count: { select: { likes: true, comments: true } },
+          project: true
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50
+      });
+      return { success: true, posts: await Promise.all(posts.map(mapPost)) };
+    } catch (error: any) {
+      console.error("Error fetching explore posts:", error);
+      return { success: false, error: error.message };
+    }
+  },
+    ['getExplorePosts', String(tag || "all")],
+    { tags: ["global_posts"] }
+  )();
+};
+
+export const getPostById = async (postId: string) => {
+  return unstable_cache(
+    async () => {
+    try {
+    console.log(`🔥 DB FETCH (CACHE MISS): getPostById ${postId}`);
+      const post = await prisma.post.findUnique({
+        where: { id: postId },
+        include: {
+          author: { include: { profile: true } },
+          postMedia: { include: { media: true }, orderBy: { order: 'asc' } },
+          taggedUsers: { select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true, coverUrl: true } } } },
+          gallery: { select: { id: true, name: true } },
+          _count: { select: { likes: true, comments: true } },
+          project: true
+        }
+      });
+      if (!post) return { success: false, error: "Post not found" };
+      return { success: true, post: await mapPost(post) };
+    } catch (error: any) {
+      console.error("Error fetching post by ID:", error);
+      return { success: false, error: error.message };
+    }
+  },
+    ['getPostById', String(postId)],
+    { tags: ["global_posts"] }
+  )();
+};

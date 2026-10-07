@@ -406,9 +406,9 @@ export default function Beranda() {
                 isFollowing: conn.isFollowing,
                 requestedBy: conn.friendshipRequestedBy,
                 stats: {
-                  friends: (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0),
-                  followers: user._count?.followers || 0,
-                  posts: user._count?.posts || 0,
+                  friends: ((user as any)._count?.friendshipsAsUser || 0) + ((user as any)._count?.friendshipsAsFriend || 0),
+                  followers: (user as any)._count?.followers || 0,
+                  posts: (user as any)._count?.posts || 0,
                 },
               }
             : prev
@@ -1728,7 +1728,7 @@ export default function Beranda() {
                       if (conn.friendshipStatus === "ACCEPTED") relation = "friend";
                       else if (conn.friendshipStatus === "PENDING") relation = "request";
                       
-                      const friendsCount = (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0);
+                      const friendsCount = ((user as any)._count?.friendshipsAsUser || 0) + ((user as any)._count?.friendshipsAsFriend || 0);
                       const isVisible = (privacy?: string) => {
                         if (currentUser && user.id === currentUser.id) return true;
                         if (!privacy || privacy === "PUBLIC") return true;
@@ -1736,8 +1736,8 @@ export default function Beranda() {
                         if (privacy === "FRIENDS") return conn.friendshipStatus === "ACCEPTED";
                         return true;
                       };
-                      const showLoc = p.locationName && isVisible(user.profileSettings?.privacyLoc);
-                      const showProf = p.profession && isVisible(user.profileSettings?.privacyProf);
+                      const showLoc = p.locationName && isVisible((user as any).profileSettings?.privacyLoc);
+                      const showProf = p.profession && isVisible((user as any).profileSettings?.privacyProf);
                       
                       setSelectedProfile((prev: any) => ({
                         ...prev,
@@ -1752,8 +1752,8 @@ export default function Beranda() {
                         requestedBy: conn.friendshipRequestedBy,
                         stats: {
                           friends: friendsCount,
-                          followers: user._count?.followers || 0,
-                          posts: user._count?.posts || 0
+                          followers: (user as any)._count?.followers || 0,
+                          posts: (user as any)._count?.posts || 0
                         }
                       }));
                       return; // Skip fetching if we have cache
@@ -1778,7 +1778,7 @@ export default function Beranda() {
                         relation = "request";
                       }
                       
-                      const friendsCount = (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0);
+                      const friendsCount = ((user as any)._count?.friendshipsAsUser || 0) + ((user as any)._count?.friendshipsAsFriend || 0);
                       
                       const isVisible = (privacy?: string) => {
                         if (currentUser && user.id === currentUser.id) return true;
@@ -1788,8 +1788,8 @@ export default function Beranda() {
                         return true;
                       };
                       
-                      const showLoc = p.locationName && isVisible(user.profileSettings?.privacyLoc);
-                      const showProf = p.profession && isVisible(user.profileSettings?.privacyProf);
+                      const showLoc = p.locationName && isVisible((user as any).profileSettings?.privacyLoc);
+                      const showProf = p.profession && isVisible((user as any).profileSettings?.privacyProf);
                       
                       setSelectedProfile((prev: any) => ({
                         ...prev,
@@ -1804,8 +1804,8 @@ export default function Beranda() {
                         requestedBy: conn.friendshipRequestedBy,
                         stats: {
                           friends: friendsCount,
-                          followers: user._count?.followers || 0,
-                          posts: user._count?.posts || 0
+                          followers: (user as any)._count?.followers || 0,
+                          posts: (user as any)._count?.posts || 0
                         }
                       }));
                     }
@@ -2220,7 +2220,7 @@ export default function Beranda() {
                       if (conn.friendshipStatus === "ACCEPTED") relation = "friend";
                       else if (conn.friendshipStatus === "PENDING") relation = "request";
                       
-                      const friendsCount = (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0);
+                      const friendsCount = ((user as any)._count?.friendshipsAsUser || 0) + ((user as any)._count?.friendshipsAsFriend || 0);
                       const isVisible = (privacy?: string) => {
                         if (currentUser && user.id === currentUser.id) return true;
                         if (!privacy || privacy === "PUBLIC") return true;
@@ -2228,8 +2228,8 @@ export default function Beranda() {
                         if (privacy === "FRIENDS") return conn.friendshipStatus === "ACCEPTED";
                         return true;
                       };
-                      const showLoc = p.locationName && isVisible(user.profileSettings?.privacyLoc);
-                      const showProf = p.profession && isVisible(user.profileSettings?.privacyProf);
+                      const showLoc = p.locationName && isVisible((user as any).profileSettings?.privacyLoc);
+                      const showProf = p.profession && isVisible((user as any).profileSettings?.privacyProf);
                       
                       setSelectedProfile((prev: any) => ({
                         ...prev,
@@ -2244,8 +2244,8 @@ export default function Beranda() {
                         requestedBy: conn.friendshipRequestedBy,
                         stats: {
                           friends: friendsCount,
-                          followers: user._count?.followers || 0,
-                          posts: user._count?.posts || 0
+                          followers: (user as any)._count?.followers || 0,
+                          posts: (user as any)._count?.posts || 0
                         }
                       }));
                       return; // Skip fetching if we have cache
@@ -2270,7 +2270,7 @@ export default function Beranda() {
                         relation = "request";
                       }
                       
-                      const friendsCount = (user._count?.friendshipsAsUser || 0) + (user._count?.friendshipsAsFriend || 0);
+                      const friendsCount = ((user as any)._count?.friendshipsAsUser || 0) + ((user as any)._count?.friendshipsAsFriend || 0);
                       
                       const isVisible = (privacy?: string) => {
                         if (currentUser && user.id === currentUser.id) return true;
@@ -2280,8 +2280,8 @@ export default function Beranda() {
                         return true;
                       };
                       
-                      const showLoc = p.locationName && isVisible(user.profileSettings?.privacyLoc);
-                      const showProf = p.profession && isVisible(user.profileSettings?.privacyProf);
+                      const showLoc = p.locationName && isVisible((user as any).profileSettings?.privacyLoc);
+                      const showProf = p.profession && isVisible((user as any).profileSettings?.privacyProf);
                       
                       setSelectedProfile((prev: any) => ({
                         ...prev,
@@ -2296,8 +2296,8 @@ export default function Beranda() {
                         requestedBy: conn.friendshipRequestedBy,
                         stats: {
                           friends: friendsCount,
-                          followers: user._count?.followers || 0,
-                          posts: user._count?.posts || 0
+                          followers: (user as any)._count?.followers || 0,
+                          posts: (user as any)._count?.posts || 0
                         }
                       }));
                     }

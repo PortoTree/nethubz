@@ -1,12 +1,17 @@
 "use server";
 
+import { unstable_cache, revalidateTag } from "next/cache";
+
 import { revalidatePath } from "next/cache";
 import prisma from "@/utils/prisma";
 
 import { PostVisibility } from "@prisma/client";
 
-export async function getUserGalleries(userId: string, currentUserId?: string | null) {
+export const getUserGalleries = async (userId: string, currentUserId?: string | null) => {
+  return unstable_cache(
+    async () => {
   try {
+    console.log(`🔥 DB FETCH (CACHE MISS): getUserGalleries ${userId}`);
     const isSelf = currentUserId === userId;
     let isFriend = false;
 
@@ -58,7 +63,11 @@ export async function getUserGalleries(userId: string, currentUserId?: string | 
     console.error("Error fetching galleries:", error);
     return { success: false, error: "Failed to fetch galleries" };
   }
-}
+},
+    ['getUserGalleries', String(userId), String(currentUserId || "guest")],
+    { tags: ["global_galleries"] }
+  )();
+};
 
 export async function createGallery(userId: string, name: string) {
   try {
@@ -94,6 +103,7 @@ export async function updateGallery(galleryId: string, name?: string, privacy?: 
       });
     }
     revalidatePath("/", "layout");
+    revalidateTag("global_galleries", "page");
     return { success: true, gallery };
   } catch (error) {
     console.error("Error updating gallery:", error);
@@ -149,6 +159,7 @@ export async function deleteGallery(galleryId: string) {
     }
 
     revalidatePath("/", "layout");
+    revalidateTag("global_galleries", "page");
     return { success: true };
   } catch (error) {
     console.error("Error deleting gallery:", error);
@@ -216,6 +227,7 @@ export async function deleteMediaFromGallery(postId: string, mediaId: string) {
     }
 
     revalidatePath("/", "layout");
+    revalidateTag("global_galleries", "page");
     return { success: true };
   } catch (error) {
     console.error("Error deleting media from gallery:", error);
@@ -270,6 +282,7 @@ export async function moveMediaToAnotherGallery(userId: string, postId: string, 
     }
 
     revalidatePath("/", "layout");
+    revalidateTag("global_galleries", "page");
     return { success: true };
   } catch (error) {
     console.error("Error moving media:", error);
@@ -284,6 +297,7 @@ export async function setGalleryCover(galleryId: string, mediaUrl: string) {
       data: { coverUrl: mediaUrl }
     });
     revalidatePath("/", "layout");
+    revalidateTag("global_galleries", "page");
     return { success: true };
   } catch (error) {
     console.error("Error setting gallery cover:", error);

@@ -77,7 +77,7 @@ export async function createProject(data: CreateProjectInput) {
     revalidateTag("projects");
     if (project && (project as any).user && (project as any).user.username) {
       const { revalidatePath } = require("next/cache");
-      revalidatePath(`/project/${project.user.username}`, 'layout');
+      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
     }
     const { revalidateTag } = require("next/cache");
     revalidateTag("global_projects");
@@ -127,29 +127,38 @@ export async function getAllUserProjects(userId: string) {
   }
 }
 
-export async function getAllProjects() {
-  try {
-    const projects = await prisma.project.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
+export const getAllProjects = async () => {
+  return unstable_cache(
+    async () => {
+      try {
+        console.log(`🔥 DB FETCH (CACHE MISS): getAllProjects`);
+        const projects = await prisma.project.findMany({
+          orderBy: { createdAt: "desc" },
           include: {
-            profile: true
+            user: {
+              include: {
+                profile: true
+              }
+            }
           }
-        }
+        });
+        return { success: true, projects };
+      } catch (error: any) {
+        console.error("getAllProjects Error:", error);
+        return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
       }
-    });
-    return { success: true, projects };
-  } catch (error: any) {
-    console.error("getAllProjects Error:", error);
-    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
-  }
-}
+    },
+    ['getAllProjects'],
+    { tags: ['global_projects'] }
+  )();
+};
 
-export const getProjectsByUsername = unstable_cache(
-  async (username: string) => {
+export const getProjectsByUsername = async (username: string) => {
+  return unstable_cache(
+    async () => {
     try {
-      const user = await prisma.user.findUnique({
+      console.log(`[DB] Searching user: "${username}"`);
+        const user = await prisma.user.findUnique({
         where: { username },
         include: {
           profile: true
@@ -178,12 +187,15 @@ export const getProjectsByUsername = unstable_cache(
       return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
     }
   },
-  ['getProjectsByUsername'],
-  { tags: ['global_projects'] }
-);
-export const getProjectById = unstable_cache(
-  async (id: string, currentUserId?: string) => {
+    ['getProjectsByUsername_v2', String(username)],
+    { tags: ["global_projects"] }
+  )();
+};
+export const getProjectById = async (id: string, currentUserId?: string) => {
+  return unstable_cache(
+    async () => {
     try {
+    console.log(`🔥 DB FETCH (CACHE MISS): getProjectById ${id}`);
       const project = await prisma.project.findUnique({
         where: { id },
         include: {
@@ -214,9 +226,10 @@ export const getProjectById = unstable_cache(
       return { success: false, project: null, error: error.message || "Failed to fetch project" };
     }
   },
-  ['getProjectById'],
-  { tags: ['global_projects'] }
-);
+    ['getProjectById', String(id), String(currentUserId || "guest")],
+    { tags: ["global_projects", `project_${id}`] }
+  )();
+};
 
 export async function deleteProject(id: string, userId: string) {
   try {
@@ -259,7 +272,7 @@ export async function deleteProject(id: string, userId: string) {
     revalidateTag("projects");
     if (project && (project as any).user && (project as any).user.username) {
       const { revalidatePath } = require("next/cache");
-      revalidatePath(`/project/${project.user.username}`, 'layout');
+      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
     }
     const { revalidateTag } = require("next/cache");
     revalidateTag("global_projects");
@@ -327,7 +340,7 @@ export async function updateProject(id: string, userId: string, data: {
     revalidateTag("projects");
     if (project && (project as any).user && (project as any).user.username) {
       const { revalidatePath } = require("next/cache");
-      revalidatePath(`/project/${project.user.username}`, 'layout');
+      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
     }
     const { revalidateTag } = require("next/cache");
     revalidateTag("global_projects");

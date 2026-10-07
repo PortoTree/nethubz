@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import NProgress from "nprogress";
 import { MediaRenderer } from "./MediaRenderer";
 
 interface ProjectCardProps {
@@ -57,7 +58,7 @@ export default function ProjectCard({
   return (
     <div className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 group block">
       {hasMultiple ? (
-        <div onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)} className="w-full aspect-video flex gap-1 bg-gray-100 dark:bg-[#3A3B3C] cursor-pointer">
+        <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="w-full aspect-video flex gap-1 bg-gray-100 dark:bg-[#3A3B3C] cursor-pointer">
           <div className="flex-1 relative h-full">
             <MediaRenderer url={coverUrls[0]} className="w-full h-full object-cover" />
             <div className="absolute inset-0 z-10" />
@@ -73,7 +74,7 @@ export default function ProjectCard({
           </div>
         </div>
       ) : cover ? (
-        <div onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)} className="cursor-pointer relative">
+        <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="cursor-pointer relative">
           <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
           <div className="absolute inset-0 z-10" />
         </div>
@@ -82,7 +83,7 @@ export default function ProjectCard({
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="project-title-container flex-1 max-w-[65%]">
             <h3 
-              onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)}
+              onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }}
               className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] cursor-pointer hover:underline project-title-text"
             >
               {p.title}

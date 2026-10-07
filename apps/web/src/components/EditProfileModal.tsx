@@ -242,14 +242,14 @@ export default function EditProfileModal({ isOpen, onClose, currentUser }: EditP
           } else {
             setExternalLinks([{label: "", url: ""}]);
           }
-          if (res.profile.user?.socialLinks && res.profile.user.socialLinks.length > 0) {
-            setSocialLinks(res.profile.user.socialLinks.map((s: any) => ({platform: s.platform, url: s.url})));
+          if ((res.profile.user as any)?.socialLinks && (res.profile.user as any).socialLinks.length > 0) {
+            setSocialLinks((res.profile.user as any).socialLinks.map((s: any) => ({platform: s.platform, url: s.url})));
           } else {
             setSocialLinks([{platform: "Instagram", url: ""}]);
           }
 
-          if (res.profile.user?.profileSettings) {
-            const settings = res.profile.user.profileSettings;
+          if ((res.profile.user as any)?.profileSettings) {
+            const settings = (res.profile.user as any).profileSettings;
             const mapVis = (val: string) => val === "PRIVATE" ? t("private") : (val === "FRIENDS" ? t("friendsOnly") : t("public"));
             const mapInt = (val: string) => val === "TURN_OFF" ? t("turnOff") : (val === "FRIENDS" ? t("friendsOnly") : t("public"));
             

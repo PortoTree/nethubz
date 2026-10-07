@@ -20,9 +20,11 @@ const verifyToken = (token: string, expectedUserId: string) => {
 
 import { unstable_cache } from "next/cache";
 
-export const getProfile = unstable_cache(
-  async (userId: string) => {
+export const getProfile = async (userId: string) => {
+  return unstable_cache(
+    async () => {
     try {
+    console.log(`🔥 DB FETCH (CACHE MISS): getProfile ${userId}`);
       const profile = await prisma.profile.findUnique({
         where: { userId },
         include: {
@@ -35,9 +37,10 @@ export const getProfile = unstable_cache(
       return { success: false, error: "Failed to fetch profile" };
     }
   },
-  ['getProfile'],
-  { tags: ['global_profile'] }
-);
+    ['getProfile', String(userId)],
+    { tags: ["global_profile"] }
+  )();
+};
 
 export async function updateDisplayName(token: string, userId: string, newDisplayName: string) {
   if (!verifyToken(token, userId)) return { success: false, error: "Unauthorized" };
