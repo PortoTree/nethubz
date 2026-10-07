@@ -204,9 +204,8 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
     if (lastWord.startsWith("@")) {
       const query = lastWord.slice(1);
       const coords = getCaretCoordinates(e.target, cursor);
-      const rect = e.target.getBoundingClientRect();
-      const top = rect.top + coords.top - e.target.scrollTop + (coords.height || 24);
-      const left = rect.left + coords.left;
+      const top = coords.top + (coords.height || 24);
+      const left = coords.left;
       
       setMentionQuery({ query, position: cursor, top, left });
     } else {
@@ -644,7 +643,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
             </div>
             {mentionQuery && (
               <div 
-                className="fixed z-[999999] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-xl shadow-xl w-[250px] max-h-48 overflow-y-auto"
+                className="absolute z-[999999] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-xl shadow-xl w-[250px] max-h-48 overflow-y-auto"
                 style={{ top: mentionQuery.top, left: mentionQuery.left }}
               >
                 {mentionResults.length > 0 ? (
