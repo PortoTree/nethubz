@@ -14,9 +14,10 @@ async function checkRequirements(
   giveawayId: string,
   userId: string,
   clickedLinks: string[],
-  externalUsernames: Record<string, string> = {}
+  externalUsernames: Record<string, string> = {},
+  prefetchedRequirements?: any[]
 ) {
-  const requirements = await prisma.giveawayRequirement.findMany({
+  const requirements = prefetchedRequirements || await prisma.giveawayRequirement.findMany({
     where: { giveawayId },
     orderBy: { order: "asc" },
   });
@@ -127,42 +128,44 @@ export async function finalizeExpiredGiveaways() {
 
 export async function getGiveawayState(giveawayId: string, userId?: string) {
   try {
-    await finalizeIfExpired(giveawayId);
-
-    const giveaway = await prisma.giveaway.findUnique({
-      where: { id: giveawayId },
-      select: {
-        id: true, status: true, endsAt: true, maxParticipants: true, mode: true, winnerCount: true,
-        post: { select: { authorId: true } },
-        _count: { select: { entries: { where: { status: { not: "PENDING" } } } } },
-      },
-    });
-    if (!giveaway) return { success: false, error: "NOT_FOUND" };
-
-    // Resolve FOLLOW_USER targets for display
-    const requirements = await prisma.giveawayRequirement.findMany({ where: { giveawayId }, orderBy: { order: "asc" } });
-    const targetIds = requirements.filter(r => r.type === "FOLLOW_USER" && r.targetId).map(r => r.targetId!);
-    const targets = targetIds.length
-      ? await prisma.user.findMany({
-          where: { id: { in: targetIds } },
-          select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true } } },
-        })
-      : [];
-
-    let entry = null;
-    let statuses: RequirementStatus[] = [];
-    if (userId) {
-      entry = await prisma.giveawayEntry.findUnique({
+    const [giveaway, requirements, entry, winnersCountRaw] = await Promise.all([
+      prisma.giveaway.findUnique({
+        where: { id: giveawayId },
+        select: {
+          id: true, status: true, endsAt: true, maxParticipants: true, mode: true, winnerCount: true,
+          post: { select: { authorId: true } },
+          _count: { select: { entries: { where: { status: { not: "PENDING" } } } } },
+        },
+      }),
+      prisma.giveawayRequirement.findMany({ where: { giveawayId }, orderBy: { order: "asc" } }),
+      userId ? prisma.giveawayEntry.findUnique({
         where: { giveawayId_userId: { giveawayId, userId } },
         select: { status: true, clickedLinks: true, externalUsernames: true },
-      });
-      const res = await checkRequirements(giveawayId, userId, entry?.clickedLinks || [], (entry?.externalUsernames as any) || {});
-      statuses = res.statuses;
+      }) : Promise.resolve(null),
+      prisma.giveawayEntry.count({ where: { giveawayId, status: "WINNER" } })
+    ]);
+
+    if (!giveaway) return { success: false, error: "NOT_FOUND" };
+
+    let isExpired = giveaway.status === "ACTIVE" && giveaway.endsAt.getTime() <= Date.now();
+    if (isExpired) {
+      finalizeIfExpired(giveawayId).catch(e => console.error(e));
+      giveaway.status = "ENDED";
     }
 
-    const winnersCount = giveaway.status === "ENDED"
-      ? await prisma.giveawayEntry.count({ where: { giveawayId, status: "WINNER" } })
-      : 0;
+    const targetIds = requirements.filter(r => r.type === "FOLLOW_USER" && r.targetId).map(r => r.targetId!);
+    
+    // We can fetch targets and follows in parallel now
+    const [targets, statusesRes] = await Promise.all([
+      targetIds.length ? prisma.user.findMany({
+        where: { id: { in: targetIds } },
+        select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true } } },
+      }) : Promise.resolve([]),
+      userId ? checkRequirements(giveawayId, userId, entry?.clickedLinks || [], (entry?.externalUsernames as any) || {}, requirements) : Promise.resolve({ statuses: [] })
+    ]);
+
+    const statuses = statusesRes.statuses;
+    const winnersCount = giveaway.status === "ENDED" ? winnersCountRaw : 0;
 
     return {
       success: true,

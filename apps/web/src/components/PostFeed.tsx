@@ -29,7 +29,7 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
     try {
       if (!isBackground && !cursor) setIsLoading(true);
       if (cursor) setIsFetchingMore(true);
-      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 5);
+      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 15);
       let loadedPosts = res.posts || [];
 
       if (res.success && loadedPosts) {

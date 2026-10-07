@@ -20,38 +20,39 @@ export async function getNotifications(token: string, userId: string) {
   if (!verifyToken(token, userId)) return { success: false, error: "Unauthorized" };
 
   try {
-    const notifications = await prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            username: true,
-            profile: {
-              select: {
-                displayName: true,
-                avatarUrl: true
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              profile: {
+                select: {
+                  displayName: true,
+                  avatarUrl: true
+                }
+              }
+            }
+          },
+          project: {
+            select: {
+              user: {
+                select: {
+                  username: true
+                }
               }
             }
           }
         },
-        project: {
-          select: {
-            user: {
-              select: {
-                username: true
-              }
-            }
-          }
-        }
-      },
-      take: 20
-    });
-
-    const unreadCount = await prisma.notification.count({
-      where: { userId, isRead: false }
-    });
+        take: 20
+      }),
+      prisma.notification.count({
+        where: { userId, isRead: false }
+      })
+    ]);
 
     return { success: true, notifications, unreadCount };
   } catch (error: any) {

@@ -385,25 +385,23 @@ export async function getConnectionStatus(currentUserId: string, targetUserId: s
   }
 
   try {
-    const [follow, friendship, block, blockedBy] = await Promise.all([
-      prisma.follow.findUnique({
-        where: { followerId_followingId: { followerId: currentUserId, followingId: targetUserId } }
-      }),
-      prisma.friendship.findFirst({
-        where: {
-          OR: [
-            { userId: currentUserId, friendId: targetUserId },
-            { userId: targetUserId, friendId: currentUserId }
-          ]
-        }
-      }),
-      prisma.block.findFirst({
-        where: { userId: currentUserId, blockedUserId: targetUserId }
-      }),
-      prisma.block.findFirst({
-        where: { userId: targetUserId, blockedUserId: currentUserId }
-      })
-    ]);
+    const follow = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: currentUserId, followingId: targetUserId } }
+    });
+    const friendship = await prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { userId: currentUserId, friendId: targetUserId },
+          { userId: targetUserId, friendId: currentUserId }
+        ]
+      }
+    });
+    const block = await prisma.block.findFirst({
+      where: { userId: currentUserId, blockedUserId: targetUserId }
+    });
+    const blockedBy = await prisma.block.findFirst({
+      where: { userId: targetUserId, blockedUserId: currentUserId }
+    });
 
     return {
       isFollowing: !!follow,

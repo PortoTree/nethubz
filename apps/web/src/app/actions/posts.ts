@@ -84,7 +84,8 @@ async function mapPost(post: any) {
       .map((r: any) => r.targetId);
 
     if (followTargets.length > 0) {
-      const targets = []; for (const id of followTargets) { targets.push(await getCachedUserAvatar(id)); } mapped.giveaway.followTargets = targets.filter(Boolean);
+      const targets = await Promise.all(followTargets.map((id: string) => getCachedUserAvatar(id)));
+      mapped.giveaway.followTargets = targets.filter(Boolean);
     } else {
       mapped.giveaway.followTargets = [];
     }
@@ -316,7 +317,7 @@ export const getCachedPublicFeedPosts = async (targetProfileId: string, limit: n
   )();
 };
 
-export async function getFeedPosts(userId: string, targetProfileId?: string, cursor?: string, limit: number = 5) {
+export async function getFeedPosts(userId: string, targetProfileId?: string, cursor?: string, limit: number = 15) {
   try {
     const friendships = await prisma.friendship.findMany({
       where: {
@@ -451,10 +452,6 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
         author: {
           include: { profile: true }
         },
-        postMedia: {
-          include: { media: true },
-          orderBy: { order: 'asc' }
-        },
         taggedUsers: {
           select: {
             id: true,
@@ -475,15 +472,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
         _count: {
           select: { likes: true, comments: true }
         },
-        likes: { where: { userId } },
-        savedBy: { where: { userId } },
-        project: {
-          include: {
-            _count: { select: { likes: true, comments: true } },
-            likes: { where: { userId } },
-            savedBy: { where: { userId } },
-          }
-        }
+        project: { select: { id: true, title: true, status: true, mediaUrls: true, coverUrls: true, isForSale: true, category: true, customCategory: true } }
       },
       orderBy: { createdAt: "desc" }
     });
@@ -494,12 +483,32 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
     }
 
     const fetchedPostIds = posts.map(p => p.id);
-    const fetchedReactionGroups = await prisma.like.groupBy({ by: ['postId', 'type'], where: { postId: { in: fetchedPostIds } }, _count: true });
-    const fetchedMappedPosts = [];
-    for (const post of posts) {
-      post.topReactions = fetchedReactionGroups.filter(g => g.postId === post.id).sort((a, b) => b._count - a._count).slice(0, 3).map(g => g.type);
-      fetchedMappedPosts.push(await mapPost(post));
+    const fetchedProjectIds = posts.map(p => p.projectId).filter(Boolean) as string[];
+
+    const [allMedia, allLikes, allSaves, fetchedReactionGroups, projectLikes, projectSaves, projectCounts] = await Promise.all([
+      fetchedPostIds.length ? prisma.postMedia.findMany({ where: { postId: { in: fetchedPostIds } }, include: { media: true }, orderBy: { order: 'asc' } }) : Promise.resolve([]),
+      fetchedPostIds.length ? prisma.like.findMany({ where: { postId: { in: fetchedPostIds }, userId } }) : Promise.resolve([]),
+      fetchedPostIds.length ? prisma.savedPost.findMany({ where: { postId: { in: fetchedPostIds }, userId } }) : Promise.resolve([]),
+      fetchedPostIds.length ? prisma.like.groupBy({ by: ['postId', 'type'], where: { postId: { in: fetchedPostIds } }, _count: true }) : Promise.resolve([]),
+      fetchedProjectIds.length ? prisma.like.findMany({ where: { projectId: { in: fetchedProjectIds }, userId } }) : Promise.resolve([]),
+      fetchedProjectIds.length ? prisma.savedProject.findMany({ where: { projectId: { in: fetchedProjectIds }, userId } }) : Promise.resolve([]),
+      fetchedProjectIds.length ? prisma.project.findMany({ where: { id: { in: fetchedProjectIds } }, select: { id: true, _count: { select: { likes: true, comments: true } } } }) : Promise.resolve([])
+    ]);
+
+    for (const post of posts as any[]) {
+      post.postMedia = allMedia.filter((m: any) => m.postId === post.id);
+      post.likes = allLikes.filter((l: any) => l.postId === post.id);
+      post.savedBy = allSaves.filter((s: any) => s.postId === post.id);
+      post.topReactions = fetchedReactionGroups.filter((g: any) => g.postId === post.id).sort((a: any, b: any) => b._count - a._count).slice(0, 3).map((g: any) => g.type);
+      
+      if (post.project) {
+        post.project.likes = projectLikes.filter((l: any) => l.projectId === post.project.id);
+        post.project.savedBy = projectSaves.filter((s: any) => s.projectId === post.project.id);
+        post.project._count = projectCounts.find((c: any) => c.id === post.project.id)?._count || { likes: 0, comments: 0 };
+      }
     }
+
+    const fetchedMappedPosts = await Promise.all(posts.map((post: any) => mapPost(post)));
     return { success: true, posts: fetchedMappedPosts, nextCursor };
   } catch (error: any) {
     console.error("Error fetching feed:", error);

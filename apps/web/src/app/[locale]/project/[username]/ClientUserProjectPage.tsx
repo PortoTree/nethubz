@@ -87,33 +87,37 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
   };
 
   const loadProjects = useCallback(async () => {
-    // Check cache first for instant render (SWR pattern)
     const cacheKey = `user_projects_${decodedUsername}`;
+    
+    // SWR: Initial cache or props
     if (projectsCache.has(cacheKey)) {
       const cached = projectsCache.get(cacheKey);
       setProfileUser(cached.user);
       setProjects(cached.projects);
-      setIsLoading(false); // Instantly hide skeleton
-    } else if (!profileUser) {
-      setIsLoading(true); // Only show skeleton if no cache and no initial data
+      setIsLoading(false);
+    } else if (initialProfileUser) {
+      // Use initial props if available and not cached yet
+      projectsCache.set(cacheKey, { user: initialProfileUser, projects: initialProjects });
+      projectsCache.set(initialProfileUser.id, { projects: initialProjects, hasMore: false });
+      setIsLoading(false);
+      return; // Skip re-fetching on mount if we already have initial data
+    } else {
+      setIsLoading(true);
     }
 
     const res = await getProjectsByUsername(decodedUsername);
     if (res.success && res.user) {
       const fetchedProjects = res.projects || [];
-      // If we just hid the skeleton via cache, don't flicker it, just update state silently
       setProfileUser(res.user);
       setProjects(fetchedProjects);
       
-      // Update caches
       projectsCache.set(cacheKey, { user: res.user, projects: fetchedProjects });
-      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: false }); // keep compatible with ProfilePageContent
+      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: false });
     } else if (!projectsCache.has(cacheKey)) {
-      // Only 404 if we really have nothing
       router.push(`/${locale}/404`);
     }
     setIsLoading(false);
-  }, [decodedUsername, router, locale]);
+  }, [decodedUsername, router, locale, initialProfileUser, initialProjects]);
 
   useEffect(() => {
     loadProjects();

@@ -128,10 +128,15 @@ function ProfilePageContent({
   const [isLoadingProjects, setIsLoadingProjects] = useState(() => !projectsCache.has(id));
 
   const loadProjects = useCallback(async () => {
-    if (!projectsCache.has(id)) {
-      setIsLoadingProjects(true);
+    if (projectsCache.has(id)) {
+      const cached = projectsCache.get(id);
+      setProjects(cached.projects);
+      setHasMoreProjects(cached.hasMore);
+      setIsLoadingProjects(false);
+      return;
     }
     
+    setIsLoadingProjects(true);
     const res = await getUserProjects(username);
     
     const loadedProjects = res.projects || [];
