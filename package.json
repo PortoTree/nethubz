@@ -6,7 +6,8 @@
     "dev:api": "npm run start:dev --prefix apps/api",
     "dev:web": "npm run dev --prefix apps/web",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "postinstall": "prisma generate"
   },
   "devDependencies": {
     "concurrently": "^9.2.4",
