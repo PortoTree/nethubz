@@ -292,7 +292,7 @@ export async function getComments(targetType: "post" | "project", targetId: stri
       nextCursor = comments[comments.length - 1].id;
     }
 
-    const mappedComments = await Promise.all(comments.map(async (c: any) => {
+    const mappedComments = []; for (const c of comments) {
       const mapped = { ...c };
       if (c.likes) {
         mapped.myReaction = c.likes.length > 0 ? c.likes[0].type : null;
@@ -310,8 +310,8 @@ export async function getComments(targetType: "post" | "project", targetId: stri
       } catch (e) {
         mapped.topReactions = [];
       }
-      return mapped;
-    }));
+      mappedComments.push(mapped);
+    }
 
     return { success: true, comments: mappedComments, nextCursor };
   } catch (error: any) {
@@ -351,7 +351,8 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
       nextCursor = replies[replies.length - 1].id;
     }
 
-    const mappedReplies = await Promise.all(replies.map(async (r: any) => {
+    const mappedReplies = [];
+    for (const r of replies) {
       const mapped = { ...r };
       if (r.likes) {
         mapped.myReaction = r.likes.length > 0 ? r.likes[0].type : null;
@@ -369,8 +370,8 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
       } catch (e) {
         mapped.topReactions = [];
       }
-      return mapped;
-    }));
+      mappedReplies.push(mapped);
+    }
 
     return { success: true, replies: mappedReplies, nextCursor };
   } catch (error: any) {

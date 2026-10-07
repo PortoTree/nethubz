@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/utils/prisma";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { updateTag, unstable_cache } from "next/cache";
 import { ProjectCategory, CollabType } from "@prisma/client";
 
 function extractNethubzProductId(url: string | undefined): string | null {
@@ -41,6 +41,15 @@ export interface CreateProjectInput {
   isForSale?: boolean;
 }
 
+// Invalidate every cache that contains this user's projects (Kasta 1 aggressive invalidation).
+// Looks the username up from the DB because the project row itself does not include the user.
+async function invalidateUserProjects(userId: string, projectId?: string) {
+  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+  if (owner?.username) updateTag(`projects-${owner.username}`);
+  updateTag("global_projects");
+  if (projectId) updateTag(`project_${projectId}`);
+}
+
 export async function createProject(data: CreateProjectInput) {
   try {
     if (!data.title || !data.description) {
@@ -72,15 +81,7 @@ export async function createProject(data: CreateProjectInput) {
       },
     });
 
-    // We can revalidate tags like "user_profile_projects" or "feed"
-    // @ts-expect-error Next.js typings might incorrectly expect 2 args
-    revalidateTag("projects");
-    if (project && (project as any).user && (project as any).user.username) {
-      const { revalidatePath } = require("next/cache");
-      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
-    }
-    const { revalidateTag } = require("next/cache");
-    revalidateTag("global_projects");
+    await invalidateUserProjects(data.userId, project.id);
 
     return { success: true, project };
   } catch (error: any) {
@@ -89,38 +90,30 @@ export async function createProject(data: CreateProjectInput) {
   }
 }
 
-export const getUserProjectsCached = unstable_cache(
-  async (userId: string) => {
-    return prisma.project.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    });
-  },
-  ["user-projects"],
-  { tags: ["projects"] }
-);
-
-export async function getUserProjects(userId: string) {
+// Profile "Project" tab: same cache entry as /project/[username] (getProjectsByUsername), first 3 only.
+export async function getUserProjects(username: string) {
   try {
-    if (!userId) return { success: true, projects: [], hasMore: false };
-    const allProjects = await getUserProjectsCached(userId);
-    
+    if (!username) return { success: true, projects: [], hasMore: false };
+    const res = await getProjectsByUsername(username);
+    if (!res.success) return { success: false, projects: [], hasMore: false, error: res.error };
+    const allProjects = res.projects || [];
     const limit = 3;
-    const projectsToReturn = allProjects.slice(0, limit);
-    const hasMore = allProjects.length > limit;
-
-    return { success: true, projects: projectsToReturn, hasMore };
+    return { success: true, projects: allProjects.slice(0, limit), hasMore: allProjects.length > limit };
   } catch (error: any) {
     console.error("getUserProjects Error:", error);
     return { success: false, projects: [], hasMore: false, error: error.message || "Failed to fetch projects" };
   }
 }
 
+// Owner-only project picker (CreatePostModal). Personal on-demand data: no server cache.
 export async function getAllUserProjects(userId: string) {
   try {
     if (!userId) return { success: true, projects: [] };
-    const allProjects = await getUserProjectsCached(userId);
-    return { success: true, projects: allProjects };
+    const projects = await prisma.project.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return { success: true, projects };
   } catch (error: any) {
     console.error("getAllUserProjects Error:", error);
     return { success: false, projects: [], error: error.message };
@@ -128,9 +121,9 @@ export async function getAllUserProjects(userId: string) {
 }
 
 export const getAllProjects = async () => {
-  return unstable_cache(
-    async () => {
-      try {
+  try {
+    return await unstable_cache(
+      async () => {
         console.log(`🔥 DB FETCH (CACHE MISS): getAllProjects`);
         const projects = await prisma.project.findMany({
           orderBy: { createdAt: "desc" },
@@ -143,92 +136,93 @@ export const getAllProjects = async () => {
           }
         });
         return { success: true, projects };
-      } catch (error: any) {
-        console.error("getAllProjects Error:", error);
-        return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
-      }
-    },
-    ['getAllProjects'],
-    { tags: ['global_projects'] }
-  )();
+      },
+      ['getAllProjects'],
+      { tags: ['global_projects'] }
+    )();
+  } catch (error: any) {
+    console.error("getAllProjects Error:", error);
+    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+  }
 };
 
 export const getProjectsByUsername = async (username: string) => {
-  return unstable_cache(
-    async () => {
-    try {
-      console.log(`[DB] Searching user: "${username}"`);
+  try {
+    return await unstable_cache(
+      async () => {
+        console.log(`🔥 DB FETCH (CACHE MISS): getProjectsByUsername ${username}`);
         const user = await prisma.user.findUnique({
-        where: { username },
-        include: {
-          profile: true
+          where: { username },
+          select: {
+            id: true,
+            username: true,
+            createdAt: true,
+            profile: true,
+          }
+        });
+
+        if (!user) {
+          return { success: false, projects: [], error: "User not found" };
         }
-      });
 
-      if (!user) {
-        return { success: false, projects: [], error: "User not found" };
-      }
-
-      const projects = await prisma.project.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            include: {
-              profile: true
+        const projects = await prisma.project.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: { id: true, username: true, profile: true }
             }
           }
-        }
-      });
-      
-      return { success: true, projects, user };
-    } catch (error: any) {
-      console.error("getProjectsByUsername Error:", error);
-      return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
-    }
-  },
-    ['getProjectsByUsername_v2', String(username)],
-    { tags: ["global_projects"] }
-  )();
+        });
+
+        return { success: true, projects, user };
+      },
+      ['getProjectsByUsername_v3', String(username)],
+      { tags: [`projects-${username}`] }
+    )();
+  } catch (error: any) {
+    console.error("getProjectsByUsername Error:", error);
+    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+  }
 };
 export const getProjectById = async (id: string) => {
-  return unstable_cache(
-    async () => {
-    try {
-    console.log(`🔥 DB FETCH (CACHE MISS): getProjectById ${id}`);
-      const project = await prisma.project.findUnique({
-        where: { id },
-        include: {
-          user: {
-            include: {
-              profile: true
-            }
-          },
-          _count: {
-            select: {
-              likes: true,
-              comments: true
+  try {
+    return await unstable_cache(
+      async () => {
+        console.log(`🔥 DB FETCH (CACHE MISS): getProjectById ${id}`);
+        const project = await prisma.project.findUnique({
+          where: { id },
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            },
+            _count: {
+              select: {
+                likes: true,
+                comments: true
+              }
             }
           }
+        });
+
+        if (!project) {
+          return { success: false, project: null, error: "Project not found" };
         }
-      });
 
-      if (!project) {
-        return { success: false, project: null, error: "Project not found" };
-      }
+        // NOTE: hasLiked is fetched separately in Client Component via SWR
+        // We do not cache personal interactions globally.
 
-      // NOTE: hasLiked is fetched separately in Client Component via SWR
-      // We do not cache personal interactions globally.
-
-      return { success: true, project: { ...project } };
-    } catch (error: any) {
-      console.error("getProjectById Error:", error);
-      return { success: false, project: null, error: error.message || "Failed to fetch project" };
-    }
-  },
-    ['getProjectById', String(id)],
-    { tags: ["global_projects", `project_${id}`] }
-  )();
+        return { success: true, project: { ...project } };
+      },
+      ['getProjectById', String(id)],
+      { tags: ["global_projects", `project_${id}`] }
+    )();
+  } catch (error: any) {
+    console.error("getProjectById Error:", error);
+    return { success: false, project: null, error: error.message || "Failed to fetch project" };
+  }
 };
 
 export async function deleteProject(id: string, userId: string) {
@@ -268,12 +262,7 @@ export async function deleteProject(id: string, userId: string) {
       where: { id },
     });
 
-    const { revalidateTag, revalidatePath } = require("next/cache");
-    if (project && (project as any).user && (project as any).user.username) {
-      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
-    }
-    revalidateTag("global_projects");
-    revalidateTag(`project_${id}`);
+    await invalidateUserProjects(project.userId, id);
     return { success: true };
   } catch (error: any) {
     console.error("deleteProject Error:", error);
@@ -334,12 +323,7 @@ export async function updateProject(id: string, userId: string, data: {
       }
     });
     
-    const { revalidateTag, revalidatePath } = require("next/cache");
-    if (project && (project as any).user && (project as any).user.username) {
-      revalidatePath(`/project/${(project as any).user.username}`, 'layout');
-    }
-    revalidateTag("global_projects");
-    revalidateTag(`project_${id}`);
+    await invalidateUserProjects(project.userId, id);
     return { success: true, project: updated };
   } catch (error: any) {
     console.error("updateProject Error:", error);

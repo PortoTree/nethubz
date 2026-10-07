@@ -36,8 +36,8 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
   }, []);
   
   const [profileUser, setProfileUser] = useState<any>(initialProfileUser);
-  const [projects, setProjects] = useState<any[]>(initialProjects);
-  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState<any[]>(initialProjects || []);
+  const [isLoading, setIsLoading] = useState(!initialProfileUser);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<any>(null);
@@ -94,8 +94,8 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
       setProfileUser(cached.user);
       setProjects(cached.projects);
       setIsLoading(false); // Instantly hide skeleton
-    } else {
-      setIsLoading(true); // Only show skeleton if no cache
+    } else if (!profileUser) {
+      setIsLoading(true); // Only show skeleton if no cache and no initial data
     }
 
     const res = await getProjectsByUsername(decodedUsername);
@@ -107,7 +107,7 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
       
       // Update caches
       projectsCache.set(cacheKey, { user: res.user, projects: fetchedProjects });
-      projectsCache.set(res.user.id, fetchedProjects); // keep legacy cache support
+      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: false }); // keep compatible with ProfilePageContent
     } else if (!projectsCache.has(cacheKey)) {
       // Only 404 if we really have nothing
       router.push(`/${locale}/404`);

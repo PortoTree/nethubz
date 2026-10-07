@@ -247,7 +247,8 @@
   },
   "common": {
     "loading": "Memuat...",
-    "language": "Bahasa"
+    "language": "Bahasa",
+    "wait": "Tunggu sebentar"
   },
   "dropdown": {
     "viewAllProfiles": "Lihat semua profil",
@@ -308,7 +309,7 @@
     "mentionNoUserFound": "Pengguna tidak ditemukan atau private",
     "you": "Anda",
     "failedToLoadPosts": "Gagal memuat postingan",
-    "serverConnectionError": "Terjadi masalah saat mencoba terhubung ke server. Silakan coba lagi.",
+    "serverConnectionError": "Terjadi masalah saat mencoba terhubung ke server, silakan coba lagi atau refresh. Jika masalah terus berlanjut hubungi kami di contact support",
     "reload": "Muat Ulang",
     "noGallery": "Tanpa Gallery",
     "addGallery": "Tambah Gallery",
@@ -887,7 +888,6 @@
     "productLinkPlaceholder": "https://nethubz.com/username/id",
     "isForSaleToggle": "Tandai sebagai Dijual (For Sale)",
     "isForSaleTooltip": "Centang ini agar badge 'FOR SALE' muncul di project kamu, baik pada list Showcase maupun halaman detail.",
-    "linkProductToggle": "Tautkan dengan Produk NetHubz",
     "linkProductTooltip": "Tautkan halaman Produk NetHubz kamu. Tombol 'Beli' akan muncul di detail project. Kamu bisa menautkan produk tanpa mencentang 'For Sale' jika ingin tampilan portofolio yang lebih elegan.",
     "dynLabel_software_tech": "Tech Stack / Framework",
     "dynLabel_software_repo": "Link Repository (GitHub)",

@@ -247,7 +247,8 @@
   },
   "common": {
     "loading": "Loading...",
-    "language": "Language"
+    "language": "Language",
+    "wait": "Please wait"
   },
   "dropdown": {
     "viewAllProfiles": "See all profiles",
@@ -308,7 +309,7 @@
     "mentionNoUserFound": "User not found or private",
     "you": "You",
     "failedToLoadPosts": "Failed to load posts",
-    "serverConnectionError": "A problem occurred while trying to connect to the server. Please try again.",
+    "serverConnectionError": "An issue occurred while trying to connect to the server; please refresh the page. If the problem persists, please contact our support team.",
     "reload": "Reload",
     "noGallery": "No Gallery",
     "addGallery": "Add Gallery",
@@ -881,7 +882,6 @@
     "productLinkPlaceholder": "https://nethubz.com/username/id",
     "isForSaleToggle": "Mark as For Sale",
     "isForSaleTooltip": "Check this to show a 'FOR SALE' badge on your project both in the showcase list and detail page.",
-    "linkProductToggle": "Link with NetHubz Product",
     "linkProductTooltip": "Link to your NetHubz product. A purchase button will appear on the project details. You can link it without checking 'For Sale' for a subtle portfolio look.",
     "dynLabel_software_tech": "Tech Stack / Framework",
     "dynLabel_software_repo": "Repository Link (GitHub)",

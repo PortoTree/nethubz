@@ -15,7 +15,7 @@ import ProfileMediaSelectionModal from "@/components/ProfileMediaSelectionModal"
 import ImagePreviewModal from "@/components/ImagePreviewModal";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { uploadToCloudinary } from "@/utils/uploadImage";
-import { updateProfileMedia, getProfile } from "@/app/actions/profile";
+import { updateProfileMedia, getProfile, getProfileStats } from "@/app/actions/profile";
 import { getUserGalleries, createGallery, updateGallery, deleteGallery, deleteMediaFromGallery, moveMediaToAnotherGallery, setGalleryCover } from "@/app/actions/galleries";
 import { getConnectionStatus, handlePrimaryConnectionAction, toggleBlock, removeFollower } from "@/app/actions/connections";
 import { getOptimizedUrl } from "@/utils/cloudinary";
@@ -25,6 +25,21 @@ import CreatePostModal from "@/components/CreatePostModal";
 import ProjectFormModal, { ProjectDraft } from "@/components/ProjectFormModal";
 
 import { profileCache, connectionCache, galleryCache, projectsCache, notifyConnectionChanged } from "@/utils/cache";
+
+// Merges Global-Cache bio (getProfile) with SWR stats (getProfileStats).
+// If stats are unavailable, previous stats in the client cache are preserved to avoid UI flicker.
+function mergeProfileStats(profile: any, stats: any) {
+  if (!profile) return profile;
+  const prevUser = profileCache.get(profile.userId)?.user || {};
+  const statsPart = stats || {
+    followers: prevUser.followers,
+    following: prevUser.following,
+    friendshipsAsUser: prevUser.friendshipsAsUser,
+    friendshipsAsFriend: prevUser.friendshipsAsFriend,
+    _count: prevUser._count,
+  };
+  return { ...profile, user: { ...profile.user, ...statsPart } };
+}
 
 function ProfilePageContent({
   params,
@@ -117,7 +132,7 @@ function ProfilePageContent({
       setIsLoadingProjects(true);
     }
     
-    const res = await getUserProjects(id);
+    const res = await getUserProjects(username);
     
     const loadedProjects = res.projects || [];
     const hasMore = res.hasMore || false;
@@ -126,13 +141,12 @@ function ProfilePageContent({
     setProjects(loadedProjects);
     setHasMoreProjects(hasMore);
     setIsLoadingProjects(false);
-  }, [id]);
+  }, [id, username]);
 
   useEffect(() => {
     loadProjects();
     const handleRefresh = () => {
-      projectsCache.delete(id);
-      loadProjects();
+      loadProjects(); // SWR: keep stale list visible while revalidating (no blink)
     };
     window.addEventListener("refresh_projects", handleRefresh);
     return () => {
@@ -455,6 +469,7 @@ function ProfilePageContent({
     // Fetch real profile data to populate initial images and details
     // We use `id` from the URL, NOT `userId` from the token!
     const profilePromise = getProfile(id);
+    const statsPromise = getProfileStats(id);
     const connectionPromise = currentId
       ? getConnectionStatus(currentId, id)
       : Promise.resolve({ friendshipStatus: null, isFollowing: false, isBlocked: false });
@@ -467,7 +482,10 @@ function ProfilePageContent({
       fetchGalleriesData(false);
     }
 
-    Promise.all([profilePromise, connectionPromise]).then(([res, status]) => {
+    Promise.all([profilePromise, connectionPromise, statsPromise]).then(([res, status, statsRes]) => {
+      if (res.success && res.profile) {
+        res = { ...res, profile: mergeProfileStats(res.profile, statsRes?.stats) } as any;
+      }
       if (res.success && res.profile) {
         profileCache.set(id, res.profile);
         if (res.profile.avatarUrl) setAvatarPreview(res.profile.avatarUrl);
@@ -735,9 +753,11 @@ function ProfilePageContent({
     }
 
     if (res.success) {
-      const freshProfile = await getProfile(id);
+      const [freshProfile, freshStats] = await Promise.all([getProfile(id), getProfileStats(id)]);
       if (freshProfile.success && freshProfile.profile) {
-        setProfileData(freshProfile.profile);
+        const merged = mergeProfileStats(freshProfile.profile, freshStats?.stats);
+        profileCache.set(id, merged);
+        setProfileData(merged);
       }
     }
     setIsProcessing(false);
@@ -749,9 +769,11 @@ function ProfilePageContent({
     const token = localStorage.getItem("token") || "";
     const res = await toggleBlock(token, currentUser.id, targetUserId);
     if (res.success) {
-      const freshProfile = await getProfile(id);
+      const [freshProfile, freshStats] = await Promise.all([getProfile(id), getProfileStats(id)]);
       if (freshProfile.success && freshProfile.profile) {
-        setProfileData(freshProfile.profile);
+        const merged = mergeProfileStats(freshProfile.profile, freshStats?.stats);
+        profileCache.set(id, merged);
+        setProfileData(merged);
       }
     }
     setIsProcessing(false);
@@ -789,12 +811,17 @@ function ProfilePageContent({
       if (!isOnSenderProfile && !isOnOwnProfile) return;
 
       // Re-fetch fresh data from server for accurate counts
-      const [freshProfile, freshStatus] = await Promise.all([
+      const [freshProfileRes, freshStatsRes, freshStatus] = await Promise.all([
         getProfile(id),
+        getProfileStats(id),
         getConnectionStatus(currentUserId, id),
       ]);
+      const freshProfile = freshProfileRes.success && freshProfileRes.profile
+        ? { success: true, profile: mergeProfileStats(freshProfileRes.profile, freshStatsRes?.stats) }
+        : { success: false, profile: null };
 
       if (freshProfile.success && freshProfile.profile) {
+        profileCache.set(id, freshProfile.profile);
         setProfileData(freshProfile.profile);
         if (freshProfile.profile.avatarUrl) setAvatarPreview(freshProfile.profile.avatarUrl);
         if (freshProfile.profile.coverUrl) setCoverPreview(freshProfile.profile.coverUrl);

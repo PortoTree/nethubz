@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import jwt from "jsonwebtoken";
 
 import prisma from "@/utils/prisma";
@@ -20,26 +20,78 @@ const verifyToken = (token: string, expectedUserId: string) => {
 
 import { unstable_cache } from "next/cache";
 
+// Profile data is embedded in the per-user project cache (/project/[username] + profile Project tab).
+const invalidateProfile = async (userId: string) => {
+  updateTag(`profile-${userId}`);
+  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+  if (owner?.username) updateTag(`projects-${owner.username}`);
+};
+
+// KASTA 1 (Global Cache): avatar, cover, biodata, privacy settings, social links.
+// Invalidated per-user via updateTag(`profile-${userId}`) on every profile mutation.
 export const getProfile = async (userId: string) => {
-  return unstable_cache(
-    async () => {
-    try {
-    console.log(`🔥 DB FETCH (CACHE MISS): getProfile ${userId}`);
-      const profile = await prisma.profile.findUnique({
-        where: { userId },
-        include: {
-          user: true
+  try {
+    return await unstable_cache(
+      async () => {
+        console.log(`🔥 DB FETCH (CACHE MISS): getProfile ${userId}`);
+        const profile = await prisma.profile.findUnique({
+          where: { userId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                createdAt: true,
+                profileSettings: true,
+                socialLinks: { orderBy: { displayOrder: "asc" } },
+              }
+            }
+          }
+        });
+        // Throw (instead of returning a failure object) so errors are never cached
+        return { success: true as const, profile };
+      },
+      ['getProfile', String(userId)],
+      { tags: [`profile-${userId}`] }
+    )();
+  } catch (error: any) {
+    console.error("getProfile Error:", error);
+    return { success: false as const, profile: null, error: "Failed to fetch profile" };
+  }
+};
+
+// KASTA 2 (SWR): counts and lists change constantly and are never globally cached.
+export const getProfileStats = async (userId: string) => {
+  try {
+    console.log(`⚡ LIVE FETCH (SWR, NO SERVER CACHE): getProfileStats ${userId}`);
+    const stats = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        followers: { include: { follower: { include: { profile: true } } } },
+        following: { include: { following: { include: { profile: true } } } },
+        friendshipsAsUser: {
+          where: { status: 'ACCEPTED' },
+          include: { friend: { include: { profile: true } } }
+        },
+        friendshipsAsFriend: {
+          where: { status: 'ACCEPTED' },
+          include: { user: { include: { profile: true } } }
+        },
+        _count: {
+          select: {
+            followers: true,
+            posts: true,
+            friendshipsAsUser: { where: { status: 'ACCEPTED' } },
+            friendshipsAsFriend: { where: { status: 'ACCEPTED' } }
+          }
         }
-      });
-      return { success: true, profile };
-    } catch (error: any) {
-      console.error("getProfile Error:", error);
-      return { success: false, error: "Failed to fetch profile" };
-    }
-  },
-    ['getProfile', String(userId)],
-    { tags: ["global_profile"] }
-  )();
+      }
+    });
+    return { success: true as const, stats };
+  } catch (error: any) {
+    console.error("getProfileStats Error:", error);
+    return { success: false as const, stats: null };
+  }
 };
 
 export async function updateDisplayName(token: string, userId: string, newDisplayName: string) {
@@ -72,7 +124,7 @@ export async function updateDisplayName(token: string, userId: string, newDispla
       },
     });
 
-    revalidatePath("/", "layout");
+    await invalidateProfile(userId);
 
     return { success: true, displayName: newDisplayName, remainingChanges: 2 - recentChanges.length };
   } catch (error) {
@@ -97,8 +149,7 @@ export async function updateProfileMedia(token: string, userId: string, type: "a
       });
     }
     
-    
-    revalidatePath("/", "layout");
+    await invalidateProfile(userId);
 
     return { success: true, url: finalUrl };
   } catch (error) {
@@ -169,7 +220,7 @@ export async function updateProfileInfo(token: string, userId: string, data: any
         }
       });
 
-    revalidatePath("/", "layout");
+    await invalidateProfile(userId);
     return { success: true };
   } catch (error) {
     console.error("Error updating profile info:", error);

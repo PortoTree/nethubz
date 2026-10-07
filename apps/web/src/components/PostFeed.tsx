@@ -29,7 +29,7 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
     try {
       if (!isBackground && !cursor) setIsLoading(true);
       if (cursor) setIsFetchingMore(true);
-      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 10);
+      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 5);
       let loadedPosts = res.posts || [];
 
       if (res.success && loadedPosts) {
@@ -204,7 +204,24 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       ))}
       {nextCursor && (
         <div ref={observerRef} className="py-4 flex justify-center h-16">
-          {isFetchingMore && <div className="animate-pulse w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C]" />}
+          {isFetchingMore && (
+            <div className="flex flex-col items-center justify-center w-full">
+              <style>{`
+                @keyframes indeterminateBar {
+                  0% { transform: translateX(-100%); }
+                  50% { transform: translateX(150%); }
+                  100% { transform: translateX(-100%); }
+                }
+              `}</style>
+              <div className="w-[150px] h-1.5 bg-gray-200 dark:bg-[#3A3B3C] rounded-full overflow-hidden mb-2 relative">
+                <div 
+                  className="absolute top-0 left-0 h-full w-[40%] bg-[#1877F2] dark:bg-blue-500 rounded-full"
+                  style={{ animation: 'indeterminateBar 1.5s infinite ease-in-out' }}
+                ></div>
+              </div>
+              <p className="text-[12px] text-gray-500 dark:text-gray-400 font-medium">{t("common.wait")}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
