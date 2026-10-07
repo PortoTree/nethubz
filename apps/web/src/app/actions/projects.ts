@@ -75,6 +75,12 @@ export async function createProject(data: CreateProjectInput) {
     // We can revalidate tags like "user_profile_projects" or "feed"
     // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag("projects");
+    if (project && (project as any).user && (project as any).user.username) {
+      const { revalidatePath } = require("next/cache");
+      revalidatePath(`/project/${project.user.username}`, 'layout');
+    }
+    const { revalidateTag } = require("next/cache");
+    revalidateTag("global_projects");
 
     return { success: true, project };
   } catch (error: any) {
@@ -140,77 +146,77 @@ export async function getAllProjects() {
   }
 }
 
-export async function getProjectsByUsername(username: string) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { username },
-      include: {
-        profile: true
-      }
-    });
-
-    if (!user) {
-      return { success: false, projects: [], error: "User not found" };
-    }
-
-    const projects = await prisma.project.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        }
-      }
-    });
-    
-    return { success: true, projects, user };
-  } catch (error: any) {
-    console.error("getProjectsByUsername Error:", error);
-    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
-  }
-}
-export async function getProjectById(id: string, currentUserId?: string) {
-  try {
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true
-          }
-        }
-      }
-    });
-
-    if (!project) {
-      return { success: false, project: null, error: "Project not found" };
-    }
-
-    let hasLiked = false;
-    if (currentUserId) {
-      const like = await prisma.like.findFirst({
-        where: {
-          projectId: id,
-          userId: currentUserId
+export const getProjectsByUsername = unstable_cache(
+  async (username: string) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { username },
+        include: {
+          profile: true
         }
       });
-      hasLiked = !!like;
-    }
 
-    return { success: true, project: { ...project, hasLiked } };
-  } catch (error: any) {
-    console.error("getProjectById Error:", error);
-    return { success: false, project: null, error: error.message || "Failed to fetch project" };
-  }
-}
+      if (!user) {
+        return { success: false, projects: [], error: "User not found" };
+      }
+
+      const projects = await prisma.project.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            include: {
+              profile: true
+            }
+          }
+        }
+      });
+      
+      return { success: true, projects, user };
+    } catch (error: any) {
+      console.error("getProjectsByUsername Error:", error);
+      return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+    }
+  },
+  ['getProjectsByUsername'],
+  { tags: ['global_projects'] }
+);
+export const getProjectById = unstable_cache(
+  async (id: string, currentUserId?: string) => {
+    try {
+      const project = await prisma.project.findUnique({
+        where: { id },
+        include: {
+          user: {
+            include: {
+              profile: true
+            }
+          },
+          _count: {
+            select: {
+              likes: true,
+              comments: true
+            }
+          }
+        }
+      });
+
+      if (!project) {
+        return { success: false, project: null, error: "Project not found" };
+      }
+
+      // NOTE: hasLiked is fetched separately in Client Component via SWR
+      // We do not cache personal interactions globally.
+
+      return { success: true, project: { ...project } };
+    } catch (error: any) {
+      console.error("getProjectById Error:", error);
+      return { success: false, project: null, error: error.message || "Failed to fetch project" };
+    }
+  },
+  ['getProjectById'],
+  { tags: ['global_projects'] }
+);
 
 export async function deleteProject(id: string, userId: string) {
   try {
@@ -251,6 +257,12 @@ export async function deleteProject(id: string, userId: string) {
 
     // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag("projects");
+    if (project && (project as any).user && (project as any).user.username) {
+      const { revalidatePath } = require("next/cache");
+      revalidatePath(`/project/${project.user.username}`, 'layout');
+    }
+    const { revalidateTag } = require("next/cache");
+    revalidateTag("global_projects");
     return { success: true };
   } catch (error: any) {
     console.error("deleteProject Error:", error);
@@ -313,6 +325,12 @@ export async function updateProject(id: string, userId: string, data: {
     
     // @ts-expect-error Next.js typings might incorrectly expect 2 args
     revalidateTag("projects");
+    if (project && (project as any).user && (project as any).user.username) {
+      const { revalidatePath } = require("next/cache");
+      revalidatePath(`/project/${project.user.username}`, 'layout');
+    }
+    const { revalidateTag } = require("next/cache");
+    revalidateTag("global_projects");
     return { success: true, project: updated };
   } catch (error: any) {
     console.error("updateProject Error:", error);

@@ -12,11 +12,11 @@ import animationDataLight from "../../../../public/search-bar.json";
 import animationDataDark from "../../../../public/search-bar-putih.json";
 import { getNotifications, markAsRead, deleteNotification } from "@/app/actions/notifications";
 import { handlePrimaryConnectionAction } from "@/app/actions/connections";
-import { notifyConnectionChanged } from "@/utils/cache";
+import { notifyConnectionChanged, profileCache } from "@/utils/cache";
 import { getProfile } from "@/app/actions/profile";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 
-const navProfileCache = new Map<string, { avatarUrl: string | null, displayName: string | null }>();
+
 let globalNotifsCache: { list: any[], unread: number, userId: string } | null = null;
 
 const getReactionLabel = (type?: string) => {
@@ -41,7 +41,8 @@ export default function Navbar({
   isDarkMode,
   setIsDarkMode,
   themeLoaded,
-  currentUser
+  currentUser,
+  isProfileLoading
 }: any) {
   const t = useTranslations();
   const locale = useLocale();
@@ -66,8 +67,8 @@ export default function Navbar({
   const [isLoadingMoreNotifs, setIsLoadingMoreNotifs] = useState(false);
   const [openNotifMenuId, setOpenNotifMenuId] = useState<string | null>(null);
   const [processingNotifId, setProcessingNotifId] = useState<string | null>(null);
-  const [navAvatar, setNavAvatar] = useState<string | null>(navProfileCache.get(currentUser?.id)?.avatarUrl || null);
-  const [navDisplayName, setNavDisplayName] = useState<string | null>(navProfileCache.get(currentUser?.id)?.displayName || null);
+  const [navAvatar, setNavAvatar] = useState<string | null>(currentUser?.profile?.avatarUrl || profileCache.get(currentUser?.id)?.avatarUrl || null);
+  const [navDisplayName, setNavDisplayName] = useState<string | null>(currentUser?.profile?.displayName || profileCache.get(currentUser?.id)?.displayName || null);
   const [isLoadingNotifs, setIsLoadingNotifs] = useState(!globalNotifsCache || globalNotifsCache.userId !== currentUser?.id);
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -76,8 +77,14 @@ export default function Navbar({
   useEffect(() => {
     if (!currentUser?.id) return;
 
-    if (navProfileCache.has(currentUser.id)) {
-      const cached = navProfileCache.get(currentUser.id)!;
+    if (currentUser?.profile?.avatarUrl !== undefined) {
+      setNavAvatar(currentUser.profile.avatarUrl);
+      setNavDisplayName(currentUser.profile.displayName || currentUser.displayName);
+      return;
+    }
+
+    if (profileCache.has(currentUser.id)) {
+      const cached = profileCache.get(currentUser.id)!;
       setNavAvatar(cached.avatarUrl);
       setNavDisplayName(cached.displayName);
       return; // Skip fetching if already in cache
@@ -89,10 +96,10 @@ export default function Navbar({
         const displayName = res.profile.displayName || null;
         setNavAvatar(avatarUrl);
         setNavDisplayName(displayName);
-        navProfileCache.set(currentUser.id, { avatarUrl, displayName });
+        profileCache.set(currentUser.id, { avatarUrl, displayName });
       }
     });
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.profile?.avatarUrl]);
 
   // Listen for avatar-updated event dispatched from profile page after crop/upload
   useEffect(() => {
@@ -101,9 +108,9 @@ export default function Navbar({
       if (event.detail.type === "avatar") {
         setNavAvatar(event.detail.url);
         if (currentUser?.id) {
-          navProfileCache.set(currentUser.id, {
+          profileCache.set(currentUser.id, {
             avatarUrl: event.detail.url,
-            displayName: navDisplayName || navProfileCache.get(currentUser.id)?.displayName || null
+            displayName: navDisplayName || profileCache.get(currentUser.id)?.displayName || null
           });
         }
       }
@@ -654,11 +661,15 @@ export default function Navbar({
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <button className="w-10 h-10 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0">
-                <img
-                  src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                {isProfileLoading ? (
+  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
+) : (
+  <img
+    src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
+)}
               </button>
               {/* Arrow Down Badge */}
               <div className="absolute -bottom-0.5 -right-0.5 w-[16px] h-[16px] bg-[#E4E6EB] dark:bg-[#3A3B3C] rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526]">
@@ -689,11 +700,15 @@ export default function Navbar({
                   }}
                 >
                   <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-emerald-600 dark:border-emerald-400">
-                    <img
-                      src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
+                    {isProfileLoading ? (
+  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
+) : (
+  <img
+    src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
+)}
                   </div>
                   <div>
                     <h3 className="font-bold text-[16px] text-black dark:text-[#E4E6EB] leading-tight">

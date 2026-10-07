@@ -27,6 +27,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           if (res.success && res.profile) {
             setCurrentUser((prev: any) => ({ ...prev, profile: res.profile }));
             profileCache.set(userId, res.profile);
+            localStorage.setItem("cached_user_profile_" + userId, JSON.stringify(res.profile));
           }
           setIsProfileLoading(false);
         });
@@ -42,7 +43,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           currentUserId = payload.sub || payload.id || payload._id || payload.userId || "1";
           setGlobalUserId(currentUserId);
           
-          const cachedProfile = profileCache.get(currentUserId);
+          let cachedProfile = profileCache.get(currentUserId);
+          if (!cachedProfile) {
+            const saved = localStorage.getItem("cached_user_profile_" + currentUserId);
+            if (saved) {
+              try { cachedProfile = JSON.parse(saved); profileCache.set(currentUserId, cachedProfile); } catch(e){}
+            }
+          }
           if (cachedProfile) {
             setCurrentUser({
               id: currentUserId,

@@ -20,56 +20,24 @@ const verifyToken = (token: string, expectedUserId: string) => {
 
 import { unstable_cache } from "next/cache";
 
-export const getProfile = async (userId: string) => {
-  try {
-    const getCachedProfile = unstable_cache(
-      async () => {
-        return await prisma.profile.findUnique({
-          where: { userId: userId },
-          include: {
-            user: {
-              include: {
-                profileSettings: true,
-                socialLinks: true,
-                followers: {
-                  include: { follower: { include: { profile: true } } }
-                },
-                following: {
-                  include: { following: { include: { profile: true } } }
-                },
-                friendshipsAsUser: {
-                  where: { status: 'ACCEPTED' },
-                  include: { friend: { include: { profile: true } } }
-                },
-                friendshipsAsFriend: {
-                  where: { status: 'ACCEPTED' },
-                  include: { user: { include: { profile: true } } }
-                },
-                _count: {
-                  select: {
-                    posts: true,
-                    followers: true,
-                    following: true,
-                    friendshipsAsUser: { where: { status: 'ACCEPTED' } },
-                    friendshipsAsFriend: { where: { status: 'ACCEPTED' } }
-                  }
-                }
-              }
-            }
-          }
-        });
-      },
-      [`profile-data-${userId}`],
-      { tags: [`profile-${userId}`], revalidate: 86400 } // Cache for 1 day
-    );
-
-    const profile = await getCachedProfile();
-    return { success: true, profile };
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    return { success: false, error: "Database error" };
-  }
-};
+export const getProfile = unstable_cache(
+  async (userId: string) => {
+    try {
+      const profile = await prisma.profile.findUnique({
+        where: { userId },
+        include: {
+          user: true
+        }
+      });
+      return { success: true, profile };
+    } catch (error: any) {
+      console.error("getProfile Error:", error);
+      return { success: false, error: "Failed to fetch profile" };
+    }
+  },
+  ['getProfile'],
+  { tags: ['global_profile'] }
+);
 
 export async function updateDisplayName(token: string, userId: string, newDisplayName: string) {
   if (!verifyToken(token, userId)) return { success: false, error: "Unauthorized" };

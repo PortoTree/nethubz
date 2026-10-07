@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getProfile } from "@/app/actions/profile";
+import { useUser } from "@/contexts/UserContext";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 
 export default function FloatingUserMenu({
@@ -20,31 +21,12 @@ export default function FloatingUserMenu({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [navAvatar, setNavAvatar] = useState<string | null>(null);
+  
+  const { currentUser, isProfileLoading } = useUser();
+  const navAvatar = currentUser?.profile?.avatarUrl || null;
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const userId = payload.sub || payload.id || payload._id || payload.userId;
-        if (userId) {
-          const res = await getProfile(userId);
-          if (res.success && res.profile) {
-            const userObj = { id: userId, username: payload.username || "Guest", profile: res.profile };
-            setCurrentUser(userObj);
-            setNavAvatar(res.profile.avatarUrl || null);
-          }
-        }
-      } catch(e) {}
-    };
-    fetchUser();
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,7 +43,7 @@ export default function FloatingUserMenu({
     };
   }, []);
 
-  if (!currentUser) return null;
+
 
   const displayName = currentUser.profile?.displayName || currentUser.username;
 
@@ -147,11 +129,15 @@ export default function FloatingUserMenu({
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         >
           <button className="w-10 h-10 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0 shadow-md">
+            {isProfileLoading ? (
+            <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
+          ) : (
             <img
               src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
               alt="Profile"
               className="w-full h-full object-cover"
             />
+          )}
           </button>
           <div className="absolute -bottom-0.5 -right-0.5 w-[16px] h-[16px] bg-[#E4E6EB] dark:bg-[#3A3B3C] rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526]">
             <svg className="w-3 h-3 text-black dark:text-[#E4E6EB]" fill="currentColor" viewBox="0 0 20 20">

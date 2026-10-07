@@ -17,7 +17,7 @@ export default function ClientNavbar() {
 
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
-  const { currentUser } = useUser();
+  const { currentUser, isProfileLoading } = useUser();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -45,16 +45,19 @@ export default function ClientNavbar() {
 
 
 
-  if (!themeLoaded) return null;
+  // if (!themeLoaded) return null;
+
+  if (pathname.match(/^\/[^/]+\/project\/.+/)) return null;
 
   return (
-    <Navbar 
-      activeTab={activeTab} 
-      setActiveTab={() => {}} 
-      isDarkMode={isDarkMode} 
-      setIsDarkMode={setIsDarkMode} 
+    <Navbar
+      activeTab={activeTab}
+      setActiveTab={() => { }}
+      isDarkMode={isDarkMode}
+      setIsDarkMode={setIsDarkMode}
       themeLoaded={themeLoaded}
-      currentUser={currentUser} 
+      currentUser={currentUser}
+      isProfileLoading={isProfileLoading}
     />
   );
 }
