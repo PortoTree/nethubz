@@ -204,8 +204,9 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
     if (lastWord.startsWith("@")) {
       const query = lastWord.slice(1);
       const coords = getCaretCoordinates(e.target, cursor);
-      const top = coords.top + (coords.height || 24);
-      const left = coords.left;
+      const rect = e.target.getBoundingClientRect();
+      const top = rect.top + coords.top - e.target.scrollTop + (coords.height || 24);
+      const left = rect.left + coords.left;
       
       setMentionQuery({ query, position: cursor, top, left });
     } else {
@@ -583,7 +584,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
           </div>
 
           {/* Textarea Layered Preview */}
-          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative transform-gpu">
+          <div className="overflow-y-auto max-h-[300px] mt-2 mb-2 relative">
             <div className="relative min-h-[120px]">
               {/* Background preview */}
               <div 
@@ -643,7 +644,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
             </div>
             {mentionQuery && (
               <div 
-                className="absolute z-[999999] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-xl shadow-xl w-[250px] max-h-48 overflow-y-auto"
+                className="fixed z-[999999] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-xl shadow-xl w-[250px] max-h-48 overflow-y-auto"
                 style={{ top: mentionQuery.top, left: mentionQuery.left }}
               >
                 {mentionResults.length > 0 ? (
