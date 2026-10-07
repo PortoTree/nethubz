@@ -191,7 +191,7 @@ export const getProjectsByUsername = async (username: string) => {
     { tags: ["global_projects"] }
   )();
 };
-export const getProjectById = async (id: string, currentUserId?: string) => {
+export const getProjectById = async (id: string) => {
   return unstable_cache(
     async () => {
     try {
@@ -226,7 +226,7 @@ export const getProjectById = async (id: string, currentUserId?: string) => {
       return { success: false, project: null, error: error.message || "Failed to fetch project" };
     }
   },
-    ['getProjectById', String(id), String(currentUserId || "guest")],
+    ['getProjectById', String(id)],
     { tags: ["global_projects", `project_${id}`] }
   )();
 };
@@ -268,14 +268,12 @@ export async function deleteProject(id: string, userId: string) {
       where: { id },
     });
 
-    // @ts-expect-error Next.js typings might incorrectly expect 2 args
-    revalidateTag("projects");
+    const { revalidateTag, revalidatePath } = require("next/cache");
     if (project && (project as any).user && (project as any).user.username) {
-      const { revalidatePath } = require("next/cache");
       revalidatePath(`/project/${(project as any).user.username}`, 'layout');
     }
-    const { revalidateTag } = require("next/cache");
     revalidateTag("global_projects");
+    revalidateTag(`project_${id}`);
     return { success: true };
   } catch (error: any) {
     console.error("deleteProject Error:", error);
@@ -336,14 +334,12 @@ export async function updateProject(id: string, userId: string, data: {
       }
     });
     
-    // @ts-expect-error Next.js typings might incorrectly expect 2 args
-    revalidateTag("projects");
+    const { revalidateTag, revalidatePath } = require("next/cache");
     if (project && (project as any).user && (project as any).user.username) {
-      const { revalidatePath } = require("next/cache");
       revalidatePath(`/project/${(project as any).user.username}`, 'layout');
     }
-    const { revalidateTag } = require("next/cache");
     revalidateTag("global_projects");
+    revalidateTag(`project_${id}`);
     return { success: true, project: updated };
   } catch (error: any) {
     console.error("updateProject Error:", error);
