@@ -1,5 +1,5 @@
 "use server";
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 
 import prisma from "@/utils/prisma";
 
@@ -21,10 +21,10 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
           where: { id: existingLike.id },
         });
         if (targetType === "project") {
-          revalidateTag(`project_${targetId}`);
-          revalidateTag("global_projects");
+          updateTag(`project_${targetId}`);
+          updateTag("global_projects");
         } else if (targetType === "post") {
-          revalidateTag(`post_${targetId}`);
+          updateTag(`post_${targetId}`);
         }
         return { success: true, action: "unliked" };
       } else {
@@ -34,10 +34,10 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
           data: { type: reactionType },
         });
         if (targetType === "project") {
-          revalidateTag(`project_${targetId}`);
-          revalidateTag("global_projects");
+          updateTag(`project_${targetId}`);
+          updateTag("global_projects");
         } else if (targetType === "post") {
-          revalidateTag(`post_${targetId}`);
+          updateTag(`post_${targetId}`);
         }
         return { success: true, action: "updated" };
       }
@@ -93,16 +93,16 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
       }
 
       if (targetType === "project") {
-        revalidateTag(`project_${targetId}`);
-        revalidateTag("global_projects");
+        updateTag(`project_${targetId}`);
+        updateTag("global_projects");
       } else if (targetType === "post") {
-        revalidateTag(`post_${targetId}`);
+        updateTag(`post_${targetId}`);
       }
       if (targetType === "project") {
-        revalidateTag(`project_${targetId}`);
-        revalidateTag("global_projects");
+        updateTag(`project_${targetId}`);
+        updateTag("global_projects");
       } else if (targetType === "post") {
-        revalidateTag(`post_${targetId}`);
+        updateTag(`post_${targetId}`);
       }
       return { success: true, action: "liked" };
     }
