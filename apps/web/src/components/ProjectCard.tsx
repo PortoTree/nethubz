@@ -56,6 +56,7 @@ export default function ProjectCard({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [user, setUser] = useState<any>(null);
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
@@ -66,6 +67,7 @@ export default function ProjectCard({
           setUser({ id: userId, username: payload.username || "Guest" });
         } catch (e) {}
       }
+      setIsUserLoaded(true);
     }
   }, []);
 
@@ -77,6 +79,7 @@ export default function ProjectCard({
   const [topReactions, setTopReactions] = useState<ReactionType[]>(p.topReactions || []);
 
   const loadInteractions = useCallback(() => {
+    if (!isUserLoaded) return;
     const cacheKey = `interaction_project_${p.id}_${user?.id || 'guest'}`;
     if (interactionsCache.has(cacheKey)) {
       const cached = interactionsCache.get(cacheKey);
@@ -106,7 +109,7 @@ export default function ProjectCard({
       }
       setIsInteractionLoading(false);
     }).catch(() => setIsInteractionLoading(false));
-  }, [p.id, user?.id]);
+  }, [p.id, user?.id, isUserLoaded]);
 
   useEffect(() => {
     loadInteractions();

@@ -181,6 +181,8 @@ export default function ClientProjectDetailPage({
     };
   }, [isEmojiOpen]);
 
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -193,6 +195,7 @@ export default function ClientProjectDetailPage({
         });
       } catch (e) { console.error("Invalid token"); }
     }
+    setIsUserLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -220,6 +223,7 @@ export default function ClientProjectDetailPage({
   }, [id, user?.id]);
 
   const loadInteractions = useCallback(() => {
+    if (!isUserLoaded) return;
     const cacheKey = `interaction_project_${id}_${user?.id || 'guest'}`;
     if (interactionsCache.has(cacheKey)) {
       const cached = interactionsCache.get(cacheKey);
@@ -244,7 +248,7 @@ export default function ClientProjectDetailPage({
       }
       setIsInteractionLoading(false);
     }).catch(() => setIsInteractionLoading(false));
-  }, [id, user?.id]);
+  }, [id, user?.id, isUserLoaded]);
 
   useEffect(() => {
     loadInteractions();
