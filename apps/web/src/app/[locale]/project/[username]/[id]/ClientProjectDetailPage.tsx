@@ -218,13 +218,8 @@ export default function ClientProjectDetailPage({
     if (!cursor) setIsLoadingComments(false);
   }, [id]);
 
-  const loadProject = useCallback(async () => {
+  const loadInteractions = useCallback(() => {
     setIsInteractionLoading(true);
-    const res = await getProjectById(id);
-    if (!res.success || !res.project) { router.push(`/${locale}/404`); return; }
-    if (res.project.user?.username?.toLowerCase() !== decodedUsername.toLowerCase()) { router.push(`/${locale}/404`); return; }
-    setProject(res.project);
-    
     // Pure SWR for interactions (bypassing global cache)
     checkInteractionState(user?.id, "project", id).then(interaction => {
       if (interaction.success) {
@@ -234,17 +229,15 @@ export default function ClientProjectDetailPage({
       }
       setIsInteractionLoading(false);
     }).catch(() => setIsInteractionLoading(false));
-
-    setIsLoading(false);
-  }, [id, decodedUsername, locale, router, user?.id]);
+  }, [id, user?.id]);
 
   useEffect(() => {
-    loadProject();
+    loadInteractions();
     fetchComments();
-    const handleRefresh = () => { loadProject(); fetchComments(); };
+    const handleRefresh = () => { loadInteractions(); fetchComments(); };
     window.addEventListener("refresh_projects", handleRefresh);
     return () => window.removeEventListener("refresh_projects", handleRefresh);
-  }, [loadProject, fetchComments]);
+  }, [loadInteractions, fetchComments]);
 
   useEffect(() => {
     if (!isLoading && window.location.hash === '#comments') {

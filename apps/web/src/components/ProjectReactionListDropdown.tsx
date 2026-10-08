@@ -120,7 +120,7 @@ export function ProjectReactionListDropdown({ targetId, count }: ProjectReaction
                     </div>
                     {/* List */}
                     <div className="flex flex-col gap-2">
-                      {groupedLikers[type].map((liker) => (
+                      {groupedLikers[type].map((liker: any) => (
                         <div key={liker.id} className="text-[13px] font-medium text-gray-600/80 dark:text-white/70 truncate max-w-[120px]">
                           {liker.user?.profile?.displayName || liker.user?.username}
                         </div>
