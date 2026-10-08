@@ -356,6 +356,7 @@ export default function ClientProjectDetailPage({
     const res = await addComment(user.id, "project", id, commentInput);
     if (res.success && res.comment) { 
       setComments(prev => [res.comment, ...prev]); 
+      setCommentCount(prev => prev + 1);
       setCommentInput(""); 
       if (editor) editor.commands.clearContent();
     }

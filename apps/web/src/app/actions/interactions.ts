@@ -500,13 +500,13 @@ export async function checkInteractionState(userId: string | undefined, targetTy
     let commentCount = 0;
 
     if (targetType === "post") {
-      const p = await prisma.post.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true, comments: true } } } });
+      const p = await prisma.post.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true } } } });
       likeCount = p?._count?.likes || 0;
-      commentCount = p?._count?.comments || 0;
+      commentCount = await prisma.comment.count({ where: { postId: targetId, parentId: null } });
     } else {
-      const p = await prisma.project.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true, comments: true } } } });
+      const p = await prisma.project.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true } } } });
       likeCount = p?._count?.likes || 0;
-      commentCount = p?._count?.comments || 0;
+      commentCount = await prisma.comment.count({ where: { projectId: targetId, parentId: null } });
     }
       
     return { success: true, hasLiked: !!like, myReaction: like ? like.type : null, hasSaved: !!save, likeCount, commentCount };
