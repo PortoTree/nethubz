@@ -60,5 +60,5 @@ Kategori ini ditujukan untuk data yang bersifat privasi, memiliki otorisasi kepe
 4. Jika ada like baru atau komentar baru, UI akan ter-update secara mulus tanpa layar berkedip (no blink/layout shift).
 
 
-### FILE INI AKAN MENADI STANDART CACHE SYSTEM PADA NETHUBZ, JIKA ADA FITUR BARU HARAP MEMASTIKAN KEPADA SAYA UNTUK DI POSISIKAN SEBAGAI GLOBAL CACHE ATAU SWR KEDEPANNYA, JANGAN MEMUTUSKAN SENDIRI.
+### FILE INI AKAN MENJADI STANDART CACHE SYSTEM PADA NETHUBZ, JIKA ADA FITUR BARU HARAP MEMASTIKAN KEPADA SAYA UNTUK DI POSISIKAN SEBAGAI GLOBAL CACHE ATAU SWR KEDEPANNYA, JANGAN MEMUTUSKAN SENDIRI.
 Pastikan system cache fitur terbaru nantinya bekerja sesuai penjelasan diatas.

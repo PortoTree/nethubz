@@ -377,7 +377,7 @@ export default function ClientProjectDetailPage({
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-20">
-      <FloatingProjectHubBtn customHref={`/${locale}/project/${decodedUsername}`} customText={`${displayName}'s Projects`} />
+      <FloatingProjectHubBtn customHref={`/${locale}/project/${decodedUsername}`} customText={`${displayName}'s Projects`} variant="with-dropdown" />
       <FloatingUserMenu isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       <div className="max-w-[900px] mx-auto w-full px-4">
 
