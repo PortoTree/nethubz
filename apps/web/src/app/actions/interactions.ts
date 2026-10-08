@@ -364,7 +364,8 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
         },
         _count: {
           select: { replies: true, likes: true }
-        }
+        },
+        ...(userId ? { likes: { where: { userId } } } : {}),
       }
     });
 
@@ -380,6 +381,8 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
       if ((r as any).likes) {
         mapped.myReaction = (r as any).likes.length > 0 ? (r as any).likes[0].type : null;
         delete mapped.likes;
+      } else {
+        mapped.myReaction = null;
       }
       try {
         const reactionGroups = await prisma.like.groupBy({

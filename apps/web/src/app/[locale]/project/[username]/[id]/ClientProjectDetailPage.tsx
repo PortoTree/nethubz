@@ -216,7 +216,7 @@ export default function ClientProjectDetailPage({
       setNextCursor(res.nextCursor);
     }
     if (!cursor) setIsLoadingComments(false);
-  }, [id]);
+  }, [id, user?.id]);
 
   const loadInteractions = useCallback(() => {
     setIsInteractionLoading(true);

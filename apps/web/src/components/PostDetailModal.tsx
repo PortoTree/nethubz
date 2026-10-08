@@ -286,7 +286,8 @@ export function CommentItem({
           <div className="absolute left-[15px] top-[32px] bottom-[-28px] w-[2px] bg-blue-500 z-10" />
         )}
         <img src={comment.author?.profile?.avatarUrl || "/default-avatar.svg"} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 cursor-pointer relative z-50" onClick={() => router.push(`/${locale}/p/${comment.author?.username}/${comment.author?.id}`)} />
-        <div className="flex-1 group/comment relative z-40">
+        <div className="flex-1 relative z-40">
+          <div className="group/comment relative">
           <button type="button" aria-label={t("postModal.more") || "Opsi lainnya"} className="absolute right-0 top-0 opacity-0 group-hover/comment:opacity-100 p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:text-[#B0B3B8] dark:hover:bg-[#3A3B3C] transition-all shrink-0">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" /></svg>
           </button>
@@ -320,7 +321,7 @@ export function CommentItem({
                 myReaction={isLiked} 
                 onReact={onLikeClick} 
                 count={likeCount} 
-                hideText={true}
+                hideTooltip={true}
                 containerClassName={`!flex-none ${!targetComment ? '-ml-2' : ''}`}
                 className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1.5 rounded-full transition-colors bg-transparent"
               />
@@ -336,6 +337,7 @@ export function CommentItem({
             <span className="text-[12px] text-gray-500 dark:text-gray-400 font-normal ml-2">
               {formatPostTime(comment.createdAt, t, locale)}
             </span>
+          </div>
           </div>
 
           {(replyCount > 0 || inputElement) && depth < 2 && (

@@ -28,9 +28,10 @@ interface ReactionButtonProps {
   className?: string;
   containerClassName?: string;
   hideText?: boolean;
+  hideTooltip?: boolean;
 }
 
-export function ReactionButton({ myReaction, onReact, count, className, containerClassName, hideText }: ReactionButtonProps) {
+export function ReactionButton({ myReaction, onReact, count, className, containerClassName, hideText, hideTooltip }: ReactionButtonProps) {
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -122,9 +123,9 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
                   onReact(type);
                   setIsOpen(false);
                 }}
-                className="w-10 h-10 relative hover:scale-125 hover:-translate-y-3 transition-all duration-300 origin-bottom flex-shrink-0 group"
+                className="w-10 h-10 relative hover:scale-125 hover:-translate-y-3 transition-all duration-300 origin-bottom flex-shrink-0 group/emoji"
               >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover/emoji:opacity-100 group-hover/emoji:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm">
                   {config.label}
                 </div>
                 <Image src={config.src} alt={config.label} fill unoptimized priority className="object-contain drop-shadow-sm transition-transform duration-300 group-hover:drop-shadow-md" />
@@ -138,11 +139,13 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
       <button 
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        className={className || "flex-1 flex items-center justify-center py-1.5 rounded-lg text-[15px] transition-colors bg-transparent hover:bg-gray-200 dark:hover:bg-[#3A3B3C] relative group select-none"}
+        className={className?.includes('group') ? className.replace(/\bgroup\b/, 'group/reactBtn') : (className || "flex-1 flex items-center justify-center py-1.5 rounded-lg text-[15px] transition-colors bg-transparent hover:bg-gray-200 dark:hover:bg-[#3A3B3C] relative group/reactBtn select-none")}
       >
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm z-50">
-          {t("feed.chooseReaction") || "Pilih reaksi"}
-        </div>
+        {!hideTooltip && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover/reactBtn:opacity-100 group-hover/reactBtn:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm z-50">
+            {t("feed.chooseReaction") || "Pilih reaksi"}
+          </div>
+        )}
         {renderActiveReaction()}
         {count > 0 && hideText && <span className="ml-1.5 text-[#65676B] dark:text-[#B0B3B8]">{count}</span>}
       </button>
