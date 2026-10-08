@@ -115,7 +115,7 @@ export function CommentItem({
     if (!isRemovingLike) {
       setTopReactions((prev: ReactionType[]) => {
          const newTop = [reactionType, ...prev.filter((r: ReactionType) => r !== reactionType)];
-         return newTop.slice(0, 3);
+         return newTop;
       });
     }
 
@@ -871,7 +871,7 @@ export default function PostDetailModal({ isOpen, onClose, post, currentUser, ta
         {!isExpanded && (
           <div className="w-full md:w-[50%] lg:w-[52%] flex flex-col overflow-y-auto border-r border-gray-200 dark:border-[#3E4042] custom-scrollbar bg-[#F3F2EF] dark:bg-[#18191A]">
             <div className="w-full shrink-0 min-h-full p-0 md:p-2 pb-16 md:pb-4">
-              <PostCard post={post} currentUser={currentUser} hideFooter={true} disableClicks={true} />
+              <PostCard post={post} currentUser={currentUser} hideFooter={true} disableClicks={true} showAllReactions={true} />
             </div>
           </div>
         )}

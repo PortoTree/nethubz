@@ -137,7 +137,7 @@ export default function ProjectCard({
     } else {
       if (isAddingLike) newLikeCount = likeCount + 1;
       if (isAddingLike || reactionType !== prevReaction) {
-        newTopReactions = [reactionType, ...topReactions.filter(r => r !== reactionType)].slice(0, 3);
+        newTopReactions = [reactionType, ...topReactions.filter(r => r !== reactionType)];
       }
     }
     
@@ -338,7 +338,7 @@ export default function ProjectCard({
               <>
                 <div className="flex items-center -space-x-1 z-0">
                   {topReactions.length > 0 ? (
-                    topReactions.map((r) => (
+                    topReactions.slice(0, 3).map((r) => (
                       <ReactionSummaryPopup key={r} targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
                         <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
                            <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />

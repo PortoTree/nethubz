@@ -326,8 +326,7 @@ export async function getComments(targetType: "post" | "project", targetId: stri
           by: ['type'],
           where: { commentId: c.id },
           _count: true,
-          orderBy: { _count: { type: 'desc' } },
-          take: 3
+          orderBy: { _count: { type: 'desc' } }
         });
         mapped.topReactions = reactionGroups.map((g: any) => g.type);
       } catch (e) {
@@ -389,8 +388,7 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
           by: ['type'],
           where: { commentId: r.id },
           _count: true,
-          orderBy: { _count: { type: 'desc' } },
-          take: 3
+          orderBy: { _count: { type: 'desc' } }
         });
         mapped.topReactions = reactionGroups.map((g: any) => g.type);
       } catch (e) {
@@ -520,8 +518,7 @@ export async function checkInteractionState(userId: string | undefined, targetTy
           projectId: targetType === "project" ? targetId : undefined,
         },
         _count: true,
-        orderBy: { _count: { type: 'desc' } },
-        take: 3
+        orderBy: { _count: { type: 'desc' } }
       });
       topReactions = reactionGroups.map((g: any) => g.type);
     } catch (e) {}

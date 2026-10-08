@@ -42,7 +42,7 @@ export function formatPostTime(timestamp: number | Date, t: any, locale: string)
   }
 }
 
-export default function PostCard({ post, currentUser, onProfileClick, isHighlighted = false, hideFooter = false, disableClicks = false }: { post: any; currentUser: any; onProfileClick?: (user: any) => void; isHighlighted?: boolean; hideFooter?: boolean; disableClicks?: boolean; }) {
+export default function PostCard({ post, currentUser, onProfileClick, isHighlighted = false, hideFooter = false, disableClicks = false, showAllReactions = false }: { post: any; currentUser: any; onProfileClick?: (user: any) => void; isHighlighted?: boolean; hideFooter?: boolean; disableClicks?: boolean; showAllReactions?: boolean; }) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -95,7 +95,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         if (res.action === "updated" || res.action === "liked" || isAddingLike) {
            setTopReactions((prev: ReactionType[]) => {
              const newTop = [reactionType, ...prev.filter((r: ReactionType) => r !== reactionType)];
-             return newTop.slice(0, 3);
+             return newTop;
            });
         }
       }
@@ -686,7 +686,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         <div className="flex items-center gap-1.5 cursor-pointer hover:underline">
           <div className="flex items-center -space-x-1 z-0">
             {topReactions.length > 0 ? (
-              topReactions.map((r, i) => (
+              (showAllReactions ? topReactions : topReactions.slice(0, 3)).map((r, i) => (
                 <ReactionSummaryPopup key={r} targetId={post.id} targetType="POST" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
                   <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
                      <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />

@@ -356,7 +356,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
       post.postMedia = allMedia.filter((m: any) => m.postId === post.id);
       post.likes = allLikes.filter((l: any) => l.postId === post.id);
       post.savedBy = allSaves.filter((s: any) => s.postId === post.id);
-      post.topReactions = fetchedReactionGroups.filter((g: any) => g.postId === post.id).sort((a: any, b: any) => b._count - a._count).slice(0, 3).map((g: any) => g.type);
+      post.topReactions = fetchedReactionGroups.filter((g: any) => g.postId === post.id).sort((a: any, b: any) => b._count - a._count).map((g: any) => g.type);
       
       if (post.project) {
         post.project.likes = projectLikes.filter((l: any) => l.projectId === post.project.id);
