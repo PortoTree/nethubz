@@ -98,7 +98,7 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
     } else if (initialProfileUser) {
       // Use initial props if available and not cached yet
       projectsCache.set(cacheKey, { user: initialProfileUser, projects: initialProjects });
-      projectsCache.set(initialProfileUser.id, { projects: initialProjects, hasMore: false });
+      projectsCache.set(initialProfileUser.id, { projects: initialProjects, hasMore: initialProjects.length > 3 });
       setIsLoading(false);
       return; // Skip re-fetching on mount if we already have initial data
     } else {
@@ -112,7 +112,7 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
       setProjects(fetchedProjects);
       
       projectsCache.set(cacheKey, { user: res.user, projects: fetchedProjects });
-      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: false });
+      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: fetchedProjects.length > 3 });
     } else if (!projectsCache.has(cacheKey)) {
       router.push(`/${locale}/404`);
     }

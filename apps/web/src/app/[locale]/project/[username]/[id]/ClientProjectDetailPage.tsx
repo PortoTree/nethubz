@@ -6,6 +6,7 @@ import { getProjectById } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { getProfile } from "@/app/actions/profile";
 import { toggleLike, addComment, getComments, getCommentReplies, checkInteractionState } from "@/app/actions/interactions";
+import { interactionsCache } from "@/utils/cache";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import Link from "next/link";
@@ -219,13 +220,27 @@ export default function ClientProjectDetailPage({
   }, [id, user?.id]);
 
   const loadInteractions = useCallback(() => {
-    setIsInteractionLoading(true);
-    // Pure SWR for interactions (bypassing global cache)
+    const cacheKey = `interaction_project_${id}_${user?.id || 'guest'}`;
+    if (interactionsCache.has(cacheKey)) {
+      const cached = interactionsCache.get(cacheKey);
+      setMyReaction(cached.myReaction);
+      setLikeCount(cached.likeCount);
+      setCommentCount(cached.commentCount);
+      setIsInteractionLoading(false);
+    } else {
+      setIsInteractionLoading(true);
+    }
+    // SWR for interactions
     checkInteractionState(user?.id, "project", id).then(interaction => {
       if (interaction.success) {
         setMyReaction(interaction.myReaction as ReactionType | null);
         setLikeCount(interaction.likeCount || 0);
         setCommentCount(interaction.commentCount || 0);
+        interactionsCache.set(cacheKey, {
+          myReaction: interaction.myReaction as ReactionType | null,
+          likeCount: interaction.likeCount || 0,
+          commentCount: interaction.commentCount || 0
+        });
       }
       setIsInteractionLoading(false);
     }).catch(() => setIsInteractionLoading(false));
@@ -252,11 +267,23 @@ export default function ClientProjectDetailPage({
     const isRemoving = previousReaction === reactionType;
     const newReaction = isRemoving ? null : reactionType;
 
+    const cacheKey = `interaction_project_${id}_${user.id}`;
+    
     setMyReaction(newReaction);
     if (!previousReaction && newReaction) {
-      setLikeCount((prev: number) => prev + 1);
+      setLikeCount((prev: number) => {
+        const next = prev + 1;
+        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction, likeCount: next });
+        return next;
+      });
     } else if (previousReaction && !newReaction) {
-      setLikeCount((prev: number) => Math.max(0, prev - 1));
+      setLikeCount((prev: number) => {
+        const next = Math.max(0, prev - 1);
+        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction, likeCount: next });
+        return next;
+      });
+    } else if (previousReaction && newReaction && previousReaction !== newReaction) {
+        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction });
     }
     
     setIsLikeLoading(true);
@@ -264,10 +291,22 @@ export default function ClientProjectDetailPage({
     if (!res.success) { 
       setMyReaction(previousReaction); 
       if (!previousReaction && newReaction) {
-        setLikeCount((prev: number) => Math.max(0, prev - 1));
+        setLikeCount((prev: number) => {
+            const next = Math.max(0, prev - 1);
+            interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: previousReaction, likeCount: next });
+            return next;
+        });
       } else if (previousReaction && !newReaction) {
-        setLikeCount((prev: number) => prev + 1);
+        setLikeCount((prev: number) => {
+            const next = prev + 1;
+            interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: previousReaction, likeCount: next });
+            return next;
+        });
+      } else if (previousReaction && newReaction && previousReaction !== newReaction) {
+          interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: previousReaction });
       }
+    } else {
+        window.dispatchEvent(new Event("refresh_projects"));
     }
     setIsLikeLoading(false);
   };

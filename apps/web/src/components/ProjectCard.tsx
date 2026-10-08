@@ -9,6 +9,7 @@ import { MediaRenderer } from "./MediaRenderer";
 import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
 import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
 import { checkInteractionState, toggleLike } from "@/app/actions/interactions";
+import { interactionsCache } from "@/utils/cache";
 import Image from "next/image";
 
 interface ProjectCardProps {
@@ -72,10 +73,22 @@ export default function ProjectCard({
   const [isInteractionLoading, setIsInteractionLoading] = useState(true);
   const [myReaction, setMyReaction] = useState<ReactionType | null>(null);
   const [likeCount, setLikeCount] = useState(p._count?.likes || 0);
+  const [commentCount, setCommentCount] = useState(p._count?.comments || 0);
   const [topReactions, setTopReactions] = useState<ReactionType[]>(p.topReactions || []);
 
   const loadInteractions = useCallback(() => {
-    setIsInteractionLoading(true);
+    const cacheKey = `interaction_project_${p.id}_${user?.id || 'guest'}`;
+    if (interactionsCache.has(cacheKey)) {
+      const cached = interactionsCache.get(cacheKey);
+      setMyReaction(cached.myReaction);
+      setLikeCount(cached.likeCount);
+      setTopReactions(cached.topReactions || []);
+      setCommentCount(cached.commentCount);
+      setIsInteractionLoading(false);
+    } else {
+      setIsInteractionLoading(true);
+    }
+    
     checkInteractionState(user?.id, "project", p.id).then(interaction => {
       if (interaction.success) {
         setMyReaction(interaction.myReaction as ReactionType | null);
@@ -83,6 +96,13 @@ export default function ProjectCard({
         if (interaction.topReactions) {
           setTopReactions(interaction.topReactions as ReactionType[]);
         }
+        setCommentCount(interaction.commentCount || 0);
+        interactionsCache.set(cacheKey, {
+          myReaction: interaction.myReaction as ReactionType | null,
+          likeCount: interaction.likeCount || 0,
+          topReactions: interaction.topReactions || [],
+          commentCount: interaction.commentCount || 0
+        });
       }
       setIsInteractionLoading(false);
     }).catch(() => setIsInteractionLoading(false));
@@ -103,27 +123,48 @@ export default function ProjectCard({
     const isRemovingLike = prevReaction && isSameReaction;
     const isAddingLike = !prevReaction;
 
+    const cacheKey = `interaction_project_${p.id}_${user.id}`;
+
+    let newLikeCount = likeCount;
+    let newReaction = isRemovingLike ? null : reactionType;
+    let newTopReactions = topReactions;
+
     if (isRemovingLike) {
-      setMyReaction(null);
-      setLikeCount((prev: number) => Math.max(0, prev - 1));
+      newLikeCount = Math.max(0, likeCount - 1);
     } else {
-      setMyReaction(reactionType);
-      if (isAddingLike) setLikeCount((prev: number) => prev + 1);
+      if (isAddingLike) newLikeCount = likeCount + 1;
+      if (isAddingLike || reactionType !== prevReaction) {
+        newTopReactions = [reactionType, ...topReactions.filter(r => r !== reactionType)].slice(0, 3);
+      }
     }
+    
+    setMyReaction(newReaction);
+    setLikeCount(newLikeCount);
+    setTopReactions(newTopReactions);
+    
+    interactionsCache.set(cacheKey, {
+      ...interactionsCache.get(cacheKey),
+      myReaction: newReaction,
+      likeCount: newLikeCount,
+      topReactions: newTopReactions
+    });
 
     try {
       await toggleLike(user.id, "project", p.id, reactionType);
-      if (isAddingLike || reactionType !== prevReaction) {
-        setTopReactions((prev: ReactionType[]) => {
-          const newTop = [reactionType, ...prev.filter((r: ReactionType) => r !== reactionType)];
-          return newTop.slice(0, 3);
-        });
-      }
       window.dispatchEvent(new Event("refresh_projects"));
     } catch (e) {
       setMyReaction(prevReaction);
-      if (isRemovingLike) setLikeCount((prev: number) => prev + 1);
-      if (isAddingLike) setLikeCount((prev: number) => Math.max(0, prev - 1));
+      let revertLikeCount = likeCount;
+      if (isRemovingLike) revertLikeCount = likeCount + 1;
+      if (isAddingLike) revertLikeCount = Math.max(0, likeCount - 1);
+      setLikeCount(revertLikeCount);
+      setTopReactions(topReactions); // revert back to original
+      interactionsCache.set(cacheKey, {
+        ...interactionsCache.get(cacheKey),
+        myReaction: prevReaction,
+        likeCount: revertLikeCount,
+        topReactions: topReactions
+      });
     } finally {
       setIsLikeLoading(false);
     }
@@ -282,48 +323,68 @@ export default function ProjectCard({
           
           {/* Left: Reaction Summary */}
           <div className="flex items-center gap-1.5 cursor-pointer hover:underline text-[#65676B] dark:text-[#B0B3B8] text-[15px]">
-            <div className="flex items-center -space-x-1 z-0">
-              {topReactions.length > 0 ? (
-                topReactions.map((r) => (
-                  <ReactionSummaryPopup key={r} targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
-                    <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
-                       <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
-                    </div>
-                  </ReactionSummaryPopup>
-                ))
-              ) : likeCount > 0 ? (
-                <ReactionSummaryPopup targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions}>
-                  <div className="w-[18px] h-[18px] rounded-full bg-blue-500 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                    </svg>
-                  </div>
-                </ReactionSummaryPopup>
-              ) : null}
-            </div>
-            {likeCount > 0 && <span onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }}>{likeCount}</span>}
+            {isInteractionLoading ? (
+              <div className="flex items-center gap-1.5">
+                <div className="flex -space-x-1">
+                  <div className="w-[18px] h-[18px] rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse relative z-10 border-2 border-white dark:border-[#242526]"></div>
+                  <div className="w-[18px] h-[18px] rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse relative z-0 border-2 border-white dark:border-[#242526]"></div>
+                </div>
+                <div className="w-4 h-4 bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded"></div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center -space-x-1 z-0">
+                  {topReactions.length > 0 ? (
+                    topReactions.map((r) => (
+                      <ReactionSummaryPopup key={r} targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
+                        <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                           <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
+                        </div>
+                      </ReactionSummaryPopup>
+                    ))
+                  ) : likeCount > 0 ? (
+                    <ReactionSummaryPopup targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions}>
+                      <div className="w-[18px] h-[18px] rounded-full bg-blue-500 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                        </svg>
+                      </div>
+                    </ReactionSummaryPopup>
+                  ) : null}
+                </div>
+                {likeCount > 0 && <span onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }}>{likeCount}</span>}
+              </>
+            )}
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-4">
-            <ReactionButton myReaction={myReaction} onReact={handleLike} count={0} containerClassName="!flex-none" className="flex items-center gap-1.5 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors font-medium text-[14px] bg-transparent" />
+          <div className="flex items-center gap-2 -mr-2">
+            {isInteractionLoading ? (
+              <div className="w-[84px] h-[18px] bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded"></div>
+            ) : (
+              <ReactionButton myReaction={myReaction} onReact={handleLike} count={0} containerClassName="!flex-none" className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-purple-600 dark:text-gray-400 dark:hover:bg-[#3A3B3C] dark:hover:text-purple-400 transition-colors font-medium text-[14px] bg-transparent" />
+            )}
             
             <div className="w-px h-4 bg-gray-300 dark:bg-[#4E4F50]"></div>
             
             <button 
               onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}#comments`); }}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors font-medium text-[14px] bg-transparent"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-purple-600 dark:text-gray-400 dark:hover:bg-[#3A3B3C] dark:hover:text-purple-400 transition-colors font-medium text-[14px] bg-transparent"
               title={tProject("comment") || "Komentar"}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-              {p._count?.comments > 0 ? <span>{p._count.comments}</span> : null}
+              {isInteractionLoading ? (
+                <div className="w-3 h-4 bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded"></div>
+              ) : commentCount > 0 ? (
+                <span>{commentCount}</span>
+              ) : null}
             </button>
             
             <div className="w-px h-4 bg-gray-300 dark:bg-[#4E4F50]"></div>
             
             <button 
               onClick={handleShare}
-              className="flex items-center justify-center text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors bg-transparent"
+              className="flex items-center justify-center px-2 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-purple-600 dark:text-gray-400 dark:hover:bg-[#3A3B3C] dark:hover:text-purple-400 transition-colors bg-transparent"
               title={tProject("share") || "Bagikan"}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
