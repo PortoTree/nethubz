@@ -81,7 +81,7 @@ export default function ProjectCard({
         setMyReaction(interaction.myReaction as ReactionType | null);
         setLikeCount(interaction.likeCount || 0);
         if (interaction.topReactions) {
-          setTopReactions(interaction.topReactions);
+          setTopReactions(interaction.topReactions as ReactionType[]);
         }
       }
       setIsInteractionLoading(false);
