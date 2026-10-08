@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
 import { ReactionButton, ReactionType } from "@/components/ReactionButton";
+import { ProjectReactionListDropdown } from "@/components/ProjectReactionListDropdown";
 import { formatPostTime } from "@/components/PostCard";
 import { CommentItem, InlineReplyInput } from "@/components/PostDetailModal";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -447,7 +448,10 @@ export default function ClientProjectDetailPage({
                       <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
                     </div>
                   ) : (
-                    <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} />
+                    <div className="flex items-center">
+                      <ProjectReactionListDropdown targetId={id} count={likeCount} />
+                      <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} />
+                    </div>
                   )}
                 </div>
                 <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
