@@ -142,14 +142,14 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
           url: url,
         });
         if (user) {
-          await incrementShareCount(user.id, "project", p.id);
+          await incrementShareCount("project", p.id);
         }
       } catch (err) {}
     } else {
       navigator.clipboard.writeText(url);
       alert(tHub("linkCopied") || "Tautan disalin ke clipboard!");
       if (user) {
-        await incrementShareCount(user.id, "project", p.id);
+        await incrementShareCount("project", p.id);
       }
     }
   };
