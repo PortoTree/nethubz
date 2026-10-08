@@ -638,6 +638,25 @@ export default function ClientProjectDetailPage({
                     <Link href={`/${locale}/p/${profileUser.username}/${profileUser.id}`} className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-center text-[15px] transition-all hover:-translate-y-0.5 shadow-sm shadow-purple-200 dark:shadow-none">{t("viewProfile") || "Lihat Profil"}</Link>
                     <Link href={`/${locale}/project/${profileUser.username}`} className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-[#3A3B3C] dark:hover:bg-[#4E4F50] text-gray-800 dark:text-[#E4E6EB] font-bold rounded-xl text-[14px] text-center transition-colors">{t("viewOtherProjects") || "Project Lain"}</Link>
                   </div>
+                  
+                  <div className="flex items-center justify-center gap-2 mt-6 w-fit mx-auto">
+                    <div className="flex items-center gap-1 bg-white dark:bg-[#242526] px-3 py-1.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C]">
+                      {isInteractionLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
+                          <div className="w-10 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <ProjectReactionListDropdown targetId={id} count={likeCount} />
+                          <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} containerClassName="!flex-none" />
+                        </div>
+                      )}
+                    </div>
+                    <button onClick={handleShare} className="flex shrink-0 items-center justify-center w-10 h-10 bg-white dark:bg-[#242526] rounded-2xl shadow-sm border border-gray-100 dark:border-[#3A3B3C] text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors">
+                      <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
 
