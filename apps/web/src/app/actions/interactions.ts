@@ -478,18 +478,23 @@ export async function getLikers(targetId: string, targetType: "POST" | "COMMENT"
   }
 }
 
-export async function checkInteractionState(userId: string, targetType: "post" | "project", targetId: string) {
+export async function checkInteractionState(userId: string | undefined, targetType: "post" | "project", targetId: string) {
   try {
-    const like = await prisma.like.findFirst({
-      where: {
-        userId,
-        postId: targetType === "post" ? targetId : null,
-        projectId: targetType === "project" ? targetId : null,
-      }
-    });
-    const save = targetType === "post" 
-      ? await prisma.savedPost.findUnique({ where: { userId_postId: { userId, postId: targetId } } })
-      : await prisma.savedProject.findUnique({ where: { userId_projectId: { userId, projectId: targetId } } });
+    let like = null;
+    let save = null;
+    
+    if (userId) {
+      like = await prisma.like.findFirst({
+        where: {
+          userId,
+          postId: targetType === "post" ? targetId : null,
+          projectId: targetType === "project" ? targetId : null,
+        }
+      });
+      save = targetType === "post" 
+        ? await prisma.savedPost.findUnique({ where: { userId_postId: { userId, postId: targetId } } })
+        : await prisma.savedProject.findUnique({ where: { userId_projectId: { userId, projectId: targetId } } });
+    }
 
     let likeCount = 0;
     let commentCount = 0;

@@ -119,9 +119,9 @@ export default function ClientProjectDetailPage({
   const [user, setUser] = useState<any>(null);
 
   // Like
-  const [myReaction, setMyReaction] = useState<ReactionType | null>(initialProject?.myReaction || null);
-  const [likeCount, setLikeCount] = useState(initialProject?._count?.likes || 0);
-  const [commentCount, setCommentCount] = useState(initialProject?._count?.comments || 0);
+  const [myReaction, setMyReaction] = useState<ReactionType | null>(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
   const [isInteractionLoading, setIsInteractionLoading] = useState(true);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
@@ -224,22 +224,17 @@ export default function ClientProjectDetailPage({
     if (!res.success || !res.project) { router.push(`/${locale}/404`); return; }
     if (res.project.user?.username?.toLowerCase() !== decodedUsername.toLowerCase()) { router.push(`/${locale}/404`); return; }
     setProject(res.project);
-    setMyReaction((res.project as any)?.myReaction || null);
-    setLikeCount(res.project._count?.likes || 0);
-    setCommentCount(res.project._count?.comments || 0);
     
-    if (user?.id) {
-      checkInteractionState(user.id, "project", id).then(interaction => {
-        if (interaction.success) {
-          setMyReaction(interaction.myReaction as ReactionType | null);
-          setLikeCount(interaction.likeCount || 0);
-          setCommentCount(interaction.commentCount || 0);
-        }
-        setIsInteractionLoading(false);
-      }).catch(() => setIsInteractionLoading(false));
-    } else {
+    // Pure SWR for interactions (bypassing global cache)
+    checkInteractionState(user?.id, "project", id).then(interaction => {
+      if (interaction.success) {
+        setMyReaction(interaction.myReaction as ReactionType | null);
+        setLikeCount(interaction.likeCount || 0);
+        setCommentCount(interaction.commentCount || 0);
+      }
       setIsInteractionLoading(false);
-    }
+    }).catch(() => setIsInteractionLoading(false));
+
     setIsLoading(false);
   }, [id, decodedUsername, locale, router, user?.id]);
 
