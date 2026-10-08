@@ -1,4 +1,5 @@
 "use server";
+import { revalidateTag } from "next/cache";
 
 import prisma from "@/utils/prisma";
 
@@ -19,6 +20,12 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
         await prisma.like.delete({
           where: { id: existingLike.id },
         });
+        if (targetType === "project") {
+          revalidateTag(`project_${targetId}`);
+          revalidateTag("global_projects");
+        } else if (targetType === "post") {
+          revalidateTag(`post_${targetId}`);
+        }
         return { success: true, action: "unliked" };
       } else {
         // Different reaction, update it
@@ -26,8 +33,12 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
           where: { id: existingLike.id },
           data: { type: reactionType },
         });
-        // We might not want to spam notifications for a reaction change, 
-        // so we just return here.
+        if (targetType === "project") {
+          revalidateTag(`project_${targetId}`);
+          revalidateTag("global_projects");
+        } else if (targetType === "post") {
+          revalidateTag(`post_${targetId}`);
+        }
         return { success: true, action: "updated" };
       }
     } else {
@@ -81,6 +92,18 @@ export async function toggleLike(userId: string, targetType: "post" | "comment" 
         });
       }
 
+      if (targetType === "project") {
+        revalidateTag(`project_${targetId}`);
+        revalidateTag("global_projects");
+      } else if (targetType === "post") {
+        revalidateTag(`post_${targetId}`);
+      }
+      if (targetType === "project") {
+        revalidateTag(`project_${targetId}`);
+        revalidateTag("global_projects");
+      } else if (targetType === "post") {
+        revalidateTag(`post_${targetId}`);
+      }
       return { success: true, action: "liked" };
     }
   } catch (error: any) {
@@ -454,5 +477,38 @@ export async function getLikers(targetId: string, targetType: "POST" | "COMMENT"
     return { success: false, error: error.message };
   }
 }
+
+export async function checkInteractionState(userId: string, targetType: "post" | "project", targetId: string) {
+  try {
+    const like = await prisma.like.findFirst({
+      where: {
+        userId,
+        postId: targetType === "post" ? targetId : null,
+        projectId: targetType === "project" ? targetId : null,
+      }
+    });
+    const save = targetType === "post" 
+      ? await prisma.savedPost.findUnique({ where: { userId_postId: { userId, postId: targetId } } })
+      : await prisma.savedProject.findUnique({ where: { userId_projectId: { userId, projectId: targetId } } });
+
+    let likeCount = 0;
+    let commentCount = 0;
+
+    if (targetType === "post") {
+      const p = await prisma.post.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true, comments: true } } } });
+      likeCount = p?._count?.likes || 0;
+      commentCount = p?._count?.comments || 0;
+    } else {
+      const p = await prisma.project.findUnique({ where: { id: targetId }, select: { _count: { select: { likes: true, comments: true } } } });
+      likeCount = p?._count?.likes || 0;
+      commentCount = p?._count?.comments || 0;
+    }
+      
+    return { success: true, hasLiked: !!like, myReaction: like ? like.type : null, hasSaved: !!save, likeCount, commentCount };
+  } catch (e) {
+    return { success: false, hasLiked: false, myReaction: null, hasSaved: false, likeCount: 0, commentCount: 0 };
+  }
+}
+
 
 

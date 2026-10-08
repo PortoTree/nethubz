@@ -144,6 +144,13 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   };
 
   useEffect(() => {
+    setIsLiked(post.myReaction || null);
+    setLikeCount(post._count?.likes || 0);
+    setIsSaved(post.hasSaved || false);
+    if (post.topReactions) setTopReactions(post.topReactions);
+  }, [post.myReaction, post._count?.likes, post.hasSaved, post.topReactions]);
+
+  useEffect(() => {
     if (isDeleteModalOpen || isMediaModalOpen || isTagListModalOpen || isEditModalOpen) {
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";

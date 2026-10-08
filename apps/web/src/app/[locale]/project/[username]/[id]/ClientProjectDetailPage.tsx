@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { getProjectById } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { getProfile } from "@/app/actions/profile";
-import { toggleLike, addComment, getComments, getCommentReplies } from "@/app/actions/interactions";
+import { toggleLike, addComment, getComments, getCommentReplies, checkInteractionState } from "@/app/actions/interactions";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import Link from "next/link";
@@ -13,6 +13,7 @@ import { MediaRenderer } from "@/components/MediaRenderer";
 import { useRouter } from "next/navigation";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
+import { ReactionButton, ReactionType } from "@/components/ReactionButton";
 import { formatPostTime } from "@/components/PostCard";
 import { CommentItem, InlineReplyInput } from "@/components/PostDetailModal";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -117,11 +118,14 @@ export default function ClientProjectDetailPage({
   const [user, setUser] = useState<any>(null);
 
   // Like
-  const [isLiked, setIsLiked] = useState(initialProject?.hasLiked || false);
+  const [myReaction, setMyReaction] = useState<ReactionType | null>(initialProject?.myReaction || null);
   const [likeCount, setLikeCount] = useState(initialProject?._count?.likes || 0);
+  const [commentCount, setCommentCount] = useState(initialProject?._count?.comments || 0);
+  const [isInteractionLoading, setIsInteractionLoading] = useState(true);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const emojiRef = useRef<HTMLDivElement>(null);
+
 
   // Comments
   const [comments, setComments] = useState<any[]>([]);
@@ -214,12 +218,27 @@ export default function ClientProjectDetailPage({
   }, [id]);
 
   const loadProject = useCallback(async () => {
+    setIsInteractionLoading(true);
     const res = await getProjectById(id);
     if (!res.success || !res.project) { router.push(`/${locale}/404`); return; }
     if (res.project.user?.username?.toLowerCase() !== decodedUsername.toLowerCase()) { router.push(`/${locale}/404`); return; }
     setProject(res.project);
-    setIsLiked((res.project as any).hasLiked || false);
+    setMyReaction((res.project as any)?.myReaction || null);
     setLikeCount(res.project._count?.likes || 0);
+    setCommentCount(res.project._count?.comments || 0);
+    
+    if (user?.id) {
+      checkInteractionState(user.id, "project", id).then(interaction => {
+        if (interaction.success) {
+          setMyReaction(interaction.myReaction as ReactionType | null);
+          setLikeCount(interaction.likeCount || 0);
+          setCommentCount(interaction.commentCount || 0);
+        }
+        setIsInteractionLoading(false);
+      }).catch(() => setIsInteractionLoading(false));
+    } else {
+      setIsInteractionLoading(false);
+    }
     setIsLoading(false);
   }, [id, decodedUsername, locale, router, user?.id]);
 
@@ -238,14 +257,29 @@ export default function ClientProjectDetailPage({
     }
   }, [isLoading]);
 
-  const handleLike = async () => {
+  const handleLike = async (reactionType: ReactionType = "LIKE") => {
     if (!user || isLikeLoading) return;
-    const newLiked = !isLiked;
-    setIsLiked(newLiked);
-    setLikeCount((prev: number) => newLiked ? prev + 1 : Math.max(0, prev - 1));
+    const previousReaction = myReaction;
+    const isRemoving = previousReaction === reactionType;
+    const newReaction = isRemoving ? null : reactionType;
+
+    setMyReaction(newReaction);
+    if (!previousReaction && newReaction) {
+      setLikeCount((prev: number) => prev + 1);
+    } else if (previousReaction && !newReaction) {
+      setLikeCount((prev: number) => Math.max(0, prev - 1));
+    }
+    
     setIsLikeLoading(true);
-    const res = await toggleLike(user.id, "project", id);
-    if (!res.success) { setIsLiked(!newLiked); setLikeCount((prev: number) => !newLiked ? prev + 1 : Math.max(0, prev - 1)); }
+    const res = await toggleLike(user.id, "project", id, reactionType);
+    if (!res.success) { 
+      setMyReaction(previousReaction); 
+      if (!previousReaction && newReaction) {
+        setLikeCount((prev: number) => Math.max(0, prev - 1));
+      } else if (previousReaction && !newReaction) {
+        setLikeCount((prev: number) => prev + 1);
+      }
+    }
     setIsLikeLoading(false);
   };
 
@@ -406,14 +440,20 @@ export default function ClientProjectDetailPage({
               </Link>
 
               <div className="flex items-center gap-3 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C]">
-                <button onClick={handleLike} disabled={isLikeLoading} className={`flex items-center gap-2 font-semibold transition-colors text-[14px] ${isLiked ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400'}`}>
-                  {isLiked ? (<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M2 10.5a1.5 1.5 0 113 0v8a1.5 1.5 0 01-3 0v-8zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" /></svg>) : (<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>)}
-                  <span>{likeCount}</span>
-                </button>
+                <div className="flex items-center relative">
+                  {isInteractionLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
+                    </div>
+                  ) : (
+                    <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} />
+                  )}
+                </div>
                 <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
                 <button onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                  <span>{p._count?.comments || 0}</span>
+                  {isInteractionLoading ? <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" /> : <span>{commentCount}</span>}
                 </button>
                 <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
                 <button onClick={handleShare} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
