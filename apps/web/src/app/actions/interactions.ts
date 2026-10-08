@@ -511,8 +511,22 @@ export async function checkInteractionState(userId: string | undefined, targetTy
       likeCount = p?._count?.likes || 0;
       commentCount = await prisma.comment.count({ where: { projectId: targetId, parentId: null } });
     }
-      
-    return { success: true, hasLiked: !!like, myReaction: like ? like.type : null, hasSaved: !!save, likeCount, commentCount };
+    let topReactions: string[] = [];
+    try {
+      const reactionGroups = await prisma.like.groupBy({
+        by: ['type'],
+        where: { 
+          postId: targetType === "post" ? targetId : undefined,
+          projectId: targetType === "project" ? targetId : undefined,
+        },
+        _count: true,
+        orderBy: { _count: { type: 'desc' } },
+        take: 3
+      });
+      topReactions = reactionGroups.map((g: any) => g.type);
+    } catch (e) {}
+
+    return { success: true, hasLiked: !!like, myReaction: like ? like.type : null, hasSaved: !!save, likeCount, commentCount, topReactions };
   } catch (e) {
     return { success: false, hasLiked: false, myReaction: null, hasSaved: false, likeCount: 0, commentCount: 0 };
   }
