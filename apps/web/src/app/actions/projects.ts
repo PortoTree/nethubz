@@ -132,6 +132,9 @@ export const getAllProjects = async () => {
               include: {
                 profile: true
               }
+            },
+            _count: {
+              select: { likes: true, comments: true }
             }
           }
         });
