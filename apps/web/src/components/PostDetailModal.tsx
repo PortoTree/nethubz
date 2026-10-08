@@ -71,6 +71,12 @@ export function CommentItem({
   const [likeCount, setLikeCount] = useState(comment._count?.likes || 0);
   const [topReactions, setTopReactions] = useState<ReactionType[]>(comment.topReactions || []);
 
+  useEffect(() => {
+    setIsLiked(comment.myReaction || null);
+    setLikeCount(comment._count?.likes || 0);
+    setTopReactions(comment.topReactions || []);
+  }, [comment.myReaction, comment._count?.likes, comment.topReactions]);
+
   const { targetCommentId: globalTargetCommentId, targetParentId: globalTargetParentId } = comment.globalTarget || {};
 
   useEffect(() => {
