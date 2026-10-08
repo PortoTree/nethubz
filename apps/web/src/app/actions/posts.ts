@@ -262,60 +262,6 @@ export async function createPost(data: {
   }
 }
 
-export const getCachedPublicFeedPosts = async (targetProfileId: string, limit: number) => {
-  return await unstable_cache(
-    async () => {
-      console.log(`🔥 DB FETCH (CACHE MISS): getCachedPublicFeedPosts ${targetProfileId}`);
-      return await prisma.post.findMany({
-        where: {
-          OR: [
-            { authorId: targetProfileId },
-            { taggedUsers: { some: { id: targetProfileId } } }
-          ],
-          visibility: "PUBLIC"
-        },
-        take: limit + 1,
-        include: {
-          author: {
-            include: { profile: true }
-          },
-          postMedia: {
-            include: { media: true },
-            orderBy: { order: 'asc' }
-          },
-          taggedUsers: {
-            select: {
-              id: true,
-              username: true,
-              profile: {
-                select: {
-                  displayName: true,
-                  avatarUrl: true,
-                  coverUrl: true
-                }
-              }
-            }
-          },
-          gallery: {
-            select: { id: true, name: true }
-          },
-          giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
-          project: {
-            include: {
-              _count: { select: { likes: true, comments: true } }
-            }
-          },
-          _count: {
-            select: { likes: true, comments: true }
-          }
-        },
-        orderBy: { createdAt: "desc" }
-      });
-    },
-    ['public_profile_posts', targetProfileId],
-    { tags: [`profile_posts_${targetProfileId}`] }
-  )();
-};
 
 export async function getFeedPosts(userId: string, targetProfileId?: string, cursor?: string, limit: number = 15) {
   try {
@@ -330,96 +276,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
 
     const friendIds = friendships.map(f => f.userId === userId ? f.friendId : f.userId);
 
-    if (targetProfileId && !cursor) {
-      console.log(`⚡ LIVE FETCH (SWR, NO SERVER CACHE): getFeedPosts dynamic data for ${targetProfileId}`);
-      const cachedPublicPosts = await getCachedPublicFeedPosts(targetProfileId, limit);
-      
-      const postIds = cachedPublicPosts.map(p => p.id);
-      const projectIds = cachedPublicPosts.map(p => p.projectId).filter(Boolean);
 
-      const userLikes = await prisma.like.findMany({ where: { postId: { in: postIds }, userId } });
-      const userSaves = await prisma.savedPost.findMany({ where: { postId: { in: postIds }, userId } });
-      const projectLikes = await prisma.like.findMany({ where: { projectId: { in: projectIds as string[] }, userId } });
-      const projectSaves = await prisma.savedProject.findMany({ where: { projectId: { in: projectIds as string[] }, userId } });
-      const privatePosts = await prisma.post.findMany({
-        where: {
-          AND: [
-            {
-              OR: [
-                { authorId: targetProfileId },
-                { taggedUsers: { some: { id: targetProfileId } } }
-              ]
-            },
-            {
-              OR: [
-                { visibility: "PRIVATE", authorId: userId },
-                { visibility: "FRIENDS", authorId: { in: friendIds } },
-                { visibility: "COMMUNITY_ONLY", authorId: { in: friendIds } }
-              ]
-            }
-          ]
-        },
-        take: limit + 1,
-        include: {
-          author: { include: { profile: true } },
-          postMedia: { include: { media: true }, orderBy: { order: 'asc' } },
-          taggedUsers: {
-            select: {
-              id: true, username: true, profile: { select: { displayName: true, avatarUrl: true, coverUrl: true } }
-            }
-          },
-          gallery: { select: { id: true, name: true } },
-          giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
-          project: { include: { _count: { select: { likes: true, comments: true } }, likes: { where: { userId } }, savedBy: { where: { userId } } } },
-          _count: { select: { likes: true, comments: true } },
-          likes: { where: { userId } },
-          savedBy: { where: { userId } }
-        },
-        orderBy: { createdAt: "desc" }
-      });
-
-      const publicWithInteractions = cachedPublicPosts.map(p => ({
-        ...p,
-        likes: userLikes.filter(l => l.postId === p.id),
-        savedBy: userSaves.filter(s => s.postId === p.id),
-        project: p.project ? {
-          ...p.project,
-          likes: projectLikes.filter(l => l.projectId === p.project.id),
-          savedBy: projectSaves.filter(s => s.projectId === p.project.id)
-        } : null
-      }));
-
-      let allPosts = [...publicWithInteractions, ...privatePosts]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      let nextCursor: string | undefined = undefined;
-      if (allPosts.length > limit) {
-        allPosts = allPosts.slice(0, limit + 1);
-        const nextItem = allPosts.pop();
-        nextCursor = nextItem?.id;
-      }
-
-      // Pre-fetch top reactions
-      const allPostIds = allPosts.map(p => p.id);
-      const reactionGroups = await prisma.like.groupBy({
-        by: ['postId', 'type'],
-        where: { postId: { in: allPostIds } },
-        _count: true
-      });
-
-      const mappedPosts = [];
-      for (const post of allPosts) {
-        const topRx = reactionGroups
-          .filter(g => g.postId === post.id)
-          .sort((a, b) => b._count - a._count)
-          .slice(0, 3)
-          .map(g => g.type);
-        post.topReactions = topRx;
-        mappedPosts.push(await mapPost(post));
-      }
-
-      return { success: true, posts: mappedPosts, nextCursor };
-    }
 
     const visibilityFilter = {
       OR: [
@@ -447,7 +304,7 @@ export async function getFeedPosts(userId: string, targetProfileId?: string, cur
     const posts = await prisma.post.findMany({
       where: whereClause as any,
       take: limit + 1,
-      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      ...(cursor ? { cursor: { id: cursor } } : {}),
       include: {
         author: {
           include: { profile: true }

@@ -29,7 +29,8 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
     try {
       if (!isBackground && !cursor) setIsLoading(true);
       if (cursor) setIsFetchingMore(true);
-      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, 15);
+      const limit = 15;
+      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, limit);
       let loadedPosts = res.posts || [];
 
       if (res.success && loadedPosts) {
@@ -37,7 +38,7 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
         setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
         if (!cursor) {
           (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-          (window as any).__POST_FEED_CACHE[cacheKey] = loadedPosts;
+          (window as any).__POST_FEED_CACHE[cacheKey] = { posts: loadedPosts, nextCursor: res.nextCursor };
         }
       } else {
         if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
@@ -51,9 +52,10 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
   }, [currentUser?.id, targetProfileId, cacheKey, t]);
 
   useEffect(() => {
-    const cachedPosts = (window as any).__POST_FEED_CACHE?.[cacheKey];
-    if (cachedPosts && cachedPosts.length > 0) {
-      setPosts(cachedPosts);
+    const cachedData = (window as any).__POST_FEED_CACHE?.[cacheKey];
+    if (cachedData && cachedData.posts && cachedData.posts.length > 0) {
+      setPosts(cachedData.posts);
+      setNextCursor(cachedData.nextCursor);
       setIsLoading(false);
       // Revalidate in background
       fetchPosts(true);
@@ -82,7 +84,8 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
           return p;
         }).filter(Boolean);
         (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-        (window as any).__POST_FEED_CACHE[cacheKey] = newPosts;
+        const oldCache = (window as any).__POST_FEED_CACHE[cacheKey] || {};
+        (window as any).__POST_FEED_CACHE[cacheKey] = { ...oldCache, posts: newPosts };
         return newPosts as any[];
       });
     };
@@ -92,7 +95,8 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
       setPosts(prev => {
         const newPosts = prev.filter(p => p.galleryId !== galleryId);
         (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-        (window as any).__POST_FEED_CACHE[cacheKey] = newPosts;
+        const oldCache = (window as any).__POST_FEED_CACHE[cacheKey] || {};
+        (window as any).__POST_FEED_CACHE[cacheKey] = { ...oldCache, posts: newPosts };
         return newPosts;
       });
     };

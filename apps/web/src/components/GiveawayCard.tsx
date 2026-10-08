@@ -57,18 +57,20 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
   const [reward, setReward] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [participants, setParticipants] = useState<any[] | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { diff, text: countdown } = useCountdown(state?.endsAt || giveaway.endsAt);
 
   const refresh = useCallback(async () => {
+    if (!isExpanded) return;
     const res = await getGiveawayState(giveaway.id, currentUser?.id);
     if (res.success && res.state) {
       setState(res.state);
       setUsernames(prev => ({ ...res.state!.externalUsernames, ...prev }));
     }
-  }, [giveaway.id, currentUser?.id]);
+  }, [giveaway.id, currentUser?.id, isExpanded]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { refresh(); }, [refresh, isExpanded]);
 
   // When countdown hits zero, refresh once to trigger finalization
   useEffect(() => {
@@ -219,9 +221,20 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
           </div>
         </div>
 
-        {/* Requirements */}
-        {((giveaway.requirements && giveaway.requirements.length > 0) || giveaway.notes) && (
-        <div className="px-4 py-3 flex flex-col gap-2">
+        {!isExpanded ? (
+          <div className="px-4 pt-6 pb-4">
+            <button 
+              onClick={() => setIsExpanded(true)}
+              className="w-full py-2.5 rounded-lg font-bold text-[15px] text-amber-900 dark:text-amber-100 bg-amber-200/50 hover:bg-amber-300/50 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors"
+            >
+              Lihat Giveaway
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Requirements */}
+            {((giveaway.requirements && giveaway.requirements.length > 0) || giveaway.notes) && (
+            <div className="px-4 py-3 flex flex-col gap-2 mt-3">
           {giveaway.requirements && giveaway.requirements.length > 0 && (
             <p className="text-[12px] font-bold uppercase tracking-wide text-amber-900/70 dark:text-amber-200/70">{t("requirementsSection")}</p>
           )}
@@ -293,6 +306,8 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
           {error && <p className="mb-2 text-[13px] font-medium text-red-600 dark:text-red-400">{error}</p>}
           {renderStatusFooter()}
         </div>
+        </>
+        )}
       </div>
 
       {/* Reward modal */}
