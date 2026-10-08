@@ -293,9 +293,9 @@ export async function getComments(targetType: "post" | "project", targetId: stri
     }
 
     const mappedComments = []; for (const c of comments) {
-      const mapped = { ...c };
-      if (c.likes) {
-        mapped.myReaction = c.likes.length > 0 ? c.likes[0].type : null;
+      const mapped: any = { ...c };
+      if ((c as any).likes) {
+        mapped.myReaction = (c as any).likes.length > 0 ? (c as any).likes[0].type : null;
         delete mapped.likes;
       }
       try {
@@ -353,9 +353,9 @@ export async function getCommentReplies(commentId: string, userId?: string, curs
 
     const mappedReplies = [];
     for (const r of replies) {
-      const mapped = { ...r };
-      if (r.likes) {
-        mapped.myReaction = r.likes.length > 0 ? r.likes[0].type : null;
+      const mapped: any = { ...r };
+      if ((r as any).likes) {
+        mapped.myReaction = (r as any).likes.length > 0 ? (r as any).likes[0].type : null;
         delete mapped.likes;
       }
       try {
@@ -454,3 +454,5 @@ export async function getLikers(targetId: string, targetType: "POST" | "COMMENT"
     return { success: false, error: error.message };
   }
 }
+
+

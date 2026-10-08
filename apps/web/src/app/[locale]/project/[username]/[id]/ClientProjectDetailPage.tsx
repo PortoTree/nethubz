@@ -214,7 +214,7 @@ export default function ClientProjectDetailPage({
   }, [id]);
 
   const loadProject = useCallback(async () => {
-    const res = await getProjectById(id, user?.id);
+    const res = await getProjectById(id);
     if (!res.success || !res.project) { router.push(`/${locale}/404`); return; }
     if (res.project.user?.username?.toLowerCase() !== decodedUsername.toLowerCase()) { router.push(`/${locale}/404`); return; }
     setProject(res.project);

@@ -162,7 +162,7 @@ export const getProjectsByUsername = async (username: string) => {
         });
 
         if (!user) {
-          return { success: false, projects: [], error: "User not found" };
+          return { success: false, projects: [], error: "User not found", user: undefined };
         }
 
         const projects = await prisma.project.findMany({
@@ -182,7 +182,7 @@ export const getProjectsByUsername = async (username: string) => {
     )();
   } catch (error: any) {
     console.error("getProjectsByUsername Error:", error);
-    return { success: false, projects: [], error: error.message || "Failed to fetch projects" };
+    return { success: false, projects: [], error: error.message || "Failed to fetch projects", user: undefined };
   }
 };
 export const getProjectById = async (id: string) => {
