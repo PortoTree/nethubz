@@ -106,6 +106,14 @@ export async function getFolderDetails(folderId: string, userId?: string) {
     const folder = await prisma.folder.findUnique({
       where: { id: folderId },
       include: {
+        user: { include: { profile: true } },
+        members: {
+          include: {
+            user: {
+              include: { profile: true }
+            }
+          }
+        },
         savedPosts: {
           include: { 
             post: { 

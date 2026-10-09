@@ -5,7 +5,7 @@ export default async function SavedPage() {
   const t = await getTranslations("savedPage");
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-24 pb-10">
+    <div className="flex flex-col min-h-screen bg-[#F3F2EF] dark:bg-[#18191A] pt-24 pb-10">
       <div className="max-w-[1200px] mx-auto w-full px-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <div>
