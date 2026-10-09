@@ -125,16 +125,16 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       console.error(res.error);
     } else if (res.action === "saved") {
       toast.custom((t) => (
-        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-white dark:bg-[#3A3B3C] shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 border border-gray-200 dark:border-[#4E4F50]`}>
+        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
           <div className="flex-1 w-0 p-3 px-4">
             <div className="flex items-center justify-between">
-              <span className="text-gray-900 dark:text-white font-medium">Tersimpan</span>
+              <span className="text-white font-medium">Tersimpan</span>
               <button 
                 onClick={() => { 
                   toast.dismiss(t.id);
                   setIsSaveModalOpen(true);
                 }} 
-                className="text-emerald-500 hover:text-emerald-600 font-bold ml-4"
+                className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
               >
                 Pilih Folder
               </button>
