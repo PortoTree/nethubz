@@ -105,10 +105,12 @@ export default function ProjectCard({
           setTopReactions(interaction.topReactions as ReactionType[]);
         }
         setCommentCount(interaction.commentCount || 0);
+        const existing = interactionsCache.get(cacheKey) || {};
         interactionsCache.set(cacheKey, {
+          ...existing,
           myReaction: interaction.myReaction as ReactionType | null,
           likeCount: interaction.likeCount || 0,
-          topReactions: interaction.topReactions || [],
+          topReactions: interaction.topReactions || existing.topReactions || [],
           commentCount: interaction.commentCount || 0
         });
       }

@@ -249,11 +249,14 @@ export default function ClientProjectDetailPage({
         setLikeCount(interaction.likeCount || 0);
         setCommentCount(interaction.commentCount || 0);
         setIsSaved(interaction.hasSaved || false);
+        const existing = interactionsCache.get(cacheKey) || {};
         interactionsCache.set(cacheKey, {
+          ...existing,
           myReaction: interaction.myReaction as ReactionType | null,
           likeCount: interaction.likeCount || 0,
           commentCount: interaction.commentCount || 0,
-          hasSaved: interaction.hasSaved || false
+          hasSaved: interaction.hasSaved || false,
+          topReactions: interaction.topReactions || existing.topReactions || []
         });
       }
       setIsInteractionLoading(false);
@@ -283,21 +286,30 @@ export default function ClientProjectDetailPage({
 
     const cacheKey = `interaction_project_${id}_${user.id}`;
     
+    const cached = interactionsCache.get(cacheKey) || {};
+    let newTopReactions = cached.topReactions || [];
+    if (!previousReaction && newReaction && !newTopReactions.includes(newReaction)) {
+      newTopReactions = [newReaction, ...newTopReactions].slice(0, 3);
+    }
+
     setMyReaction(newReaction);
     if (!previousReaction && newReaction) {
       setLikeCount((prev: number) => {
         const next = prev + 1;
-        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction, likeCount: next });
+        interactionsCache.set(cacheKey, { ...cached, myReaction: newReaction, likeCount: next, topReactions: newTopReactions });
         return next;
       });
     } else if (previousReaction && !newReaction) {
       setLikeCount((prev: number) => {
         const next = Math.max(0, prev - 1);
-        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction, likeCount: next });
+        interactionsCache.set(cacheKey, { ...cached, myReaction: newReaction, likeCount: next });
         return next;
       });
     } else if (previousReaction && newReaction && previousReaction !== newReaction) {
-        interactionsCache.set(cacheKey, { ...interactionsCache.get(cacheKey), myReaction: newReaction });
+        if (!newTopReactions.includes(newReaction)) {
+           newTopReactions = [newReaction, ...newTopReactions].slice(0, 3);
+        }
+        interactionsCache.set(cacheKey, { ...cached, myReaction: newReaction, topReactions: newTopReactions });
     }
     
     setIsLikeLoading(true);

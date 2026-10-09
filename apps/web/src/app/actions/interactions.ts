@@ -517,10 +517,11 @@ export async function checkInteractionState(userId: string | undefined, targetTy
           postId: targetType === "post" ? targetId : undefined,
           projectId: targetType === "project" ? targetId : undefined,
         },
-        _count: true,
-        orderBy: { _count: { type: 'desc' } }
+        _count: true
       });
-      topReactions = reactionGroups.map((g: any) => g.type);
+      topReactions = reactionGroups
+        .sort((a: any, b: any) => b._count - a._count)
+        .map((g: any) => g.type);
     } catch (e) {}
 
     return { success: true, hasLiked: !!like, myReaction: like ? like.type : null, hasSaved: !!save, likeCount, commentCount, topReactions };
