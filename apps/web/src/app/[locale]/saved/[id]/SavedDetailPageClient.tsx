@@ -37,7 +37,7 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
   const fetchFolderDetails = async (id: string) => {
     try {
       console.log("STARTING FETCH FOR FOLDER ID:", id);
-      const res = await getFolderDetails(id);
+      const res = await getFolderDetails(id, user?.id);
       console.log("FETCH COMPLETED. RES:", res);
       if (res.success && res.folder) {
         folderDetailsCache.set(id, res.folder);

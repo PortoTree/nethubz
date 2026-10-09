@@ -101,7 +101,7 @@ export async function getUserFolders(userId: string) {
   }
 }
 
-export async function getFolderDetails(folderId: string) {
+export async function getFolderDetails(folderId: string, userId?: string) {
   try {
     const folder = await prisma.folder.findUnique({
       where: { id: folderId },
@@ -116,7 +116,9 @@ export async function getFolderDetails(folderId: string) {
                 gallery: { select: { id: true, name: true } },
                 _count: { select: { likes: true, comments: true } },
                 giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
-                project: true
+                project: true,
+                likes: userId ? { where: { userId } } : false,
+                savedBy: userId ? { where: { userId } } : false
               } 
             } 
           }
@@ -126,7 +128,9 @@ export async function getFolderDetails(folderId: string) {
             project: { 
               include: { 
                 user: { include: { profile: true } },
-                _count: { select: { likes: true, comments: true } }
+                _count: { select: { likes: true, comments: true } },
+                likes: userId ? { where: { userId } } : false,
+                savedBy: userId ? { where: { userId } } : false
               } 
             } 
           }
@@ -199,7 +203,9 @@ export async function getRootItems(userId: string) {
             gallery: { select: { id: true, name: true } },
             _count: { select: { likes: true, comments: true } },
             giveaway: { select: GIVEAWAY_PUBLIC_SELECT },
-            project: true
+            project: true,
+            likes: { where: { userId } },
+            savedBy: { where: { userId } }
           } 
         } 
       },
@@ -217,7 +223,9 @@ export async function getRootItems(userId: string) {
         project: { 
           include: { 
             user: { include: { profile: true } },
-            _count: { select: { likes: true, comments: true } }
+            _count: { select: { likes: true, comments: true } },
+            likes: { where: { userId } },
+            savedBy: { where: { userId } }
           } 
         } 
       },
