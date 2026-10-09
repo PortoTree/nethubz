@@ -227,6 +227,11 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
     }
     setIsUpdatingMember(false);
   };
+  const isOwner = folder?.userId === user?.id;
+  const currentUserMember = folder?.members?.find((m: any) => m.userId === user?.id);
+  const isViewer = !isOwner && currentUserMember?.role === "VIEWER";
+  const canEdit = isOwner || (!isOwner && currentUserMember?.role === "EDITOR");
+
   return (
     <div>
 
@@ -241,59 +246,85 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
             </svg>
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-[#E4E6EB]">
-              Folder {folder?.name || ""}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-[#B0B3B8] mt-1">
-              {items.length} {t("itemsSaved") || "Item disimpan"}
-            </p>
+            {isLoading && !folder ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-[#3A3B3C] rounded w-48 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-32"></div>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-[#E4E6EB]">
+                  Folder {folder?.name || ""}
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-[#B0B3B8] mt-1">
+                  {items.length} {t("itemsSaved") || "Item disimpan"}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setAllowUserFolder(folder)} className="hidden sm:flex px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-medium rounded-lg border border-blue-200/50 dark:border-blue-500/20 shadow-sm hover:shadow hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:-translate-y-0.5 transition-all duration-200 text-sm items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-            {t("allowUser") || "Allow user"}
-          </button>
-          
-          <div className="relative group/menu folder-dropdown-container">
-            <button 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setIsDropdownOpen(!isDropdownOpen); 
-              }} 
-              className="p-2 text-gray-500 hover:text-gray-900 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] rounded-lg hover:bg-gray-100 dark:hover:bg-[#3A3B3C] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="12" cy="5" r="1"></circle>
-                <circle cx="12" cy="19" r="1"></circle>
-              </svg>
-            </button>
-            
-            {/* Dropdown Menu */}
-            <div 
-              onClick={(e) => e.stopPropagation()} 
-              className={`absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#242526] rounded-xl shadow-lg border border-gray-200 dark:border-[#3A3B3C] py-1 transition-all z-[999] ${isDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}
-            >
-              <button onClick={() => { setIsDropdownOpen(false); setRenameFolderState({ id: folder.id, name: folder.name }); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                {t("rename") || "Ganti Nama"}
-              </button>
-              <button onClick={() => { setIsDropdownOpen(false); setAllowUserFolder(folder); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          {isLoading && !folder ? (
+            <div className="flex items-center gap-2 animate-pulse">
+              <div className="hidden sm:block w-32 h-9 bg-gray-200 dark:bg-[#3A3B3C] rounded-lg"></div>
+              <div className="w-9 h-9 bg-gray-200 dark:bg-[#3A3B3C] rounded-lg"></div>
+            </div>
+          ) : (
+            <>
+              <button onClick={() => setAllowUserFolder(folder)} className="hidden sm:flex px-4 py-2 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-medium rounded-lg border border-blue-200/50 dark:border-blue-500/20 shadow-sm hover:shadow hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:-translate-y-0.5 transition-all duration-200 text-sm items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
                 {t("allowUser") || "Allow user"}
               </button>
-              <button onClick={() => { setIsDropdownOpen(false); setInfoFolderData(folder); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                {t("folderInfo") || "Informasi Folder"}
-              </button>
-              <div className="h-px bg-gray-200 dark:bg-[#3A3B3C] my-1"></div>
-              <button onClick={() => { setIsDropdownOpen(false); handleDeleteFolder(folder.id); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-500 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                {t("deleteFolder") || "Hapus Folder"}
-              </button>
-            </div>
-          </div>
+              
+              <div className="relative group/menu folder-dropdown-container">
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setIsDropdownOpen(!isDropdownOpen); 
+                  }} 
+                  className="p-2 text-gray-500 hover:text-gray-900 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] rounded-lg hover:bg-gray-100 dark:hover:bg-[#3A3B3C] transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="12" cy="5" r="1"></circle>
+                    <circle cx="12" cy="19" r="1"></circle>
+                  </svg>
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div 
+                  onClick={(e) => e.stopPropagation()} 
+                  className={`absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#242526] rounded-xl shadow-lg border border-gray-200 dark:border-[#3A3B3C] py-1 transition-all z-[999] ${isDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}
+                >
+                  <button 
+                    disabled={!canEdit}
+                    onClick={() => { setIsDropdownOpen(false); setRenameFolderState({ id: folder.id, name: folder.name }); }} 
+                    className={`w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] flex items-center gap-2 transition-colors ${!canEdit ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-[#3A3B3C]'}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    {t("rename") || "Ganti Nama"}
+                  </button>
+                  <button onClick={() => { setIsDropdownOpen(false); setAllowUserFolder(folder); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                    {t("allowUser") || "Allow user"}
+                  </button>
+                  <button onClick={() => { setIsDropdownOpen(false); setInfoFolderData(folder); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    {t("folderInfo") || "Informasi Folder"}
+                  </button>
+                  <div className="h-px bg-gray-200 dark:bg-[#3A3B3C] my-1"></div>
+                  <button 
+                    disabled={!isOwner} 
+                    onClick={() => { setIsDropdownOpen(false); handleDeleteFolder(folder.id); }} 
+                    className={`w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 flex items-center gap-2 transition-colors ${!isOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    {t("deleteFolder") || "Hapus Folder"}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
       {isLoading ? (
@@ -496,23 +527,25 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
             
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
               {/* Search User Input */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+              {allowUserFolder.userId === user?.id && (
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t("searchUserPlaceholder") || "Cari username atau nama..."}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-gray-50 dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder={t("searchUserPlaceholder") || "Cari username atau nama..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-gray-50 dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all"
-                />
-              </div>
+              )}
 
               {/* Search Results */}
-              {searchQuery.trim() !== "" && (
+              {allowUserFolder.userId === user?.id && searchQuery.trim() !== "" && (
                 <div className="flex flex-col gap-2">
                   <h4 className="text-xs font-semibold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wider mb-1">
                     {t("searchResults") || "Hasil Pencarian"}
@@ -663,12 +696,13 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
               </div>
               )}
             </div>
-            
-            <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
-              <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
-                {t("done") || "Selesai"}
-              </button>
-            </div>
+            {allowUserFolder.userId === user?.id && (
+              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
+                <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
+                  {t("done") || "Selesai"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -387,8 +387,12 @@ export default function SavedPageClient() {
           <div className={viewMode === "list" ? "flex flex-col" : "contents"}>
             {[...collections]
               .sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name))
-              .map(folder => (
-              viewMode === "grid" ? (
+              .map(folder => {
+                const isOwner = folder.userId === user?.id;
+                const currentUserMember = folder.members?.find((m: any) => m.userId === user?.id);
+                const isViewer = !isOwner && currentUserMember?.role === "VIEWER";
+                
+              return viewMode === "grid" ? (
                 <div key={folder.id} onClick={() => { NProgress.start(); router.push(`/${locale}/saved/${folder.id}`); }} className="bg-white dark:bg-[#242526] p-4 rounded-xl border-2 border-gray-900 dark:border-[#555] shadow-[6px_6px_0px_0px_rgba(17,24,39,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:z-50 transition-all cursor-pointer flex items-center gap-4 relative group">
                   <div className="w-12 h-12 flex-shrink-0 opacity-80">
                     <img src={folder.members?.length > 1 ? "/folder-share.svg" : "/folder-lock.svg"} alt="Folder Icon" className="w-full h-full dark:invert" />
@@ -419,7 +423,7 @@ export default function SavedPageClient() {
                       onClick={(e) => e.stopPropagation()} 
                       className={`absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#242526] rounded-xl shadow-lg border border-gray-200 dark:border-[#3A3B3C] py-1 transition-all z-[999] ${openDropdownId === folder.id ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}
                     >
-                      <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setRenameFolderState({ id: folder.id, name: folder.name }); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
+                      <button disabled={isViewer} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setRenameFolderState({ id: folder.id, name: folder.name }); }} className={`w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] flex items-center gap-2 transition-colors ${isViewer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-[#3A3B3C]'}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         {t("rename") || "Ganti Nama"}
                       </button>
@@ -432,7 +436,7 @@ export default function SavedPageClient() {
                         {t("folderInfo") || "Informasi Folder"}
                       </button>
                       <div className="h-px bg-gray-200 dark:bg-[#3A3B3C] my-1"></div>
-                      <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleDeleteFolder(folder.id); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-500 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
+                      <button disabled={!isOwner} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleDeleteFolder(folder.id); }} className={`w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 flex items-center gap-2 transition-colors ${!isOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 dark:hover:bg-red-900/20'}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         {t("deleteFolder") || "Hapus Folder"}
                       </button>
@@ -510,7 +514,7 @@ export default function SavedPageClient() {
                       onClick={(e) => e.stopPropagation()} 
                       className={`absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#242526] rounded-xl shadow-lg border border-gray-200 dark:border-[#3A3B3C] py-1 transition-all z-[999] ${openDropdownId === folder.id ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}
                     >
-                      <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setRenameFolderState({ id: folder.id, name: folder.name }); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-100 dark:hover:bg-[#3A3B3C] flex items-center gap-2 transition-colors">
+                      <button disabled={isViewer} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); setRenameFolderState({ id: folder.id, name: folder.name }); }} className={`w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#E4E6EB] flex items-center gap-2 transition-colors ${isViewer ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-[#3A3B3C]'}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         {t("rename") || "Ganti Nama"}
                       </button>
@@ -523,15 +527,15 @@ export default function SavedPageClient() {
                         {t("folderInfo") || "Informasi Folder"}
                       </button>
                       <div className="h-px bg-gray-200 dark:bg-[#3A3B3C] my-1"></div>
-                      <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleDeleteFolder(folder.id); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-500 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
+                      <button disabled={!isOwner} onClick={(e) => { e.stopPropagation(); setOpenDropdownId(null); handleDeleteFolder(folder.id); }} className={`w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 flex items-center gap-2 transition-colors ${!isOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 dark:hover:bg-red-900/20'}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         {t("deleteFolder") || "Hapus Folder"}
                       </button>
                     </div>
                   </div>
                 </div>
-              )
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -801,23 +805,25 @@ export default function SavedPageClient() {
             
             <div className="p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
               {/* Search User Input */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+              {allowUserFolder.userId === user?.id && (
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t("searchUserPlaceholder") || "Cari username atau nama..."}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-gray-50 dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder={t("searchUserPlaceholder") || "Cari username atau nama..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-gray-50 dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all"
-                />
-              </div>
+              )}
 
               {/* Search Results */}
-              {searchQuery.trim() !== "" && (
+              {allowUserFolder.userId === user?.id && searchQuery.trim() !== "" && (
                 <div className="flex flex-col gap-2">
                   <h4 className="text-xs font-semibold text-gray-500 dark:text-[#B0B3B8] uppercase tracking-wider mb-1">
                     {t("searchResults") || "Hasil Pencarian"}
@@ -968,12 +974,13 @@ export default function SavedPageClient() {
               </div>
               )}
             </div>
-            
-            <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
-              <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
-                {t("done") || "Selesai"}
-              </button>
-            </div>
+            {allowUserFolder.userId === user?.id && (
+              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
+                <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
+                  {t("done") || "Selesai"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
