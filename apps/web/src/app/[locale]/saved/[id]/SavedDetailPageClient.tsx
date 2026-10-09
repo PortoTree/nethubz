@@ -143,25 +143,10 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
         </div>
       </div>
       {isLoading ? (
-        <div className="w-full text-left">
-          <div className="flex flex-col">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="grid grid-cols-12 gap-4 items-center py-3 px-2 border-b border-gray-100 dark:border-[#3A3B3C]/50 animate-pulse">
-                <div className="col-span-11 sm:col-span-5 lg:col-span-5 flex items-center gap-4 pr-4">
-                  <div className="h-5 bg-gray-200 dark:bg-[#3A3B3C] rounded w-3/4"></div>
-                </div>
-                <div className="hidden md:flex md:col-span-3 lg:col-span-2 items-center gap-2">
-                  <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-1/2"></div>
-                </div>
-                <div className="hidden sm:block sm:col-span-3 lg:col-span-2">
-                  <div className="h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded w-3/4"></div>
-                </div>
-                <div className="hidden lg:flex lg:col-span-2 justify-center">
-                  <div className="w-1/2 h-4 bg-gray-200 dark:bg-[#3A3B3C] rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse bg-gray-200 dark:bg-[#3A3B3C] rounded-xl h-64 w-full"></div>
+          ))}
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#242526] rounded-2xl border border-gray-100 dark:border-[#3A3B3C]">
@@ -171,7 +156,7 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
           </p>
         </div>
       ) : (
-          <div className="flex flex-col gap-4 mt-6 w-full max-w-[590px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full">
             {items.map((item: any) => (
               <div key={item.id} className="w-full">
                 {item.type === 'project' ? (

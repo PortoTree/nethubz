@@ -344,14 +344,15 @@ export default function SavedPageClient() {
           Root Items
         </h2>
         {isRootLoading ? (
-          <div className="animate-pulse flex gap-4">
-            <div className="w-1/4 h-32 bg-gray-200 dark:bg-[#3A3B3C] rounded-xl"></div>
-            <div className="w-1/4 h-32 bg-gray-200 dark:bg-[#3A3B3C] rounded-xl"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 w-full">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse bg-gray-200 dark:bg-[#3A3B3C] rounded-xl h-64 w-full"></div>
+            ))}
           </div>
         ) : rootItems.length === 0 ? (
           <p className="text-gray-500 text-sm">Belum ada item di luar folder.</p>
         ) : (
-          <div className="flex flex-col gap-4 mt-4 w-full max-w-[590px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 w-full">
             {rootItems.map((item, idx) => (
               <div key={`${item.type}-${item.id}`}>
                 {item.type === 'post' ? (
