@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { getUserFolders, createFolder, assignItemToFolder } from "@/app/actions/folders";
 import toast from "react-hot-toast";
@@ -63,11 +64,17 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
     setIsSaving(false);
   };
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose}></div>
       <div className="bg-white dark:bg-[#242526] w-full max-w-sm rounded-xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b border-gray-200 dark:border-[#3E4042] flex justify-between items-center">
           <h2 className="text-lg font-bold text-black dark:text-[#E4E6EB]">Pilih Folder</h2>
@@ -127,6 +134,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
