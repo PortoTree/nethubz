@@ -571,15 +571,19 @@ export default function ClientProjectDetailPage({
                     {isInteractionLoading ? <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" /> : <span>{commentCount}</span>}
                   </button>
                   <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
-                  <button 
-                    onClick={handleSave} 
-                    disabled={isSaveLoading}
-                    className="flex items-center gap-2 font-semibold transition-colors text-[14px]"
-                  >
-                    <svg className={`w-5 h-5 ${isSaved ? 'text-emerald-500' : 'text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`} fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
-                    </svg>
-                  </button>
+                  {isInteractionLoading ? (
+                    <div className="w-6 h-6 bg-gray-200 dark:bg-[#4E4F50] rounded-full animate-pulse mx-1" />
+                  ) : (
+                    <button 
+                      onClick={handleSave} 
+                      disabled={isSaveLoading}
+                      className="flex items-center gap-2 font-semibold transition-colors text-[14px]"
+                    >
+                      <svg className={`w-5 h-5 ${isSaved ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400'}`} fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 
                 <button onClick={handleShare} className="flex items-center gap-2 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C] text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">

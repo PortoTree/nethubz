@@ -320,20 +320,24 @@ export default function ProjectCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleSave}
-              disabled={isSaveLoading}
-              className={`p-1.5 rounded-full transition-all duration-200 ${
-                isSaved 
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' 
-                  : 'bg-gray-50 dark:bg-[#3A3B3C] text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-100 dark:hover:bg-[#4E4F50]'
-              } ${isSaveLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={isSaved ? tProject("savedTitle") || "Tersimpan" : tProject("saveProject") || "Simpan Project"}
-            >
-              <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 2 : 2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-            </button>
+            {isInteractionLoading ? (
+              <div className="w-[32px] h-[32px] rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse"></div>
+            ) : (
+              <button
+                onClick={handleSave}
+                disabled={isSaveLoading}
+                className={`p-1.5 rounded-full transition-all duration-200 ${
+                  isSaved 
+                    ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-500 dark:text-orange-400' 
+                    : 'bg-gray-50 dark:bg-[#3A3B3C] text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-100 dark:hover:bg-[#4E4F50]'
+                } ${isSaveLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isSaved ? tProject("savedTitle") || "Tersimpan" : tProject("saveProject") || "Simpan Project"}
+              >
+                <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 2 : 2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+            )}
             {!(hasMultiple || cover) && (
               <span className={
                 "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +

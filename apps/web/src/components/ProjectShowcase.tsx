@@ -8,7 +8,8 @@ import { CATEGORY_COLORS, getCategoryBadgeClasses } from "@/components/ProjectCa
 
 import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
 import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
-import { checkInteractionState, toggleLike, incrementShareCount } from "@/app/actions/interactions";
+import { checkInteractionState, toggleLike, incrementShareCount, toggleSave } from "@/app/actions/interactions";
+import toast from "react-hot-toast";
 import { interactionsCache } from "@/utils/cache";
 import Image from "next/image";
 import { useCallback } from "react";
@@ -31,6 +32,8 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
   const [likeCount, setLikeCount] = useState(p._count?.likes || 0);
   const [commentCount, setCommentCount] = useState(p._count?.comments || 0);
   const [topReactions, setTopReactions] = useState<ReactionType[]>(p.topReactions || []);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,6 +56,7 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
       setLikeCount(cached.likeCount);
       setTopReactions(cached.topReactions || []);
       setCommentCount(cached.commentCount);
+      setIsSaved(cached.hasSaved || false);
       setIsInteractionLoading(false);
     } else {
       setIsInteractionLoading(true);
@@ -66,11 +70,13 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
           setTopReactions(interaction.topReactions as ReactionType[]);
         }
         setCommentCount(interaction.commentCount || 0);
+        setIsSaved(interaction.hasSaved || false);
         interactionsCache.set(cacheKey, {
           myReaction: interaction.myReaction as ReactionType | null,
           likeCount: interaction.likeCount || 0,
           topReactions: interaction.topReactions || [],
-          commentCount: interaction.commentCount || 0
+          commentCount: interaction.commentCount || 0,
+          hasSaved: interaction.hasSaved || false
         });
       }
       setIsInteractionLoading(false);
@@ -131,6 +137,73 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
     }
   };
 
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      router.push(`/${locale}/login`);
+      return;
+    }
+    
+    if (isSaveLoading) return;
+    setIsSaveLoading(true);
+
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+
+    const cacheKey = `interaction_project_${p.id}_${user.id}`;
+    const existing = interactionsCache.get(cacheKey) || {};
+    interactionsCache.set(cacheKey, { ...existing, hasSaved: newIsSaved });
+
+    try {
+      const res = await toggleSave(user.id, "project", p.id);
+      if (!res.success) {
+        setIsSaved(!newIsSaved);
+        interactionsCache.set(cacheKey, { ...existing, hasSaved: !newIsSaved });
+        toast.error(res.error || "Gagal menyimpan project");
+      } else {
+        const titleMsg = newIsSaved ? (t("savedTitle") || "Tersimpan") : (t("unsavedTitle") || "Dihapus");
+        const descMsg = newIsSaved ? (t("savedDesc") || "Project telah disimpan ke koleksi Anda") : (t("unsavedDesc") || "Project telah dihapus dari koleksi Anda");
+        
+        const toastItem = toast.custom((tItem) => (
+          <div className={`${tItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-white dark:bg-[#242526] shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden border border-gray-100 dark:border-[#3A3B3C]`}>
+            <div className="p-4 w-full">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className={`w-10 h-10 rounded-full ${newIsSaved ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500' : 'bg-gray-100 dark:bg-[#3A3B3C] text-gray-500'} flex items-center justify-center`}>
+                    <svg className="w-5 h-5" fill={newIsSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={newIsSaved ? 0 : 2} d={newIsSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-bold text-gray-900 dark:text-[#E4E6EB]">{titleMsg}</p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-[#B0B3B8]">{descMsg}</p>
+                </div>
+                <div className="ml-4 flex-shrink-0 flex">
+                  <button onClick={() => toast.dismiss(tItem.id)} className="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <span className="sr-only">Close</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ), { duration: 3000, position: 'bottom-center' });
+        
+        window.dispatchEvent(new Event("refresh_projects"));
+      }
+    } catch (error) {
+      setIsSaved(!newIsSaved);
+      interactionsCache.set(cacheKey, { ...existing, hasSaved: !newIsSaved });
+      toast.error("Terjadi kesalahan sistem");
+    } finally {
+      setIsSaveLoading(false);
+    }
+  };
+
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = `${window.location.origin}/${locale}/project/${username}/${p.id}`;
@@ -159,17 +232,47 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
       key={p.id}
       className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col md:flex-row min-h-[180px] group/card relative"
     >
-      {cover ? (
-        <div className="w-full md:w-[260px] md:shrink-0 aspect-video md:aspect-auto relative z-0">
-          <MediaRenderer url={cover} className="absolute inset-0 w-full h-full object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
+      <div className="w-full md:w-[260px] md:shrink-0 relative group/cover cursor-pointer">
+        <div className="absolute top-3 left-3 z-20">
+          {isInteractionLoading ? (
+            <div className="w-[32px] h-[32px] rounded-full bg-white/50 dark:bg-black/50 animate-pulse border border-black/5 dark:border-white/5"></div>
+          ) : (
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSave(e);
+              }}
+              disabled={isSaveLoading}
+              className={`flex items-center justify-center p-1.5 rounded-full transition-colors backdrop-blur-sm shadow-sm border border-black/5 dark:border-white/5 ${
+                isSaved 
+                  ? 'text-orange-500 bg-white/90 dark:bg-[#242526]/90' 
+                  : 'text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-[#242526]/70 hover:bg-white/90 dark:hover:bg-[#242526]/90'
+              }`}
+              title={isSaved ? "Tersimpan" : "Simpan Project"}
+            >
+              <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
+              </svg>
+            </button>
+          )}
         </div>
-      ) : (
-        <div className="w-full md:w-[260px] md:shrink-0 aspect-video md:aspect-auto bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-400">
-          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+
+        <div 
+          onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)}
+          className="w-full aspect-video md:aspect-auto md:absolute md:inset-0 relative z-0"
+        >
+          {cover ? (
+            <MediaRenderer url={cover} className="absolute inset-0 w-full h-full object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center text-gray-400">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="p-5 flex flex-col flex-grow relative z-10 w-full min-w-0">
         <div className="flex items-start justify-between gap-3 mb-2">
