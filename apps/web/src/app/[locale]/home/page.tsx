@@ -1358,7 +1358,10 @@ export default function Beranda() {
                       {t("nav.chat")}
                     </span>
                   </button>
-                  <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors">
+                  <button 
+                    onClick={() => router.push(`/${locale}/saved`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+                  >
                     <svg
                       className="w-6 h-6 text-red-500"
                       fill="currentColor"
@@ -1370,7 +1373,10 @@ export default function Beranda() {
                       {t("sidebar.saved")}
                     </span>
                   </button>
-                  <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors">
+                  <button 
+                    onClick={() => router.push(`/${locale}/project`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+                  >
                     <div
                       className="w-6 h-6 bg-current text-purple-500"
                       style={{

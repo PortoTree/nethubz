@@ -5,6 +5,9 @@ export const projectsCache = new Map<string, any>();
 // Post comments, keyed by post id: { comments, nextCursor }
 export const commentsCache = new Map<string, { comments: any[]; nextCursor?: string }>();
 export const interactionsCache = new Map<string, any>();
+export const foldersCache = new Map<string, any>();
+export const folderDetailsCache = new Map<string, any>();
+export const rootItemsCache = new Map<string, any>();
 
 /**
  * Call after ANY follow/friend action so every cache is dropped and

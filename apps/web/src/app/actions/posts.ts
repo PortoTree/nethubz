@@ -63,7 +63,7 @@ const getCachedUserAvatar = async (userId: string) => {
 };
 
 // Helper to map DB post to frontend expected post structure
-async function mapPost(post: any) {
+export async function mapPost(post: any) {
   if (!post) return post;
   const mapped = { ...post };
   if (post.postMedia) {

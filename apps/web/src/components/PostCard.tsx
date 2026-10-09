@@ -14,6 +14,8 @@ import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
 
 import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
 import Image from "next/image";
+import toast from "react-hot-toast";
+import SaveToFolderModal from "./SaveToFolderModal";
 
 export function formatPostTime(timestamp: number | Date, t: any, locale: string) {
   const ts = new Date(timestamp).getTime();
@@ -55,6 +57,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   const [modalViewMode, setModalViewMode] = useState<"GRID" | "CAROUSEL">("GRID");
   const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
   const [isPostDetailModalOpen, setIsPostDetailModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const [isLiked, setIsLiked] = useState<ReactionType | null>(post.myReaction || null);
   const [likeCount, setLikeCount] = useState(post._count?.likes || 0);
@@ -120,6 +123,25 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       // Revert on failure
       setIsSaved(!newIsSaved);
       console.error(res.error);
+    } else if (res.action === "saved") {
+      toast.custom((t) => (
+        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-white dark:bg-[#3A3B3C] shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5 border border-gray-200 dark:border-[#4E4F50]`}>
+          <div className="flex-1 w-0 p-3 px-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-900 dark:text-white font-medium">Tersimpan</span>
+              <button 
+                onClick={() => { 
+                  toast.dismiss(t.id);
+                  setIsSaveModalOpen(true);
+                }} 
+                className="text-emerald-500 hover:text-emerald-600 font-bold ml-4"
+              >
+                Pilih Folder
+              </button>
+            </div>
+          </div>
+        </div>
+      ), { duration: 5000 });
     }
     setIsSaveLoading(false);
   };
@@ -911,6 +933,15 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
           currentUser={currentUser}
         />
       )}
+
+      {/* Save to Folder Modal */}
+      <SaveToFolderModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        userId={currentUser?.id || ""}
+        targetType="post"
+        targetId={post.id}
+      />
     </>
   );
 }

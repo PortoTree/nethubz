@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
@@ -37,6 +37,8 @@ model User {
   likes                 Like[]
   savedPosts            SavedPost[]
   savedProjects         SavedProject[]
+  folders               Folder[]
+  folderMembers         FolderMember[]
   taggedInPosts         Post[]           @relation("PostTags")
   Media                 Media[]
   galleries             Gallery[]
@@ -326,8 +328,10 @@ model SavedPost {
   postId    String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post     Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  Folder   Folder? @relation(fields: [folderId], references: [id])
+  folderId String?
 
   @@unique([userId, postId])
 }
@@ -338,8 +342,10 @@ model SavedProject {
   projectId String
   createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Folder   Folder? @relation(fields: [folderId], references: [id])
+  folderId String?
 
   @@unique([userId, projectId])
 }
@@ -505,27 +511,27 @@ model Project {
   title       String
   description String        @db.Text
   status      ProjectStatus @default(RELEASED)
-  techStack   String[]      @default([]) 
+  techStack   String[]      @default([])
   repoUrl     String?
   demoUrl     String?
   coverUrls   String[]      @default([])
   mediaUrls   String[]      @default([])
-  roleNeeded  String?       
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  roleNeeded  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  category       ProjectCategory @default(WEB_DEV)
-  customCategory String?
-  collabTypes    CollabType[]
+  category        ProjectCategory @default(WEB_DEV)
+  customCategory  String?
+  collabTypes     CollabType[]
   linkedProductId String?
-  isForSale      Boolean       @default(false)
-  shareCount     Int           @default(0)
+  isForSale       Boolean         @default(false)
+  shareCount      Int             @default(0)
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  posts       Post[]
-  comments    Comment[]
-  likes       Like[]
-  savedBy     SavedProject[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  savedBy       SavedProject[]
   notifications Notification[]
 }
 
@@ -566,4 +572,33 @@ enum CollabType {
   FINDING_MENTOR
   FINDING_TESTER
   FINDING_INVESTOR
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members       FolderMember[]
+  savedPosts    SavedPost[]
+  savedProjects SavedProject[]
+
+  @@index([userId])
+}
+
+model FolderMember {
+  id        String   @id @default(uuid())
+  folderId  String
+  userId    String
+  role      String   @default("VIEWER")
+  createdAt DateTime @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([folderId, userId])
 }

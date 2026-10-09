@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import { useUser } from "@/contexts/UserContext";
+import { Toaster } from "react-hot-toast";
 import { usePathname } from "next/navigation";
 
 export default function ClientNavbar() {
@@ -14,6 +15,7 @@ export default function ClientNavbar() {
   else if (pathname.includes("/friend")) activeTab = "friend";
   else if (pathname.includes("/community")) activeTab = "community";
   else if (pathname.includes("/search")) activeTab = "search";
+  else if (pathname.includes("/saved")) activeTab = "saved";
 
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
@@ -50,14 +52,17 @@ export default function ClientNavbar() {
   if (pathname.match(/^\/[^/]+\/project\/.+/)) return null;
 
   return (
-    <Navbar
-      activeTab={activeTab}
-      setActiveTab={() => { }}
-      isDarkMode={isDarkMode}
-      setIsDarkMode={setIsDarkMode}
-      themeLoaded={themeLoaded}
-      currentUser={currentUser}
-      isProfileLoading={isProfileLoading}
-    />
+    <>
+      <Toaster position="bottom-center" />
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={() => { }}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        themeLoaded={themeLoaded}
+        currentUser={currentUser}
+        isProfileLoading={isProfileLoading}
+      />
+    </>
   );
 }

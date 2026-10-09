@@ -1004,5 +1004,31 @@
     "viewReplies": "Lihat {count} balasan",
     "loadMoreReplies": "Muat balasan lainnya",
     "writeReply": "Tulis balasan..."
+  },
+  "savedPage": {
+    "title": "My Collections",
+    "subtitle": "Simpan dan kelola koleksi folder kamu dan temanmu.",
+    "emptyState": "Belum ada koleksi",
+    "createCollection": "Buat Folder Baru",
+    "tabProjects": "Projects",
+    "tabPosts": "Posts",
+    "createCollectionDesc": "Kelompokkan postingan dan project menarik agar mudah ditemukan.",
+    "collectionNameLabel": "Nama Koleksi",
+    "collectionNamePlaceholder": "Misal: Inspirasi UI/UX",
+    "collectionDescLabel": "Deskripsi (Opsional)",
+    "collectionDescPlaceholder": "Tambahkan deskripsi singkat...",
+    "privateLabel": "Private",
+    "privateDesc": "Hanya kamu (dan member yang di-invite) yang bisa melihat.",
+    "publicLabel": "Public",
+    "publicDesc": "Semua orang bisa melihat koleksi ini di profilmu.",
+    "btnCancel": "Batal",
+    "btnCreate": "Buat",
+    "allowUser": "Izinkan pengguna",
+    "rename": "Ganti Nama",
+    "pin": "Sematkan",
+    "folderInfo": "Informasi Folder",
+    "deleteFolder": "Hapus Folder",
+    "me": "saya",
+    "itemsSaved": "Item disimpan"
   }
 }

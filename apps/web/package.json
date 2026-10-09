@@ -38,6 +38,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-easy-crop": "^6.2.3",
+    "react-hot-toast": "^2.6.1",
     "react-mentions": "^4.4.10",
     "resend": "^6.32.1",
     "tippy.js": "^6.3.7"

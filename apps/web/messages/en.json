@@ -998,5 +998,31 @@
     "viewReplies": "View {count} replies",
     "loadMoreReplies": "Load more replies",
     "writeReply": "Write a reply..."
+  },
+  "savedPage": {
+    "title": "My Collections",
+    "subtitle": "Save and manage your and your friends folder collections.",
+    "emptyState": "No collections yet",
+    "createCollection": "Create New Folder",
+    "tabProjects": "Projects",
+    "tabPosts": "Posts",
+    "createCollectionDesc": "Group interesting posts and projects to easily find them later.",
+    "collectionNameLabel": "Collection Name",
+    "collectionNamePlaceholder": "e.g., UI/UX Inspiration",
+    "collectionDescLabel": "Description (Optional)",
+    "collectionDescPlaceholder": "Add a short description...",
+    "privateLabel": "Private",
+    "privateDesc": "Only you (and invited members) can see this.",
+    "publicLabel": "Public",
+    "publicDesc": "Everyone can see this collection on your profile.",
+    "btnCancel": "Cancel",
+    "btnCreate": "Create",
+    "allowUser": "Allow user",
+    "rename": "Rename",
+    "pin": "Pin",
+    "folderInfo": "Folder Info",
+    "deleteFolder": "Delete Folder",
+    "me": "me",
+    "itemsSaved": "Items saved"
   }
 }
