@@ -124,11 +124,13 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       setIsSaved(!newIsSaved);
       console.error(res.error);
     } else if (res.action === "saved") {
+      const savedMsg = t("saveFolderModal.savedToast");
+      const titleMsg = t("saveFolderModal.title");
       toast.custom((toastItem) => (
         <div className={`${toastItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
           <div className="flex-1 w-0 p-3 px-4">
             <div className="flex items-center justify-between">
-              <span className="text-white font-medium">{t("saveFolderModal.savedToast")}</span>
+              <span className="text-white font-medium">{savedMsg}</span>
               <button 
                 onClick={() => { 
                   toast.dismiss(toastItem.id);
@@ -136,7 +138,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
                 }} 
                 className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
               >
-                {t("saveFolderModal.title")}
+                {titleMsg}
               </button>
             </div>
           </div>

@@ -11,10 +11,12 @@ import ProjectCard from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
 import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
-import { projectsCache } from "@/utils/cache";
-
-import ProjectFormModal from "@/components/ProjectFormModal";
 import { deleteProject, createProject, updateProject } from "@/app/actions/projects";
+import { checkBatchProjectInteractionState } from "@/app/actions/interactions";
+import { projectsCache, interactionsCache } from "@/utils/cache";
+import ProjectFormModal from "@/components/ProjectFormModal";
+
+
 
 export default function ClientUserProjectPage({ username, initialProjects, initialProfileUser, locale }: { username: string, initialProjects: any[], initialProfileUser: any, locale: string }) {
     const decodedUsername = username;
@@ -130,6 +132,33 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
     };
   }, [loadProjects]);
 
+  // Batch-prefetch interaction state for all projects once user + projects are ready
+  useEffect(() => {
+    if (!user || !projects.length) return;
+    const uncachedIds = projects
+      .map((p: any) => p.id)
+      .filter((id: string) => !interactionsCache.has(`interaction_project_${id}_${user.id}`));
+    if (!uncachedIds.length) return;
+
+    checkBatchProjectInteractionState(user.id, uncachedIds).then((batchResult: Record<string, any>) => {
+      for (const id of uncachedIds) {
+        const data = batchResult[id];
+        if (data) {
+          interactionsCache.set(`interaction_project_${id}_${user.id}`, {
+            myReaction: data.myReaction,
+            likeCount: data.likeCount,
+            commentCount: data.commentCount,
+            topReactions: data.topReactions,
+            hasSaved: data.hasSaved,
+          });
+        }
+      }
+      // Trigger cards to re-read cache
+      window.dispatchEvent(new Event("refresh_projects"));
+    });
+  }, [user, projects]);
+
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-[#F0F2F5] dark:bg-[#18191A] pt-20 pb-10">
@@ -215,6 +244,7 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
                     setProjectToDelete(project);
                     setIsDeleteProjectModalOpen(true);
                   }}
+                  disableAutoFetch={true}
                 />
               </div>
             ))}

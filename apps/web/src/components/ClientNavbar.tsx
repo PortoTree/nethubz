@@ -49,7 +49,12 @@ export default function ClientNavbar() {
 
   // if (!themeLoaded) return null;
 
-  if (pathname.match(/^\/[^/]+\/project\/.+/)) return null;
+  // Always render Toaster — even on project pages where Navbar is hidden
+  const isProjectDetailPage = pathname.match(/^\/[^/]+\/project\/.+/);
+
+  if (isProjectDetailPage) {
+    return <Toaster position="bottom-center" />;
+  }
 
   return (
     <>

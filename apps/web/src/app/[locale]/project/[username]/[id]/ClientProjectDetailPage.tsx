@@ -39,28 +39,28 @@ const ProjectGallery = ({ mediaUrls }: { mediaUrls: string[] }) => {
 
   const renderGrid = () => {
     if (mediaUrls.length === 1) return (
-      <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden mb-10 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
+      <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-video bg-black rounded-none overflow-hidden mb-8 shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity">
         <MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" variant="detail" />
       </div>
     );
     if (mediaUrls.length === 2) return (
-      <div className="grid grid-cols-2 gap-2 mb-10 aspect-[2/1]">
-        {mediaUrls.map((url, i) => <div key={i} onClick={() => setSelectedMediaIndex(i)} className="w-full h-full bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={url} className="w-full h-full object-cover mx-auto" variant="detail" /></div>)}
+      <div className="grid grid-cols-2 gap-1 mb-8 aspect-[2/1]">
+        {mediaUrls.map((url, i) => <div key={i} onClick={() => setSelectedMediaIndex(i)} className="w-full h-full bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={url} className="w-full h-full object-cover mx-auto" variant="detail" /></div>)}
       </div>
     );
     if (mediaUrls.length === 3) return (
-      <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-10 aspect-[2/1]">
-        <div onClick={() => setSelectedMediaIndex(0)} className="col-span-2 row-span-2 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
-        <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
-        <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
+      <div className="grid grid-cols-3 grid-rows-2 gap-1 mb-8 aspect-[2/1]">
+        <div onClick={() => setSelectedMediaIndex(0)} className="col-span-2 row-span-2 bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[0]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
+        <div onClick={() => setSelectedMediaIndex(1)} className="col-span-1 row-span-1 bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[1]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
+        <div onClick={() => setSelectedMediaIndex(2)} className="col-span-1 row-span-1 bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[2]} className="w-full h-full object-cover mx-auto" variant="detail" /></div>
       </div>
     );
     return (
-      <div className="flex flex-col gap-2 mb-10">
-        <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-[2/1] bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" variant="detail" /></div>
-        <div className="grid grid-cols-4 gap-2 aspect-[4/1]">
+      <div className="flex flex-col gap-1 mb-8">
+        <div onClick={() => setSelectedMediaIndex(0)} className="w-full aspect-[2/1] bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"><MediaRenderer url={mediaUrls[0]} className="w-full h-full object-contain mx-auto" variant="detail" /></div>
+        <div className="grid grid-cols-4 gap-1 aspect-[4/1]">
           {mediaUrls.slice(1, 5).map((url, i) => (
-            <div key={i} onClick={() => setSelectedMediaIndex(i + 1)} className="relative w-full h-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer group">
+            <div key={i} onClick={() => setSelectedMediaIndex(i + 1)} className="relative w-full h-full bg-black rounded-none overflow-hidden shadow-sm border border-gray-100 dark:border-[#3A3B3C] flex items-center justify-center cursor-pointer group">
               <MediaRenderer url={url} className="w-full h-full object-cover mx-auto group-hover:opacity-75 transition-opacity" variant="detail" />
               {i === 3 && mediaUrls.length > 5 && (<div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm"><span className="text-white font-bold text-xl md:text-2xl">+{mediaUrls.length - 5}</span></div>)}
             </div>
@@ -237,6 +237,7 @@ export default function ClientProjectDetailPage({
       setMyReaction(cached.myReaction);
       setLikeCount(cached.likeCount);
       setCommentCount(cached.commentCount);
+      setIsSaved(cached.hasSaved);
       setIsInteractionLoading(false);
     } else {
       setIsInteractionLoading(true);
@@ -343,16 +344,32 @@ export default function ClientProjectDetailPage({
     const newIsSaved = !isSaved;
     setIsSaved(newIsSaved);
     
+    const cacheKey = `interaction_project_${id}_${user.id}`;
+    if (interactionsCache.has(cacheKey)) {
+      interactionsCache.set(cacheKey, {
+        ...interactionsCache.get(cacheKey),
+        hasSaved: newIsSaved
+      });
+    }
+    
     const res = await toggleSave(user.id, "project", id);
     if (!res.success) {
       setIsSaved(!newIsSaved);
+      if (interactionsCache.has(cacheKey)) {
+        interactionsCache.set(cacheKey, {
+          ...interactionsCache.get(cacheKey),
+          hasSaved: !newIsSaved
+        });
+      }
       console.error(res.error);
     } else if (res.action === "saved") {
+      const savedMsg = tGlobal("saveFolderModal.savedToast");
+      const titleMsg = tGlobal("saveFolderModal.title");
       toast.custom((toastItem) => (
         <div className={`${toastItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
           <div className="flex-1 w-0 p-3 px-4">
             <div className="flex items-center justify-between">
-              <span className="text-white font-medium">{tGlobal("saveFolderModal.savedToast")}</span>
+              <span className="text-white font-medium">{savedMsg}</span>
               <button 
                 onClick={() => { 
                   toast.dismiss(toastItem.id);
@@ -360,7 +377,7 @@ export default function ClientProjectDetailPage({
                 }} 
                 className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
               >
-                {tGlobal("saveFolderModal.title")}
+                {titleMsg}
               </button>
             </div>
           </div>

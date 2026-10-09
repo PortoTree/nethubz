@@ -529,5 +529,81 @@ export async function checkInteractionState(userId: string | undefined, targetTy
   }
 }
 
+// Batch version: fetch interaction state for multiple projects in one go
+export async function checkBatchProjectInteractionState(userId: string | undefined, projectIds: string[]) {
+  if (!projectIds.length) return {};
+
+  try {
+    // 1. Fetch all likes for these projects by this user (one query)
+    const likes = userId
+      ? await prisma.like.findMany({
+          where: { userId, projectId: { in: projectIds } },
+          select: { projectId: true, type: true },
+        })
+      : [];
+
+    // 2. Fetch all saves for these projects by this user (one query)
+    const saves = userId
+      ? await prisma.savedProject.findMany({
+          where: { userId, projectId: { in: projectIds } },
+          select: { projectId: true },
+        })
+      : [];
+
+    // 3. Fetch like counts for all projects (one query)
+    const likeCounts = await prisma.like.groupBy({
+      by: ["projectId"],
+      where: { projectId: { in: projectIds } },
+      _count: true,
+    });
+
+    // 4. Fetch comment counts (one query)
+    const commentCounts = await prisma.comment.groupBy({
+      by: ["projectId"],
+      where: { projectId: { in: projectIds }, parentId: null },
+      _count: true,
+    });
+
+    // 5. Top reactions per project (one query)
+    const reactionGroups = await prisma.like.groupBy({
+      by: ["projectId", "type"],
+      where: { projectId: { in: projectIds } },
+      _count: true,
+      orderBy: { _count: { type: "desc" } },
+    });
+
+    // Build maps
+    const likeMap = new Map(likes.map((l) => [l.projectId!, l.type]));
+    const saveSet = new Set(saves.map((s) => s.projectId));
+    const likeCountMap = new Map(likeCounts.map((l) => [l.projectId!, l._count]));
+    const commentCountMap = new Map(commentCounts.map((c) => [c.projectId!, c._count]));
+
+    const topReactionsMap: Map<string, string[]> = new Map();
+    for (const rg of reactionGroups) {
+      if (!rg.projectId) continue;
+      if (!topReactionsMap.has(rg.projectId)) topReactionsMap.set(rg.projectId, []);
+      topReactionsMap.get(rg.projectId)!.push(rg.type);
+    }
+
+    // Assemble result per project
+    const result: Record<string, any> = {};
+    for (const id of projectIds) {
+      result[id] = {
+        success: true,
+        myReaction: (likeMap.get(id) as string | null) ?? null,
+        hasLiked: likeMap.has(id),
+        hasSaved: saveSet.has(id),
+        likeCount: likeCountMap.get(id) ?? 0,
+        commentCount: commentCountMap.get(id) ?? 0,
+        topReactions: topReactionsMap.get(id) ?? [],
+      };
+    }
+    return result;
+  } catch (e) {
+    console.error("checkBatchProjectInteractionState error:", e);
+    return {};
+  }
+}
+
 
 

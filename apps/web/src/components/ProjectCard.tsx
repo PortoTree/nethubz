@@ -19,6 +19,7 @@ interface ProjectCardProps {
   isOwnProfile: boolean;
   onEdit?: (project: any) => void;
   onDelete?: (project: any) => void;
+  disableAutoFetch?: boolean;
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -50,6 +51,7 @@ export default function ProjectCard({
   isOwnProfile,
   onEdit,
   onDelete,
+  disableAutoFetch = false,
 }: ProjectCardProps) {
   const router = useRouter();
   const tProject = useTranslations("project");
@@ -88,10 +90,13 @@ export default function ProjectCard({
       setTopReactions(cached.topReactions || []);
       setCommentCount(cached.commentCount);
       setIsInteractionLoading(false);
+      return;
     } else {
       setIsInteractionLoading(true);
     }
     
+    if (disableAutoFetch) return; // Wait for parent to batch fetch and trigger refresh_projects
+
     checkInteractionState(user?.id, "project", p.id).then(interaction => {
       if (interaction.success) {
         setMyReaction(interaction.myReaction as ReactionType | null);
@@ -193,31 +198,47 @@ export default function ProjectCard({
 
   return (
     <div className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 group block">
-      {hasMultiple ? (
-        <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="w-full aspect-video flex gap-1 bg-gray-100 dark:bg-[#3A3B3C] cursor-pointer">
-          <div className="flex-1 relative h-full">
-            <MediaRenderer url={coverUrls[0]} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 z-10" />
-          </div>
-          <div className="w-1/3 relative h-full">
-            <MediaRenderer url={coverUrls[1]} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 z-10" />
-            {coverUrls.length > 2 && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-                <span className="text-white font-bold text-xl">+{coverUrls.length - 2}</span>
+      {(hasMultiple || cover) ? (
+        <div className="relative">
+          {hasMultiple ? (
+            <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="w-full aspect-video flex gap-1 bg-gray-100 dark:bg-[#3A3B3C] cursor-pointer">
+              <div className="flex-1 relative h-full">
+                <MediaRenderer url={coverUrls[0]} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 z-10" />
               </div>
-            )}
+              <div className="w-1/3 relative h-full">
+                <MediaRenderer url={coverUrls[1]} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 z-10" />
+                {coverUrls.length > 2 && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+                    <span className="text-white font-bold text-xl">+{coverUrls.length - 2}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="cursor-pointer relative">
+              <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
+              <div className="absolute inset-0 z-10" />
+            </div>
+          )}
+          <div className="absolute -bottom-4 right-0 z-30 bg-white dark:bg-[#242526] p-[3px] pr-0 rounded-l-[10px] rounded-r-none shadow-sm shadow-black/5 dark:shadow-black/40 border border-r-0 border-gray-100 dark:border-[#3A3B3C]/60">
+            <span className={
+              "block px-2.5 py-1 rounded-l-[7px] rounded-r-none text-[12px] font-semibold " +
+              (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
+              p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
+              p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
+              p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
+              "bg-gray-100 text-gray-700")
+            }>
+              {tProject(statusKey)}
+            </span>
           </div>
-        </div>
-      ) : cover ? (
-        <div onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }} className="cursor-pointer relative">
-          <MediaRenderer url={cover} className="w-full aspect-video object-cover bg-gray-100 dark:bg-[#3A3B3C]" />
-          <div className="absolute inset-0 z-10" />
         </div>
       ) : null}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="project-title-container flex-1 max-w-[65%]">
+          <div className="project-title-container flex-1 max-w-[85%]">
             <h3 
               onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }}
               className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] cursor-pointer hover:underline project-title-text"
@@ -239,16 +260,18 @@ export default function ProjectCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={
-              "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +
-              (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
-              p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
-              p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
-              p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
-              "bg-gray-100 text-gray-700")
-            }>
-              {tProject(statusKey)}
-            </span>
+            {!(hasMultiple || cover) && (
+              <span className={
+                "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +
+                (p.status === "RELEASED" ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400" :
+                p.status === "IN_PROGRESS" ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400" :
+                p.status === "OPEN_SOURCE" ? "bg-white dark:bg-[#242526] text-gray-700 dark:text-gray-300 border border-dashed border-gray-400 dark:border-gray-500" :
+                p.status === "SEARCHING_TEAM" ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300" :
+                "bg-gray-100 text-gray-700")
+              }>
+                {tProject(statusKey)}
+              </span>
+            )}
             {isOwnProfile && (
               <div className="relative">
                 <button 

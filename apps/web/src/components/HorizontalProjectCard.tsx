@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -8,6 +8,9 @@ import { MediaRenderer } from "@/components/MediaRenderer";
 import { CATEGORY_COLORS, getCategoryBadgeClasses } from "@/components/ProjectCard";
 import { useUser } from "@/contexts/UserContext";
 import { toggleLike, toggleSave, incrementShareCount } from "@/app/actions/interactions";
+import toast from "react-hot-toast";
+import { interactionsCache } from "@/utils/cache";
+import SaveToFolderModal from "./SaveToFolderModal";
 
 interface HorizontalProjectCardProps {
   project: any;
@@ -28,6 +31,7 @@ export default function HorizontalProjectCard({
 }: HorizontalProjectCardProps) {
   const router = useRouter();
   const tProject = useTranslations("project");
+  const tGlobal = useTranslations();
   const { currentUser } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
@@ -37,6 +41,17 @@ export default function HorizontalProjectCard({
 
   const [isSaved, setIsSaved] = useState(p.savedBy?.some((s: any) => s.userId === currentUser?.id) || false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      const cacheKey = `interaction_project_${p.id}_${currentUser.id}`;
+      if (interactionsCache.has(cacheKey)) {
+        const cached = interactionsCache.get(cacheKey);
+        setIsSaved(cached.hasSaved);
+      }
+    }
+  }, [p.id, currentUser]);
 
 
 
@@ -67,9 +82,47 @@ export default function HorizontalProjectCard({
     setIsSaveLoading(true);
 
     const res = await toggleSave(currentUser.id, "project", p.id);
+    
+    const cacheKey = `interaction_project_${p.id}_${currentUser.id}`;
+    if (interactionsCache.has(cacheKey)) {
+      interactionsCache.set(cacheKey, {
+        ...interactionsCache.get(cacheKey),
+        hasSaved: newIsSaved
+      });
+    } else {
+      interactionsCache.set(cacheKey, { hasSaved: newIsSaved });
+    }
+
     if (!res.success) {
       setIsSaved(!newIsSaved);
+      if (interactionsCache.has(cacheKey)) {
+        interactionsCache.set(cacheKey, {
+          ...interactionsCache.get(cacheKey),
+          hasSaved: !newIsSaved
+        });
+      }
       console.error(res.error);
+    } else if (res.action === "saved") {
+      const savedMsg = tGlobal("saveFolderModal.savedToast");
+      const titleMsg = tGlobal("saveFolderModal.title");
+      toast.custom((toastItem) => (
+        <div className={`${toastItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
+          <div className="flex-1 w-0 p-3 px-4">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">{savedMsg}</span>
+              <button 
+                onClick={() => { 
+                  toast.dismiss(toastItem.id);
+                  setIsSaveModalOpen(true);
+                }} 
+                className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
+              >
+                {titleMsg}
+              </button>
+            </div>
+          </div>
+        </div>
+      ), { duration: 4000 });
     }
     setIsSaveLoading(false);
   };
@@ -287,6 +340,15 @@ export default function HorizontalProjectCard({
           </div>
         </div>
       </div>
+      {currentUser && (
+        <SaveToFolderModal
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          userId={currentUser.id}
+          targetType="project"
+          targetId={p.id}
+        />
+      )}
     </div>
   );
 }
