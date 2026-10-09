@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { getProjectById } from "@/app/actions/projects";
 import { getOptimizedUrl } from "@/utils/cloudinary";
 import { getProfile } from "@/app/actions/profile";
-import { toggleLike, addComment, getComments, getCommentReplies, checkInteractionState } from "@/app/actions/interactions";
+import { toggleLike, addComment, getComments, getCommentReplies, checkInteractionState, toggleSave } from "@/app/actions/interactions";
 import { interactionsCache } from "@/utils/cache";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
@@ -23,6 +23,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
 import { getMentionSuggestion } from "@/utils/mentionSuggestion";
+import toast from "react-hot-toast";
+import SaveToFolderModal from "@/components/SaveToFolderModal";
 
 
 // ─── Gallery ─────────────────────────────────────────────────────────────────
@@ -127,6 +129,11 @@ export default function ClientProjectDetailPage({
   const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
   const emojiRef = useRef<HTMLDivElement>(null);
+
+  // Save
+  const [isSaved, setIsSaved] = useState(initialProject?.hasSaved || false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
 
   // Comments
@@ -240,10 +247,12 @@ export default function ClientProjectDetailPage({
         setMyReaction(interaction.myReaction as ReactionType | null);
         setLikeCount(interaction.likeCount || 0);
         setCommentCount(interaction.commentCount || 0);
+        setIsSaved(interaction.hasSaved || false);
         interactionsCache.set(cacheKey, {
           myReaction: interaction.myReaction as ReactionType | null,
           likeCount: interaction.likeCount || 0,
-          commentCount: interaction.commentCount || 0
+          commentCount: interaction.commentCount || 0,
+          hasSaved: interaction.hasSaved || false
         });
       }
       setIsInteractionLoading(false);
@@ -319,6 +328,46 @@ export default function ClientProjectDetailPage({
     const url = window.location.href;
     if (navigator.share) { try { await navigator.share({ title: project?.title, url }); } catch (e) {} }
     else { navigator.clipboard.writeText(url); alert("Link disalin!"); }
+  };
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      alert("Silakan login untuk menyimpan.");
+      return;
+    }
+    if (isSaveLoading) return;
+    setIsSaveLoading(true);
+    
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    
+    const res = await toggleSave(user.id, "project", id);
+    if (!res.success) {
+      setIsSaved(!newIsSaved);
+      console.error(res.error);
+    } else if (res.action === "saved") {
+      toast.custom((toastItem) => (
+        <div className={`${toastItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
+          <div className="flex-1 w-0 p-3 px-4">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-medium">{tGlobal("saveFolderModal.savedToast")}</span>
+              <button 
+                onClick={() => { 
+                  toast.dismiss(toastItem.id);
+                  setIsSaveModalOpen(true);
+                }} 
+                className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
+              >
+                {tGlobal("saveFolderModal.title")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ), { duration: 4000 });
+    }
+    setIsSaveLoading(false);
   };
 
   const handleLikeComment = async (commentId: string, reactionType: string = "LIKE") => {
@@ -472,27 +521,39 @@ export default function ClientProjectDetailPage({
                 </div>
               </Link>
 
-              <div className="flex items-center gap-3 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C]">
-                <div className="flex items-center relative">
-                  {isInteractionLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
-                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <ProjectReactionListDropdown targetId={id} count={likeCount} />
-                      <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} />
-                    </div>
-                  )}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C]">
+                  <div className="flex items-center relative">
+                    {isInteractionLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
+                        <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <ProjectReactionListDropdown targetId={id} count={likeCount} />
+                        <ReactionButton myReaction={myReaction} onReact={handleLike} count={likeCount} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
+                  <button onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    {isInteractionLoading ? <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" /> : <span>{commentCount}</span>}
+                  </button>
+                  <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
+                  <button 
+                    onClick={handleSave} 
+                    disabled={isSaveLoading}
+                    className="flex items-center gap-2 font-semibold transition-colors text-[14px]"
+                  >
+                    <svg className={`w-5 h-5 ${isSaved ? 'text-emerald-500' : 'text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400'}`} fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
+                    </svg>
+                  </button>
                 </div>
-                <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
-                <button onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                  {isInteractionLoading ? <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full" /> : <span>{commentCount}</span>}
-                </button>
-                <div className="w-px h-5 bg-gray-200 dark:bg-[#4E4F50]"></div>
-                <button onClick={handleShare} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
+                
+                <button onClick={handleShare} className="flex items-center gap-2 bg-white dark:bg-[#242526] px-5 py-2.5 rounded-full shadow-sm border border-gray-100 dark:border-[#3A3B3C] text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 font-semibold transition-colors text-[14px]">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                   {t("share") || "Share"}
                 </button>
@@ -739,6 +800,16 @@ export default function ClientProjectDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {user && (
+        <SaveToFolderModal
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          userId={user.id}
+          targetType="project"
+          targetId={id}
+        />
       )}
     </div>
   );
