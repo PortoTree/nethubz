@@ -70,7 +70,7 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       let left = rect.left;
-      if (left + 380 > window.innerWidth) left = window.innerWidth - 390;
+      if (left + 420 > window.innerWidth) left = window.innerWidth - 420;
       setPopupPos({ top: rect.top - 55, left: Math.max(10, left) });
     }
     setIsOpen((prev) => !prev);

@@ -49,6 +49,10 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
 
   const loadInteractions = useCallback(() => {
     if (!isUserLoaded) return;
+    if (!user) {
+      setIsInteractionLoading(false);
+      return;
+    }
     const cacheKey = `interaction_project_${p.id}_${user?.id || 'guest'}`;
     if (interactionsCache.has(cacheKey)) {
       const cached = interactionsCache.get(cacheKey);
@@ -62,24 +66,19 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
       setIsInteractionLoading(true);
     }
     
-    checkInteractionState(user?.id, "project", p.id).then(interaction => {
-      if (interaction.success) {
-        setMyReaction(interaction.myReaction as ReactionType | null);
-        setLikeCount(interaction.likeCount || 0);
-        if (interaction.topReactions) {
-          setTopReactions(interaction.topReactions as ReactionType[]);
+    import("@/utils/interactionBatcher").then(({ fetchProjectInteraction }) => {
+      fetchProjectInteraction(user?.id, p.id).then(interaction => {
+        if (interaction && interaction.success) {
+          setMyReaction(interaction.myReaction as ReactionType | null);
+          setLikeCount(interaction.likeCount || 0);
+          if (interaction.topReactions) {
+            setTopReactions(interaction.topReactions as ReactionType[]);
+          }
+          setCommentCount(interaction.commentCount || 0);
+          setIsSaved(interaction.hasSaved || false);
         }
-        setCommentCount(interaction.commentCount || 0);
-        setIsSaved(interaction.hasSaved || false);
-        interactionsCache.set(cacheKey, {
-          myReaction: interaction.myReaction as ReactionType | null,
-          likeCount: interaction.likeCount || 0,
-          topReactions: interaction.topReactions || [],
-          commentCount: interaction.commentCount || 0,
-          hasSaved: interaction.hasSaved || false
-        });
-      }
-      setIsInteractionLoading(false);
+        setIsInteractionLoading(false);
+      });
     });
   }, [p.id, user?.id, isUserLoaded]);
 
@@ -230,9 +229,9 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
   return (
     <div
       key={p.id}
-      className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col md:flex-row min-h-[180px] group/card relative"
+      className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col md:flex-row min-h-[180px] group/card relative"
     >
-      <div className="w-full md:w-[260px] md:shrink-0 relative group/cover cursor-pointer">
+      <div className="w-full md:w-[260px] md:shrink-0 relative group/cover cursor-pointer rounded-t-[20px] md:rounded-tr-none md:rounded-l-[20px] overflow-hidden">
         <div className="absolute top-3 left-3 z-20">
           {isInteractionLoading ? (
             <div className="w-[32px] h-[32px] rounded-full bg-white/50 dark:bg-black/50 animate-pulse border border-black/5 dark:border-white/5"></div>

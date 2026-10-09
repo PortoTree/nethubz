@@ -34,7 +34,9 @@ export function ReactionSummaryPopup({ targetId, targetType, likeCount, topReact
     
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      setPopupPos({ top: rect.bottom + 5, left: rect.left });
+      let left = rect.left;
+      if (left + 270 > window.innerWidth) left = window.innerWidth - 270;
+      setPopupPos({ top: rect.bottom + 5, left: Math.max(10, left) });
     }
     
     timeoutRef.current = setTimeout(async () => {

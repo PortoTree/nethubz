@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { MediaRenderer } from "@/components/MediaRenderer";
 import { CATEGORY_COLORS, getCategoryBadgeClasses } from "@/components/ProjectCard";
 import { useUser } from "@/contexts/UserContext";
-import { toggleLike, toggleSave, incrementShareCount } from "@/app/actions/interactions";
+import { toggleLike, toggleSave, incrementShareCount, checkInteractionState } from "@/app/actions/interactions";
 import toast from "react-hot-toast";
 import { interactionsCache } from "@/utils/cache";
 import SaveToFolderModal from "./SaveToFolderModal";
+import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
+import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
+import Image from "next/image";
 
 interface HorizontalProjectCardProps {
   project: any;
@@ -35,42 +38,100 @@ export default function HorizontalProjectCard({
   const { currentUser } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  const [isLiked, setIsLiked] = useState(p.likes?.some((l: any) => l.userId === currentUser?.id) || false);
+  const [isInteractionLoading, setIsInteractionLoading] = useState(true);
+  const [myReaction, setMyReaction] = useState<ReactionType | null>(null);
   const [likeCount, setLikeCount] = useState(p._count?.likes || 0);
+  const [topReactions, setTopReactions] = useState<ReactionType[]>(p.topReactions || []);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   const [isSaved, setIsSaved] = useState(p.savedBy?.some((s: any) => s.userId === currentUser?.id) || false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (currentUser) {
-      const cacheKey = `interaction_project_${p.id}_${currentUser.id}`;
-      if (interactionsCache.has(cacheKey)) {
-        const cached = interactionsCache.get(cacheKey);
-        setIsSaved(cached.hasSaved);
-      }
+  const loadInteractions = useCallback(() => {
+    if (!currentUser) {
+      setIsInteractionLoading(false);
+      return;
     }
+    const cacheKey = `interaction_project_${p.id}_${currentUser.id}`;
+    if (interactionsCache.has(cacheKey)) {
+      const cached = interactionsCache.get(cacheKey);
+      setMyReaction(cached.myReaction);
+      setLikeCount(cached.likeCount);
+      setTopReactions(cached.topReactions || []);
+      setIsSaved(cached.hasSaved || false);
+      setIsInteractionLoading(false);
+    } else {
+      setIsInteractionLoading(true);
+    }
+    
+    import("@/utils/interactionBatcher").then(({ fetchProjectInteraction }) => {
+      fetchProjectInteraction(currentUser.id, p.id).then(interaction => {
+        if (interaction && interaction.success) {
+          setMyReaction(interaction.myReaction as ReactionType | null);
+          setLikeCount(interaction.likeCount || 0);
+          if (interaction.topReactions) {
+            setTopReactions(interaction.topReactions as ReactionType[]);
+          }
+          setIsSaved(interaction.hasSaved || false);
+        }
+        setIsInteractionLoading(false);
+      });
+    });
   }, [p.id, currentUser]);
 
+  useEffect(() => {
+    loadInteractions();
+    const handleRefresh = () => loadInteractions();
+    window.addEventListener("refresh_projects", handleRefresh);
+    return () => window.removeEventListener("refresh_projects", handleRefresh);
+  }, [loadInteractions]);
 
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLike = async (reactionType: ReactionType = "LIKE") => {
     if (!currentUser || isLikeLoading) return;
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    setLikeCount((prev: number) => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
     setIsLikeLoading(true);
     
-    const res = await toggleLike(currentUser.id, "project", p.id);
-    if (!res.success) {
-      setIsLiked(!newIsLiked);
-      setLikeCount((prev: number) => !newIsLiked ? prev + 1 : Math.max(0, prev - 1));
-      console.error(res.error);
+    const prevReaction = myReaction;
+    const isSameReaction = prevReaction === reactionType;
+    const isRemovingLike = prevReaction && isSameReaction;
+    const isAddingLike = !prevReaction;
+
+    const cacheKey = `interaction_project_${p.id}_${currentUser.id}`;
+    let newLikeCount = likeCount;
+    let newReaction = isRemovingLike ? null : reactionType;
+    let newTopReactions = topReactions;
+
+    if (isRemovingLike) {
+      newLikeCount = Math.max(0, likeCount - 1);
+    } else {
+      if (isAddingLike) newLikeCount = likeCount + 1;
+      if (isAddingLike || reactionType !== prevReaction) {
+        newTopReactions = [reactionType, ...topReactions.filter((r: any) => r !== reactionType)];
+      }
     }
-    setIsLikeLoading(false);
+    
+    setMyReaction(newReaction);
+    setLikeCount(newLikeCount);
+    setTopReactions(newTopReactions);
+    
+    const cached = interactionsCache.get(cacheKey) || {};
+    interactionsCache.set(cacheKey, {
+      ...cached,
+      myReaction: newReaction,
+      likeCount: newLikeCount,
+      topReactions: newTopReactions
+    });
+
+    try {
+      await toggleLike(currentUser.id, "project", p.id, reactionType);
+      window.dispatchEvent(new Event("refresh_projects"));
+    } catch (e) {
+      setMyReaction(prevReaction);
+      setLikeCount(isRemovingLike ? newLikeCount + 1 : isAddingLike ? Math.max(0, newLikeCount - 1) : newLikeCount);
+    } finally {
+      setIsLikeLoading(false);
+    }
   };
 
   const handleSave = async (e: React.MouseEvent) => {
@@ -153,6 +214,7 @@ export default function HorizontalProjectCard({
   const projectOwner = p.user?.username || username;
   const displayName = p.user?.profile?.displayName || projectOwner;
   const avatarUrl = p.user?.profile?.avatarUrl;
+  const parentCommentsCount = p.comments ? p.comments.filter((c: any) => !c.parentId).length : (p._count?.comments || 0);
 
   const statusBadgeClass = (status: string) =>
     "shrink-0 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider " +
@@ -171,8 +233,11 @@ export default function HorizontalProjectCard({
   const statusKey = ({ RELEASED: "statusReleased", IN_PROGRESS: "statusInProgress", OPEN_SOURCE: "statusOpenSource", SEARCHING_TEAM: "statusSearchingTeam", HIATUS: "statusHiatus" } as Record<string, string>)[p.status] || "statusReleased";
 
   return (
-    <div className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col md:flex-row min-h-[180px] group/card relative">
-      <div className="w-full md:w-[200px] md:shrink-0 relative group/cover cursor-pointer">
+    <div
+      key={p.id}
+      className="bg-white dark:bg-[#242526] rounded-[20px] shadow-sm border border-gray-100 dark:border-[#3A3B3C] transition-all hover:shadow-md hover:-translate-y-0.5 flex flex-col md:flex-row min-h-[180px] group/card relative"
+    >
+      <div className="w-full md:w-[260px] md:shrink-0 relative group/cover cursor-pointer rounded-t-[20px] md:rounded-tr-none md:rounded-l-[20px] overflow-hidden">
         <div className="absolute top-3 left-3 z-20">
           <button 
             onClick={(e) => {
@@ -195,7 +260,7 @@ export default function HorizontalProjectCard({
         </div>
 
         <div 
-          onClick={() => router.push(`/${locale}/project/${projectOwner}/${p.id}`)}
+          onClick={() => { if (typeof window !== 'undefined' && (window as any).NProgress) (window as any).NProgress.start(); router.push(`/${locale}/project/${projectOwner}/${p.id}`); }}
           className="w-full aspect-video md:aspect-auto md:absolute md:inset-0 relative z-0"
         >
           {cover ? (
@@ -207,6 +272,19 @@ export default function HorizontalProjectCard({
               </svg>
             </div>
           )}
+          
+          <div className="absolute bottom-2 left-2 z-20 flex items-center gap-2 p-1.5 pr-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10" onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/project/${projectOwner}`); }}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover shrink-0 ring-1 ring-white/20" />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-gray-600/50 shrink-0 flex items-center justify-center text-white font-bold text-[10px] ring-1 ring-white/20">
+                {displayName[0]?.toUpperCase() || "?"}
+              </div>
+            )}
+            <span className="text-xs font-medium text-white/95 truncate max-w-[120px] shadow-sm">
+              {displayName}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -215,18 +293,19 @@ export default function HorizontalProjectCard({
           <div className="flex-1 min-w-0">
             <Link
               href={`/${locale}/project/${projectOwner}/${p.id}`}
+              onClick={() => { if (typeof window !== 'undefined' && (window as any).NProgress) (window as any).NProgress.start(); }}
               className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] line-clamp-2 after:absolute after:inset-0 after:z-0 hover:text-purple-600 dark:hover:text-purple-400"
             >
               {p.title}
             </Link>
-            <div className="flex flex-row items-center gap-2 mt-1.5 relative z-10 w-full overflow-hidden">
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 relative z-10">
               {p.category && (
-                <span className={`${getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")} shrink-0`}>
+                <span className={getCategoryBadgeClasses(CATEGORY_COLORS[p.category] || "blue")}>
                   {p.category === "OTHER" ? p.customCategory : tProject(`cat_${p.category}` as any)}
                 </span>
               )}
               {p.isForSale && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   FOR SALE
                 </span>
@@ -269,12 +348,6 @@ export default function HorizontalProjectCard({
                       className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#3A3B3C] rounded-xl shadow-lg border border-gray-100 dark:border-[#4E4F50] py-1 z-50 overflow-hidden"
                     >
                       <button 
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        {tProject("publish")}
-                      </button>
-                      <button 
                         onClick={() => {
                           if (onEdit) onEdit(p);
                           setIsMenuOpen(false);
@@ -282,7 +355,7 @@ export default function HorizontalProjectCard({
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#E4E6EB] hover:bg-gray-50 dark:hover:bg-[#4E4F50] flex items-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        {tProject("editProject")}
+                        {tProject("editProject") || "Edit Project"}
                       </button>
                       <div className="h-px bg-gray-100 dark:bg-[#4E4F50] my-1" />
                       <button 
@@ -293,7 +366,7 @@ export default function HorizontalProjectCard({
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 font-medium"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        {tProject("deleteProject")}
+                        {tProject("deleteProject") || "Hapus Project"}
                       </button>
                     </div>
                   </>
@@ -303,14 +376,14 @@ export default function HorizontalProjectCard({
           </div>
         </div>
 
-        <p className="text-gray-600 dark:text-[#B0B3B8] text-[13px] whitespace-pre-line line-clamp-3 mb-4 flex-grow relative z-10">
+        <p className="text-gray-600 dark:text-[#B0B3B8] text-[13px] whitespace-pre-line line-clamp-3 mb-4 flex-grow">
           {p.description}
         </p>
 
-        <div className="mt-auto relative z-10">
-          {p.techStack?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {p.techStack.slice(0, 4).map((tech: string) => (
+        <div className="mt-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap gap-1.5">
+              {p.techStack?.length > 0 && p.techStack.slice(0, 4).map((tech: string) => (
                 <span
                   key={tech}
                   className="px-2 py-0.5 rounded text-[11px] font-medium transition-colors bg-gray-100 text-gray-600 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]"
@@ -318,33 +391,76 @@ export default function HorizontalProjectCard({
                   {tech}
                 </span>
               ))}
-              {p.techStack.length > 4 && (
+              {p.techStack?.length > 4 && (
                 <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-600 dark:bg-[#3A3B3C] dark:text-[#E4E6EB]">
                   +{p.techStack.length - 4}
                 </span>
               )}
             </div>
-          )}
+            
+            <div className="flex items-center gap-1.5 cursor-pointer hover:underline text-[#65676B] dark:text-[#B0B3B8] text-[15px] relative z-10">
+              {isInteractionLoading ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="flex -space-x-1">
+                    <div className="w-[18px] h-[18px] rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse relative z-10 border-2 border-white dark:border-[#242526]"></div>
+                    <div className="w-[18px] h-[18px] rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse relative z-0 border-2 border-white dark:border-[#242526]"></div>
+                  </div>
+                  <div className="w-4 h-4 bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center -space-x-1 z-0">
+                    {topReactions.length > 0 ? (
+                      topReactions.slice(0, 3).map((r) => (
+                        <ReactionSummaryPopup key={r} targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
+                          <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                             <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
+                          </div>
+                        </ReactionSummaryPopup>
+                      ))
+                    ) : likeCount > 0 ? (
+                      <ReactionSummaryPopup targetId={p.id} targetType="PROJECT" likeCount={likeCount} topReactions={topReactions}>
+                        <div className="w-[18px] h-[18px] rounded-full bg-blue-500 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
+                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                          </svg>
+                        </div>
+                      </ReactionSummaryPopup>
+                    ) : null}
+                  </div>
+                  {likeCount > 0 && <span onClick={(e) => { e.stopPropagation(); if (typeof window !== 'undefined' && (window as any).NProgress) (window as any).NProgress.start(); router.push(`/${locale}/project/${projectOwner}/${p.id}`); }}>{likeCount}</span>}
+                </>
+              )}
+            </div>
+          </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-[#3A3B3C]">
-            <div className="flex items-center gap-3.5 relative z-10" onClick={(e) => e.stopPropagation()}>
-              <button 
-                onClick={handleLike}
-                className={`flex items-center gap-1.5 transition-colors font-medium text-[13px] ${isLiked ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400'}`}
+          <div className="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-[#3A3B3C]">
+            <div className="flex items-center gap-3 relative z-10" onClick={(e) => e.stopPropagation()}>
+              {isInteractionLoading ? (
+                <div className="w-[84px] h-[18px] bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded"></div>
+              ) : (
+                <ReactionButton myReaction={myReaction} onReact={handleLike} count={0} containerClassName="!flex-none" className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-purple-600 dark:text-gray-400 dark:hover:bg-[#3A3B3C] dark:hover:text-purple-400 transition-colors font-medium text-[13px] bg-transparent" />
+              )}
+              
+              <Link 
+                href={`/${locale}/project/${projectOwner}/${p.id}#comments`} 
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-500 hover:text-purple-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-[#3A3B3C] transition-colors font-medium text-[13px]"
+                title={tProject("comment") || "Komentar"}
               >
-                <svg className="w-4 h-4" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
-                {tProject("like")} <span className="ml-0.5 text-gray-400 dark:text-gray-500">{likeCount}</span>
-              </button>
-              <Link href={`/${locale}/project/${projectOwner}/${p.id}#comments`} className="flex items-center gap-1.5 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors font-medium text-[13px]">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                {tProject("comment")} <span className="ml-0.5 text-gray-400 dark:text-gray-500">{p._count?.comments || 0}</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                {isInteractionLoading ? (
+                  <div className="w-3 h-4 bg-gray-200 dark:bg-[#3A3B3C] animate-pulse rounded ml-0.5"></div>
+                ) : parentCommentsCount > 0 ? (
+                  <span className="ml-0.5 text-gray-500 dark:text-gray-400">{parentCommentsCount}</span>
+                ) : null}
               </Link>
+              
               <button 
                 onClick={handleShare}
-                className="flex items-center gap-1.5 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors font-medium text-[13px]"
+                className="flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors hover:bg-gray-100 dark:hover:bg-[#3A3B3C]"
+                title={tProject("share") || "Bagikan"}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                {tProject("share")}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
               </button>
             </div>
           </div>
