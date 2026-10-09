@@ -50,7 +50,8 @@ export function CommentItem({
   allThreadComments = [],
   traceInfo = null,
   setTraceInfo = () => { },
-  rootId
+  rootId,
+  bgColorClass = "bg-gray-50 dark:bg-[#18191A]"
 }: any) {
   const currentRootId = depth === 0 ? comment.id : rootId;
   const [replies, setReplies] = useState<any[]>([]);
@@ -187,7 +188,7 @@ export function CommentItem({
 
   const isTracingThisLine = effectiveTraceInfo && effectiveTraceInfo.sourceId === comment.id;
   const isTracingParentLine = effectiveTraceInfo && effectiveTraceInfo.parentId === comment.id;
-  const isTargetOfTrace = effectiveTraceInfo && effectiveTraceInfo.targetId === comment.id && effectiveTraceInfo.targetId !== effectiveTraceInfo.parentId;
+  const isTargetOfTrace = effectiveTraceInfo && effectiveTraceInfo.targetId === comment.id;
 
   let isBetweenTrace = false;
   if (effectiveTraceInfo && effectiveTraceInfo.parentId === parentCommentId) {
@@ -251,7 +252,7 @@ export function CommentItem({
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isTracingParentLine, traceSourceId, traceTargetId, comment.id]);
+  }, [isTracingParentLine, traceSourceId, traceTargetId, comment.id, isLoading, currentThreadComments.length]);
 
   const handleJumpToComment = (e: React.MouseEvent, targetId: string) => {
     e.stopPropagation();
@@ -268,28 +269,28 @@ export function CommentItem({
 
   return (
     <>
-      <div id={`comment-${comment.id}`} className={`flex gap-3 group relative ${depth > 0 ? 'mt-3' : ''}`}>
+      <div id={`comment-${comment.id}`} className={`flex gap-3 group relative transition-colors duration-500 ${depth > 0 ? 'mt-3' : ''}`}>
         {depth > 0 && (
-          <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] rounded-bl-[12px] z-30 ${isTracingThisLine ? 'border-b-blue-500 border-l-blue-500' : ((isParentReplying || isBetweenTrace) ? 'border-b-gray-300 dark:border-b-[#4E4F50] border-l-blue-500' : 'border-gray-300 dark:border-[#4E4F50]')}`} />
+          <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] rounded-bl-[12px] z-30 transition-all duration-300 ease-out ${isTracingThisLine ? 'border-b-blue-500 border-l-blue-500' : ((isParentReplying || isBetweenTrace) ? 'border-b-gray-300 dark:border-b-[#4E4F50] border-l-blue-500' : 'border-gray-300 dark:border-[#4E4F50]')}`} />
         )}
-        {depth > 0 && isTargetOfTrace && (
-          <div className="absolute -left-[33px] top-[14px] w-[49px] h-[18px] border-t-[2px] border-l-[2px] border-blue-500 rounded-tl-[12px] z-40 pointer-events-none" />
+        {depth > 0 && isTargetOfTrace && effectiveTraceInfo?.targetId !== effectiveTraceInfo?.parentId && (
+          <div className="absolute -left-[33px] top-[14px] w-[49px] h-[18px] border-t-[2px] border-l-[2px] border-blue-500 rounded-tl-[12px] z-40 pointer-events-none transition-all duration-300 ease-out" />
         )}
         {depth > 0 && isLast && (
-          <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
+          <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${bgColorClass}`} />
         )}
         {(showReplies || inputElement) && depth < 2 && (
-          <div className={`absolute left-[15px] top-[32px] bottom-[24px] w-[2px] ${isReplying ? 'bg-blue-500' : 'bg-gray-300 dark:bg-[#4E4F50]'} z-10`}>
+          <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`}>
             {isTracingParentLine && (
               <div
-                className="absolute left-0 w-[2px] bg-blue-500"
+                className="absolute left-[-2px] border-l-[2px] border-blue-500 transition-all duration-300 ease-out z-20"
                 style={traceStyle}
               />
             )}
           </div>
         )}
         {isReplying && depth >= 2 && inputElement && (
-          <div className="absolute left-[15px] top-[32px] bottom-[-28px] w-[2px] bg-blue-500 z-10" />
+          <div className="absolute left-[15px] top-[32px] bottom-[-28px] border-l-[2px] border-blue-500 z-10" />
         )}
         <img src={comment.author?.profile?.avatarUrl || "/default-avatar.svg"} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0 cursor-pointer relative z-50" onClick={() => router.push(`/${locale}/p/${comment.author?.username}/${comment.author?.id}`)} />
         <div className="flex-1 relative z-40">
@@ -387,13 +388,16 @@ export function CommentItem({
                       traceInfo={traceInfo}
                       setTraceInfo={setTraceInfo}
                       rootId={currentRootId}
+                      bgColorClass={bgColorClass}
                     />
                   ))}
 
                   {isLoading && (
                     <div className="relative mt-3">
                       <div className={`absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} rounded-bl-[12px] z-30`} />
-                      <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
+                      {!inputElement && (
+                        <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${bgColorClass}`} />
+                      )}
                       <div className="relative z-40 flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse shrink-0"></div>
                         <div className="flex-1 flex flex-col gap-2 pt-1">
@@ -407,9 +411,7 @@ export function CommentItem({
                   {inputElement && (
                     <div id={`comment-input-${replyingTo?.commentId}`} className="relative mt-3">
                       <div className="absolute -left-[33px] top-[-16px] w-[49px] h-[32px] border-b-[2px] border-l-[2px] border-blue-500 rounded-bl-[12px] z-30" />
-                      {!isLoading && (
-                        <div className="absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
-                      )}
+                      <div className={`absolute -left-[34px] top-[4px] bottom-[-50px] w-[4px] z-20 ${bgColorClass}`} />
                       <div className="relative z-40">
                         {inputElement}
                       </div>
@@ -431,7 +433,7 @@ export function CommentItem({
       {isReplying && depth >= 2 && inputElement && (
         <div className="relative mt-3">
           {isLast && (
-            <div className="absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 bg-white dark:bg-[#242526]" />
+            <div className={`absolute -left-[34px] top-[-50px] bottom-[-50px] w-[4px] z-20 ${bgColorClass}`} />
           )}
           <div className="relative z-40">
             {inputElement}

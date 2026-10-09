@@ -577,6 +577,7 @@ export default function ClientProjectDetailPage({
                           traceInfo={traceInfo}
                           setTraceInfo={setTraceInfo}
                           rootId={c.id}
+                          bgColorClass="bg-white dark:bg-[#242526]"
                           renderCommentContent={renderCommentContent}
                           renderInput={(commentId: string) => {
                             if (replyingTo?.commentId !== commentId) return null;
