@@ -1030,5 +1030,16 @@
     "deleteFolder": "Hapus Folder",
     "me": "saya",
     "itemsSaved": "Item disimpan"
+  },
+  "saveFolderModal": {
+    "title": "Pilih Folder",
+    "noFolder": "Tanpa Folder (Semua Tersimpan)",
+    "newFolderPlaceholder": "Folder baru...",
+    "createBtn": "Buat",
+    "successCreate": "Folder berhasil dibuat!",
+    "errorCreate": "Gagal membuat folder",
+    "successSave": "Tersimpan di folder!",
+    "errorSave": "Gagal memindahkan ke folder",
+    "savedToast": "Tersimpan"
   }
 }

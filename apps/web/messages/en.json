@@ -1024,5 +1024,16 @@
     "deleteFolder": "Delete Folder",
     "me": "me",
     "itemsSaved": "Items saved"
+  },
+  "saveFolderModal": {
+    "title": "Select Folder",
+    "noFolder": "No Folder (All Saved)",
+    "newFolderPlaceholder": "New folder...",
+    "createBtn": "Create",
+    "successCreate": "Folder successfully created!",
+    "errorCreate": "Failed to create folder",
+    "successSave": "Saved to folder!",
+    "errorSave": "Failed to save to folder",
+    "savedToast": "Saved"
   }
 }

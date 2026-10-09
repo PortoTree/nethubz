@@ -124,19 +124,19 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       setIsSaved(!newIsSaved);
       console.error(res.error);
     } else if (res.action === "saved") {
-      toast.custom((t) => (
-        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
+      toast.custom((toastItem) => (
+        <div className={`${toastItem.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#0A3622]/95 shadow-[0_8px_30px_rgba(0,0,0,0.5)] rounded-lg pointer-events-auto flex ring-1 ring-black/20 border border-emerald-600/30 backdrop-blur-md`}>
           <div className="flex-1 w-0 p-3 px-4">
             <div className="flex items-center justify-between">
-              <span className="text-white font-medium">Tersimpan</span>
+              <span className="text-white font-medium">{t("saveFolderModal.savedToast")}</span>
               <button 
                 onClick={() => { 
-                  toast.dismiss(t.id);
+                  toast.dismiss(toastItem.id);
                   setIsSaveModalOpen(true);
                 }} 
                 className="text-emerald-300 hover:text-emerald-200 font-bold ml-4 transition-colors"
               >
-                Pilih Folder
+                {t("saveFolderModal.title")}
               </button>
             </div>
           </div>

@@ -20,6 +20,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const t = useTranslations("saveFolderModal");
 
   useEffect(() => {
     if (isOpen) {
@@ -44,9 +45,9 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
     if (res.success) {
       setNewFolderName("");
       await loadFolders();
-      toast.success("Folder berhasil dibuat!");
+      toast.success(t("successCreate"));
     } else {
-      toast.error(res.error || "Gagal membuat folder");
+      toast.error(res.error || t("errorCreate"));
     }
     setIsCreating(false);
   };
@@ -56,10 +57,10 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
     setIsSaving(true);
     const res = await assignItemToFolder(userId, targetType, targetId, folderId);
     if (res.success) {
-      toast.success("Tersimpan di folder!");
+      toast.success(t("successSave"));
       onClose();
     } else {
-      toast.error(res.error || "Gagal memindahkan ke folder");
+      toast.error(res.error || t("errorSave"));
     }
     setIsSaving(false);
   };
@@ -77,7 +78,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
       <div className="absolute inset-0 bg-black/60" onClick={onClose}></div>
       <div className="bg-white dark:bg-[#242526] w-full max-w-sm rounded-xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden">
         <div className="p-4 border-b border-gray-200 dark:border-[#3E4042] flex justify-between items-center">
-          <h2 className="text-lg font-bold text-black dark:text-[#E4E6EB]">Pilih Folder</h2>
+          <h2 className="text-lg font-bold text-black dark:text-[#E4E6EB]">{t("title")}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB]">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -96,7 +97,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
                 onClick={() => handleSelectFolder(null)}
                 className="w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-black dark:text-[#E4E6EB] transition-colors"
               >
-                Tanpa Folder (Semua Tersimpan)
+                {t("noFolder")}
               </button>
               {folders.map(f => (
                 <button
@@ -118,7 +119,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
           <form onSubmit={handleCreateFolder} className="flex gap-2">
             <input
               type="text"
-              placeholder="Folder baru..."
+              placeholder={t("newFolderPlaceholder")}
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               className="flex-1 bg-white dark:bg-[#242526] border border-gray-300 dark:border-[#3E4042] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-black dark:text-[#E4E6EB]"
@@ -129,7 +130,7 @@ export default function SaveToFolderModal({ isOpen, onClose, userId, targetType,
               disabled={isCreating || !newFolderName.trim()}
               className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
             >
-              Buat
+              {t("createBtn")}
             </button>
           </form>
         </div>
