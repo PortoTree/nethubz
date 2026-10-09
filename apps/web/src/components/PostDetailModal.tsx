@@ -51,7 +51,8 @@ export function CommentItem({
   traceInfo = null,
   setTraceInfo = () => { },
   rootId,
-  bgColorClass = "bg-gray-50 dark:bg-[#18191A]"
+  bgColorClass = "bg-gray-50 dark:bg-[#18191A]",
+  targetType = "post"
 }: any) {
   const currentRootId = depth === 0 ? comment.id : rootId;
   const [replies, setReplies] = useState<any[]>([]);
@@ -283,7 +284,7 @@ export function CommentItem({
           <div className={`absolute left-[15px] top-[32px] bottom-[24px] border-l-[2px] ${isReplying ? 'border-blue-500' : 'border-gray-300 dark:border-[#4E4F50]'} z-10`}>
             {isTracingParentLine && (
               <div
-                className="absolute left-[-2px] border-l-[2px] border-blue-500 transition-all duration-300 ease-out z-20"
+                className="absolute -left-[2px] border-l-[2px] border-blue-500 transition-all duration-300 ease-out z-20"
                 style={traceStyle}
               />
             )}
@@ -389,6 +390,7 @@ export function CommentItem({
                       setTraceInfo={setTraceInfo}
                       rootId={currentRootId}
                       bgColorClass={bgColorClass}
+                      targetType={targetType}
                     />
                   ))}
 
