@@ -43,8 +43,8 @@ export async function createFolder(
     });
 
     // Invalidate the cache for saved items
-    revalidateTag("saved_items");
-    revalidateTag(`saved_items_${userId}`);
+    revalidateTag("saved_items", "page");
+    revalidateTag(`saved_items_${userId}`, "page");
 
     return { success: true, folder };
   } catch (error) {
@@ -177,8 +177,8 @@ export async function assignItemToFolder(
         data: { folderId }
       });
     }
-    revalidateTag("saved_items");
-    revalidateTag(`saved_items_${userId}`);
+    revalidateTag("saved_items", "page");
+    revalidateTag(`saved_items_${userId}`, "page");
     return { success: true };
   } catch (error) {
     console.error("Failed to assign item to folder:", error);

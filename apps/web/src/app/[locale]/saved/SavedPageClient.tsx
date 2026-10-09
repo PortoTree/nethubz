@@ -357,7 +357,7 @@ export default function SavedPageClient() {
                 {item.type === 'post' ? (
                   <PostCard post={item.post} currentUser={user} />
                 ) : (
-                  <HorizontalProjectCard project={item.project} locale={locale} username={item.project.user?.username || 'user'} />
+                  <HorizontalProjectCard project={item.project} locale={locale as string} username={item.project.user?.username || 'user'} />
                 )}
               </div>
             ))}

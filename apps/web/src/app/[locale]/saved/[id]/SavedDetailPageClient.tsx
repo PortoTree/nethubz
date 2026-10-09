@@ -175,7 +175,7 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
             {items.map((item: any) => (
               <div key={item.id} className="w-full">
                 {item.type === 'project' ? (
-                  <HorizontalProjectCard project={item.project} locale={locale} username={item.project.user?.username || 'user'} />
+                  <HorizontalProjectCard project={item.project} locale={locale as string} username={item.project.user?.username || 'user'} />
                 ) : (
                   <PostCard post={item.post} currentUser={user} />
                 )}
