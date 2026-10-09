@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import NProgress from "nprogress";
+import toast from "react-hot-toast";
 import { MediaRenderer } from "./MediaRenderer";
 import { ReactionButton, ReactionType, REACTION_CONFIG } from "./ReactionButton";
 import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
@@ -79,6 +80,8 @@ export default function ProjectCard({
   const [likeCount, setLikeCount] = useState(p._count?.likes || 0);
   const [commentCount, setCommentCount] = useState(p._count?.comments || 0);
   const [topReactions, setTopReactions] = useState<ReactionType[]>(p.topReactions || []);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
 
   const loadInteractions = useCallback(() => {
     if (!isUserLoaded) return;
@@ -89,6 +92,7 @@ export default function ProjectCard({
       setLikeCount(cached.likeCount);
       setTopReactions(cached.topReactions || []);
       setCommentCount(cached.commentCount);
+      setIsSaved(cached.hasSaved || false);
       setIsInteractionLoading(false);
       return;
     } else {
@@ -105,13 +109,15 @@ export default function ProjectCard({
           setTopReactions(interaction.topReactions as ReactionType[]);
         }
         setCommentCount(interaction.commentCount || 0);
+        setIsSaved(interaction.hasSaved || false);
         const existing = interactionsCache.get(cacheKey) || {};
         interactionsCache.set(cacheKey, {
           ...existing,
           myReaction: interaction.myReaction as ReactionType | null,
           likeCount: interaction.likeCount || 0,
           topReactions: interaction.topReactions || existing.topReactions || [],
-          commentCount: interaction.commentCount || 0
+          commentCount: interaction.commentCount || 0,
+          hasSaved: interaction.hasSaved || false
         });
       }
       setIsInteractionLoading(false);
@@ -124,6 +130,58 @@ export default function ProjectCard({
     window.addEventListener("refresh_projects", handleRefresh);
     return () => window.removeEventListener("refresh_projects", handleRefresh);
   }, [loadInteractions]);
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || isSaveLoading) return;
+    
+    const newIsSaved = !isSaved;
+    setIsSaved(newIsSaved);
+    setIsSaveLoading(true);
+
+    const cacheKey = `interaction_project_${p.id}_${user.id}`;
+    const existing = interactionsCache.get(cacheKey) || {};
+    interactionsCache.set(cacheKey, { ...existing, hasSaved: newIsSaved });
+
+    try {
+      const { toggleSave } = await import("@/app/actions/interactions");
+      const res = await toggleSave(user.id, "project", p.id);
+      
+      if (!res.success) {
+        setIsSaved(!newIsSaved);
+        interactionsCache.set(cacheKey, { ...existing, hasSaved: !newIsSaved });
+      } else {
+        const titleMsg = newIsSaved ? tProject("savedTitle") || "Tersimpan" : tProject("unsavedTitle") || "Dihapus";
+        const descMsg = newIsSaved ? tProject("savedDesc") || "Project telah disimpan ke koleksi Anda" : tProject("unsavedDesc") || "Project telah dihapus dari koleksi Anda";
+        
+        const toastItem = toast.custom((t) => (
+          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#18191A]/80 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.5)] rounded-2xl pointer-events-auto border border-[#242526]`}>
+            <div className="p-4 border-b border-[#3A3B3C]/50">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                    <svg className="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-semibold text-[#E4E6EB]">{titleMsg}</p>
+                  <p className="mt-1 text-[13px] text-[#B0B3B8]">{descMsg}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ), { duration: 4000 });
+      }
+    } catch (err) {
+      setIsSaved(!newIsSaved);
+      interactionsCache.set(cacheKey, { ...existing, hasSaved: !newIsSaved });
+    } finally {
+      setIsSaveLoading(false);
+    }
+  };
 
   const handleLike = async (reactionType: ReactionType = "LIKE") => {
     if (!user || isLikeLoading) return;
@@ -262,6 +320,20 @@ export default function ProjectCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              disabled={isSaveLoading}
+              className={`p-1.5 rounded-full transition-all duration-200 ${
+                isSaved 
+                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' 
+                  : 'bg-gray-50 dark:bg-[#3A3B3C] text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-100 dark:hover:bg-[#4E4F50]'
+              } ${isSaveLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={isSaved ? tProject("savedTitle") || "Tersimpan" : tProject("saveProject") || "Simpan Project"}
+            >
+              <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 2 : 2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </button>
             {!(hasMultiple || cover) && (
               <span className={
                 "shrink-0 px-2.5 py-1 rounded-md text-[12px] font-semibold " +
