@@ -30,39 +30,37 @@ const activeRequests = new Map<string, Promise<any>>();
     if (!currentUser?.id) return;
     
     const requestKey = `${cacheKey}_${cursor || 'initial'}`;
-    if (activeRequests.has(requestKey)) {
-      return activeRequests.get(requestKey);
+    let fetchPromise = activeRequests.get(requestKey);
+
+    if (!fetchPromise) {
+      fetchPromise = getFeedPosts(currentUser.id, targetProfileId, cursor, 15);
+      activeRequests.set(requestKey, fetchPromise);
+      fetchPromise.finally(() => activeRequests.delete(requestKey));
     }
 
-    const fetchPromise = (async () => {
-      try {
-        if (!isBackground && !cursor) setIsLoading(true);
-        if (cursor) setIsFetchingMore(true);
-        const limit = 15;
-        const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, limit);
-        let loadedPosts = res.posts || [];
+    try {
+      if (!isBackground && !cursor) setIsLoading(true);
+      if (cursor) setIsFetchingMore(true);
+      
+      const res = await fetchPromise;
+      let loadedPosts = res.posts || [];
 
-        if (res.success && loadedPosts) {
-          setNextCursor(res.nextCursor);
-          setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
-          if (!cursor) {
-            (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-            (window as any).__POST_FEED_CACHE[cacheKey] = { posts: loadedPosts, nextCursor: res.nextCursor };
-          }
-        } else {
-          if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
+      if (res.success && loadedPosts) {
+        setNextCursor(res.nextCursor);
+        setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
+        if (!cursor) {
+          (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
+          (window as any).__POST_FEED_CACHE[cacheKey] = { posts: loadedPosts, nextCursor: res.nextCursor };
         }
-      } catch (err: any) {
-        if (!isBackground) setError(err.message);
-      } finally {
-        if (!isBackground && !cursor) setIsLoading(false);
-        if (cursor) setIsFetchingMore(false);
-        activeRequests.delete(requestKey);
+      } else {
+        if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
       }
-    })();
-
-    activeRequests.set(requestKey, fetchPromise);
-    return fetchPromise;
+    } catch (err: any) {
+      if (!isBackground) setError(err.message);
+    } finally {
+      if (!isBackground && !cursor) setIsLoading(false);
+      if (cursor) setIsFetchingMore(false);
+    }
   }, [currentUser?.id, targetProfileId, cacheKey, t]);
 
   useEffect(() => {

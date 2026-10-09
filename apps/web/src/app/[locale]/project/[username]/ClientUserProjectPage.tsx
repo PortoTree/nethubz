@@ -18,6 +18,8 @@ import ProjectFormModal from "@/components/ProjectFormModal";
 
 
 
+const activeRequests = new Map<string, Promise<any>>();
+
 export default function ClientUserProjectPage({ username, initialProjects, initialProfileUser, locale }: { username: string, initialProjects: any[], initialProfileUser: any, locale: string }) {
     const decodedUsername = username;
   const t = useTranslations("project");
@@ -107,18 +109,28 @@ export default function ClientUserProjectPage({ username, initialProjects, initi
       setIsLoading(true);
     }
 
-    const res = await getProjectsByUsername(decodedUsername);
-    if (res.success && res.user) {
-      const fetchedProjects = res.projects || [];
-      setProfileUser(res.user);
-      setProjects(fetchedProjects);
-      
-      projectsCache.set(cacheKey, { user: res.user, projects: fetchedProjects });
-      projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: fetchedProjects.length > 3 });
-    } else if (!projectsCache.has(cacheKey)) {
-      router.push(`/${locale}/404`);
+    let fetchPromise = activeRequests.get(cacheKey);
+    if (!fetchPromise) {
+      fetchPromise = getProjectsByUsername(decodedUsername);
+      activeRequests.set(cacheKey, fetchPromise);
+      fetchPromise.finally(() => activeRequests.delete(cacheKey));
     }
-    setIsLoading(false);
+
+    try {
+      const res = await fetchPromise;
+      if (res.success && res.user) {
+        const fetchedProjects = res.projects || [];
+        setProfileUser(res.user);
+        setProjects(fetchedProjects);
+        
+        projectsCache.set(cacheKey, { user: res.user, projects: fetchedProjects });
+        projectsCache.set(res.user.id, { projects: fetchedProjects, hasMore: fetchedProjects.length > 3 });
+      } else if (!projectsCache.has(cacheKey)) {
+        router.push(`/${locale}/404`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, [decodedUsername, router, locale, initialProfileUser, initialProjects]);
 
   useEffect(() => {

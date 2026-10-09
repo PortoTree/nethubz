@@ -54,36 +54,44 @@ export default function SavedPageClient() {
 
   const fetchFolders = async (userId: string) => {
     const key = `folders_${userId}`;
-    if (activeFetches.has(key)) return activeFetches.get(key);
+    let promise = activeFetches.get(key);
 
-    const promise = (async () => {
-      const res = await getUserFolders(userId);
+    if (!promise) {
+      promise = getUserFolders(userId);
+      activeFetches.set(key, promise);
+      promise.finally(() => activeFetches.delete(key));
+    }
+
+    try {
+      const res = await promise;
       if (res.success && res.folders) {
         foldersCache.set(userId, res.folders);
         setCollections(res.folders);
       }
+    } finally {
       setIsLoading(false);
-      activeFetches.delete(key);
-    })();
-    activeFetches.set(key, promise);
-    return promise;
+    }
   };
 
   const fetchRootItems = async (userId: string) => {
     const key = `rootItems_${userId}`;
-    if (activeFetches.has(key)) return activeFetches.get(key);
+    let promise = activeFetches.get(key);
 
-    const promise = (async () => {
-      const res = await getRootItems(userId);
+    if (!promise) {
+      promise = getRootItems(userId);
+      activeFetches.set(key, promise);
+      promise.finally(() => activeFetches.delete(key));
+    }
+
+    try {
+      const res = await promise;
       if (res.success && res.items) {
         rootItemsCache.set(userId, res.items);
         setRootItems(res.items);
       }
+    } finally {
       setIsRootLoading(false);
-      activeFetches.delete(key);
-    })();
-    activeFetches.set(key, promise);
-    return promise;
+    }
   };
 
   const handleCreateFolder = async () => {

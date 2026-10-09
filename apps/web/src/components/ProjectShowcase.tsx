@@ -259,7 +259,7 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
         </div>
 
         <div 
-          onClick={() => router.push(`/${locale}/project/${username}/${p.id}`)}
+          onClick={() => { NProgress.start(); router.push(`/${locale}/project/${username}/${p.id}`); }}
           className="w-full aspect-video md:aspect-auto md:absolute md:inset-0 relative z-0"
         >
           {cover ? (
@@ -279,6 +279,7 @@ const ShowcaseCard = ({ p, locale, t, tHub, CATEGORY_COLORS, getCategoryBadgeCla
           <div className="flex-1 min-w-0">
             <Link
               href={`/${locale}/project/${username}/${p.id}`}
+              onClick={() => NProgress.start()}
               className="text-gray-900 dark:text-[#E4E6EB] font-bold text-[17px] line-clamp-2 after:absolute after:inset-0 after:z-0 hover:text-purple-600 dark:hover:text-purple-400"
             >
               {p.title}
