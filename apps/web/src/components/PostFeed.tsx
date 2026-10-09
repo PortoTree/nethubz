@@ -24,31 +24,45 @@ function PostFeedContent({ currentUser, onProfileClick, targetProfileId }: PostF
   // Simple global cache for stale-while-revalidate
   const cacheKey = targetProfileId ? `profile_${targetProfileId}` : (currentUser?.id || "anonymous");
 
+const activeRequests = new Map<string, Promise<any>>();
+
   const fetchPosts = useCallback(async (isBackground = false, cursor?: string) => {
     if (!currentUser?.id) return;
-    try {
-      if (!isBackground && !cursor) setIsLoading(true);
-      if (cursor) setIsFetchingMore(true);
-      const limit = 15;
-      const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, limit);
-      let loadedPosts = res.posts || [];
-
-      if (res.success && loadedPosts) {
-        setNextCursor(res.nextCursor);
-        setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
-        if (!cursor) {
-          (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
-          (window as any).__POST_FEED_CACHE[cacheKey] = { posts: loadedPosts, nextCursor: res.nextCursor };
-        }
-      } else {
-        if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
-      }
-    } catch (err: any) {
-      if (!isBackground) setError(err.message);
-    } finally {
-      if (!isBackground && !cursor) setIsLoading(false);
-      if (cursor) setIsFetchingMore(false);
+    
+    const requestKey = `${cacheKey}_${cursor || 'initial'}`;
+    if (activeRequests.has(requestKey)) {
+      return activeRequests.get(requestKey);
     }
+
+    const fetchPromise = (async () => {
+      try {
+        if (!isBackground && !cursor) setIsLoading(true);
+        if (cursor) setIsFetchingMore(true);
+        const limit = 15;
+        const res = await getFeedPosts(currentUser.id, targetProfileId, cursor, limit);
+        let loadedPosts = res.posts || [];
+
+        if (res.success && loadedPosts) {
+          setNextCursor(res.nextCursor);
+          setPosts(prev => cursor ? [...prev, ...loadedPosts] : loadedPosts);
+          if (!cursor) {
+            (window as any).__POST_FEED_CACHE = (window as any).__POST_FEED_CACHE || {};
+            (window as any).__POST_FEED_CACHE[cacheKey] = { posts: loadedPosts, nextCursor: res.nextCursor };
+          }
+        } else {
+          if (!isBackground) setError(res.error || t("feed.failedToLoadPosts"));
+        }
+      } catch (err: any) {
+        if (!isBackground) setError(err.message);
+      } finally {
+        if (!isBackground && !cursor) setIsLoading(false);
+        if (cursor) setIsFetchingMore(false);
+        activeRequests.delete(requestKey);
+      }
+    })();
+
+    activeRequests.set(requestKey, fetchPromise);
+    return fetchPromise;
   }, [currentUser?.id, targetProfileId, cacheKey, t]);
 
   useEffect(() => {

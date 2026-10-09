@@ -12,6 +12,8 @@ import { folderDetailsCache } from "@/utils/cache";
 import PostCard from "@/components/PostCard";
 import HorizontalProjectCard from "@/components/HorizontalProjectCard";
 
+const activeFetches = new Map<string, Promise<any>>();
+
 export default function SavedDetailPageClient({ folderId }: { folderId: string }) {
   const t = useTranslations("savedPage");
   const router = useRouter();
@@ -35,26 +37,34 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchFolderDetails = async (id: string) => {
-    try {
-      console.log("STARTING FETCH FOR FOLDER ID:", id);
-      const res = await getFolderDetails(id, user?.id);
-      console.log("FETCH COMPLETED. RES:", res);
-      if (res.success && res.folder) {
-        folderDetailsCache.set(id, res.folder);
-        setFolder(res.folder);
-        // Combine savedPosts and savedProjects into a single items array
-        const combinedItems = [
-          ...(res.folder.savedPosts || []).map((p: any) => ({ ...p, type: 'post' })),
-          ...(res.folder.savedProjects || []).map((p: any) => ({ ...p, type: 'project' }))
-        ];
-        setItems(combinedItems);
+    const key = `folder_${id}`;
+    if (activeFetches.has(key)) return activeFetches.get(key);
+
+    const promise = (async () => {
+      try {
+        console.log("STARTING FETCH FOR FOLDER ID:", id);
+        const res = await getFolderDetails(id, user?.id);
+        console.log("FETCH COMPLETED. RES:", res);
+        if (res.success && res.folder) {
+          folderDetailsCache.set(id, res.folder);
+          setFolder(res.folder);
+          // Combine savedPosts and savedProjects into a single items array
+          const combinedItems = [
+            ...(res.folder.savedPosts || []).map((p: any) => ({ ...p, type: 'post' })),
+            ...(res.folder.savedProjects || []).map((p: any) => ({ ...p, type: 'project' }))
+          ];
+          setItems(combinedItems);
+        }
+      } catch (err) {
+        console.error("ERROR IN FETCH FOLDER DETAILS:", err);
+      } finally {
+        setIsLoading(false);
+        console.log("SET IS LOADING FALSE EXECUTED");
+        activeFetches.delete(key);
       }
-    } catch (err) {
-      console.error("ERROR IN FETCH FOLDER DETAILS:", err);
-    } finally {
-      setIsLoading(false);
-      console.log("SET IS LOADING FALSE EXECUTED");
-    }
+    })();
+    activeFetches.set(key, promise);
+    return promise;
   };
 
   useEffect(() => {

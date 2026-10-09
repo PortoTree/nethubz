@@ -12,6 +12,8 @@ import { foldersCache, rootItemsCache } from "@/utils/cache";
 import PostCard from "@/components/PostCard";
 import HorizontalProjectCard from "@/components/HorizontalProjectCard";
 
+const activeFetches = new Map<string, Promise<any>>();
+
 export default function SavedPageClient() {
   const t = useTranslations("savedPage");
   const router = useRouter();
@@ -51,21 +53,37 @@ export default function SavedPageClient() {
   }, [user?.id]);
 
   const fetchFolders = async (userId: string) => {
-    const res = await getUserFolders(userId);
-    if (res.success && res.folders) {
-      foldersCache.set(userId, res.folders);
-      setCollections(res.folders);
-    }
-    setIsLoading(false);
+    const key = `folders_${userId}`;
+    if (activeFetches.has(key)) return activeFetches.get(key);
+
+    const promise = (async () => {
+      const res = await getUserFolders(userId);
+      if (res.success && res.folders) {
+        foldersCache.set(userId, res.folders);
+        setCollections(res.folders);
+      }
+      setIsLoading(false);
+      activeFetches.delete(key);
+    })();
+    activeFetches.set(key, promise);
+    return promise;
   };
 
   const fetchRootItems = async (userId: string) => {
-    const res = await getRootItems(userId);
-    if (res.success && res.items) {
-      rootItemsCache.set(userId, res.items);
-      setRootItems(res.items);
-    }
-    setIsRootLoading(false);
+    const key = `rootItems_${userId}`;
+    if (activeFetches.has(key)) return activeFetches.get(key);
+
+    const promise = (async () => {
+      const res = await getRootItems(userId);
+      if (res.success && res.items) {
+        rootItemsCache.set(userId, res.items);
+        setRootItems(res.items);
+      }
+      setIsRootLoading(false);
+      activeFetches.delete(key);
+    })();
+    activeFetches.set(key, promise);
+    return promise;
   };
 
   const handleCreateFolder = async () => {
