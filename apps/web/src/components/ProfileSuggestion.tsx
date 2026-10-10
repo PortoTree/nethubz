@@ -13,29 +13,23 @@ export default function ProfileSuggestion({ profile, username, userId }: Profile
   const locale = useLocale();
   const t = useTranslations("profileSuggestion");
 
-  const [isClosed, setIsClosed] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const wajibFilled = profile ? !!(profile.locationName && profile.birthDate && profile.avatarUrl && profile.coverUrl) : false;
+
+  const [isExpanded, setIsExpanded] = useState(!wajibFilled);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (!profile) return;
+  }, []);
 
-    const wajibFilled = !!(profile.locationName && profile.birthDate && profile.avatarUrl && profile.coverUrl);
-    
-    if (wajibFilled) {
-      const dismissed = localStorage.getItem("profileSuggestionDismissed");
-      if (dismissed === "true") {
-        setIsClosed(true);
-      } else {
-        setIsClosed(false);
-      }
-    } else {
-      setIsClosed(false);
+  useEffect(() => {
+    if (profile) {
+      const isWajibFilled = !!(profile.locationName && profile.birthDate && profile.avatarUrl && profile.coverUrl);
+      setIsExpanded(!isWajibFilled);
     }
   }, [profile]);
 
-  if (!mounted || isClosed || !profile) return null;
+  if (!mounted || !profile) return null;
 
   const missingWajib = [];
   if (!profile.locationName) missingWajib.push({ label: t("labels.location"), tab: "dasar" });
@@ -56,13 +50,6 @@ export default function ProfileSuggestion({ profile, username, userId }: Profile
     return null;
   }
 
-  const handleClose = () => {
-    setIsClosed(true);
-    if (missingWajib.length === 0) {
-      localStorage.setItem("profileSuggestionDismissed", "true");
-    }
-  };
-
   const handleNavigate = (tab: string) => {
     router.push(`/${locale}/p/${username}/${userId}?edit=true&editTab=${tab}`);
   };
@@ -78,12 +65,14 @@ export default function ProfileSuggestion({ profile, username, userId }: Profile
           <span className="font-semibold text-[14px] text-gray-800 dark:text-[#E4E6EB]">{t("title")}</span>
         </div>
         <div className="flex items-center gap-1">
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleClose(); }}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-[#4E4F50] text-gray-500 transition-colors"
+          <svg 
+            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
       
@@ -98,18 +87,18 @@ export default function ProfileSuggestion({ profile, username, userId }: Profile
                 <span className="text-[13px] text-gray-700 dark:text-[#E4E6EB]">{item.label}</span>
                 <button 
                   onClick={() => handleNavigate(item.tab)}
-                  className="text-[13px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
                 >
                   {t("addAction")}
                 </button>
               </div>
             ))}
             {missingNonWajib.map((item, idx) => (
-              <div key={`nw-${idx}`} className="flex items-center justify-between">
+              <div key={`n-${idx}`} className="flex items-center justify-between">
                 <span className="text-[13px] text-gray-700 dark:text-[#E4E6EB]">{item.label}</span>
                 <button 
                   onClick={() => handleNavigate(item.tab)}
-                  className="text-[13px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
                 >
                   {t("addAction")}
                 </button>
