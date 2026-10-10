@@ -22,10 +22,10 @@ import { unstable_cache } from "next/cache";
 
 // Profile data is embedded in the per-user project cache (/project/[username] + profile Project tab).
 const invalidateProfile = async (userId: string) => {
-  revalidateTag(`profile-${userId}`);
+  revalidateTag(`profile-${userId}`, "default");
   const owner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
   if (owner?.username) {
-    revalidateTag(`projects-${owner.username}`);
+    revalidateTag(`projects-${owner.username}`, "default");
     // KASTA 1: Aggressive Revalidation based on Cache_system.md
     revalidatePath(`/id/p/${owner.username}/${userId}`, "page");
     revalidatePath(`/en/p/${owner.username}/${userId}`, "page");
