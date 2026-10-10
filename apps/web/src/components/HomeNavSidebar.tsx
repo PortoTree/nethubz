@@ -16,13 +16,13 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
-  
+
   const { currentUser, isProfileLoading } = useUser();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -39,7 +39,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
   }, []);
 
   return (
-    <div className="hidden lg:flex flex-col fixed left-0 top-[56px] h-[calc(100vh-56px)] bg-[#F3F2EF] dark:bg-[#18191A] border-r border-gray-300 dark:border-gray-600 z-[60] w-[72px] hover:w-[260px] transition-all duration-300 overflow-hidden group">
+    <div className={`hidden lg:flex flex-col fixed left-0 top-[56px] h-[calc(100vh-56px)] bg-[#F3F2EF] dark:bg-[#18191A] border-r border-gray-300 dark:border-gray-600 z-[60] transition-all duration-300 overflow-hidden group ${isProfileMenuOpen || isAccountSwitcherOpen ? "w-[260px] expanded" : "w-[72px] hover:w-[260px]"}`}>
       <div className="flex flex-col py-4 w-[260px] px-3 space-y-2">
         {/* Pencarian */}
         <button
@@ -57,13 +57,13 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("tabs.search")}
           </span>
         </button>
 
         {/* Jelajahi / Explore */}
-        <button 
+        <button
           onClick={() => router.push(`/${locale}/explore`)}
           className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
         >
@@ -76,7 +76,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("tabs.explore")}
           </span>
         </button>
@@ -99,7 +99,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("tabs.home")}
           </span>
         </button>
@@ -120,7 +120,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("nav.chat")}
           </span>
         </button>
@@ -142,7 +142,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("sidebar.friends")}
           </span>
         </button>
@@ -164,7 +164,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("tabs.groups")}
           </span>
         </button>
@@ -180,7 +180,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("nav.webpage")}
           </span>
         </button>
@@ -201,13 +201,13 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("tabs.product")}
           </span>
         </button>
 
         {/* Proyek */}
-        <button 
+        <button
           onClick={() => router.push(`/${locale}/project`)}
           className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
         >
@@ -220,13 +220,13 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("feed.project")}
           </span>
         </button>
 
         {/* Tersimpan */}
-        <button 
+        <button
           onClick={() => router.push(`/${locale}/saved`)}
           className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
         >
@@ -239,16 +239,16 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
               }}
             />
           </div>
-          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 group-[.expanded]:opacity-100 transition-opacity duration-300">
             {t("sidebar.saved")}
           </span>
         </button>
       </div>
-      
+
       {/* Fixed Profile Card at Bottom */}
-      <div 
+      <div
         ref={profileMenuRef}
-        className="relative p-3 border-t border-gray-300 dark:border-gray-600 bg-transparent shrink-0 w-full mt-auto flex items-center justify-between" 
+        className="relative p-3 border-t border-gray-300 dark:border-gray-600 bg-transparent shrink-0 w-full mt-auto flex items-center justify-between"
       >
         {isProfileLoading || !currentUser ? (
           <div className="flex items-center gap-3 w-full">
@@ -263,7 +263,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover shrink-0 bg-white dark:bg-[#242526]"
               />
-              <div className="flex-col min-w-0 hidden group-hover:flex">
+              <div className="flex-col min-w-0 hidden group-hover:flex group-[.expanded]:flex">
                 <span className="font-bold text-[14px] text-black dark:text-[#E4E6EB] truncate">
                   {currentUser?.profile?.displayName || currentUser?.username}
                 </span>
@@ -272,23 +272,24 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                 </span>
               </div>
             </div>
-            <div 
-              className="shrink-0 p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-[#4E4F50] transition-colors text-gray-500 dark:text-[#B0B3B8] cursor-pointer hidden group-hover:block" 
+            <div
+              className="shrink-0 p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-[#4E4F50] transition-colors text-gray-500 dark:text-[#B0B3B8] cursor-pointer hidden group-hover:block group-[.expanded]:block"
               onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); }}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
             </div>
-            
+
             {/* Profile Menu Dropdown in Portal */}
             {isMounted && isProfileMenuOpen && currentUser && createPortal(
-              <div 
+              <div
                 className="fixed bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-[#3E4042] py-2 z-[9999] animate-in fade-in slide-in-from-bottom-2 duration-200 cursor-default"
                 style={{ bottom: "20px", left: "80px", width: "260px" }}
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 {/* Header (Profile Info Account Switcher) */}
                 <div className="relative mx-3 mt-3 mb-2">
-                  <div 
+                  <div
                     className="flex items-center justify-between p-2 rounded-xl bg-gray-100 dark:bg-[#3A3B3C] shadow-sm cursor-pointer hover:bg-gray-200 dark:hover:bg-[#4E4F50] transition-colors"
                     onClick={(e) => { e.stopPropagation(); setIsAccountSwitcherOpen(!isAccountSwitcherOpen); }}
                   >
@@ -314,9 +315,10 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
 
                   {/* Nested Dropdown for Account List */}
                   {isAccountSwitcherOpen && (
-                    <div 
+                    <div
                       className="absolute top-[calc(100%+4px)] left-0 w-full bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-[#3E4042] py-2 z-[10000] animate-in fade-in zoom-in-95 duration-200"
                       onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                     >
                       <div className="max-h-[200px] overflow-y-auto">
                         <div className="flex items-center justify-between px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 cursor-default">
@@ -341,7 +343,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                         </div>
                       </div>
                       <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
-                      <button 
+                      <button
                         className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors"
                         onClick={() => {
                           setIsAccountSwitcherOpen(false);
@@ -361,7 +363,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                 <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
 
                 {/* Profile Link */}
-                <button 
+                <button
                   onClick={() => { setIsProfileMenuOpen(false); router.push(`/${locale}/p/${currentUser.username}/${currentUser.id}`); }}
                   className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors"
                 >
@@ -390,7 +392,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                 <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
 
                 {/* Logout */}
-                <button 
+                <button
                   onClick={() => {
                     localStorage.removeItem("token");
                     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -402,7 +404,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
                   <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.logout")}</span>
                 </button>
               </div>
-            , document.body)}
+              , document.body)}
           </>
         )}
       </div>

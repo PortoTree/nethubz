@@ -1082,5 +1082,23 @@
     "downloadPWA": "Download PWA",
     "logout": "Logout",
     "addAccount": "Add account"
+  },
+  "profileSuggestion": {
+    "title": "Complete Your Profile",
+    "subtitle": "Complete your profile to be more easily found by friends and community.",
+    "wajib": "Required",
+    "action": "Fill Now",
+    "addAction": "Add",
+    "labels": {
+      "location": "Location",
+      "birthDate": "Birth Date",
+      "avatar": "Avatar",
+      "cover": "Cover Photo",
+      "profession": "Profession",
+      "education": "Education",
+      "social": "Social Media",
+      "hobby": "Hobby",
+      "interests": "Interests"
+    }
   }
 }

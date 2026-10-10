@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import jwt from "jsonwebtoken";
 
 import prisma from "@/utils/prisma";
@@ -22,9 +22,16 @@ import { unstable_cache } from "next/cache";
 
 // Profile data is embedded in the per-user project cache (/project/[username] + profile Project tab).
 const invalidateProfile = async (userId: string) => {
-  updateTag(`profile-${userId}`);
+  revalidateTag(`profile-${userId}`);
   const owner = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
-  if (owner?.username) updateTag(`projects-${owner.username}`);
+  if (owner?.username) {
+    revalidateTag(`projects-${owner.username}`);
+    // KASTA 1: Aggressive Revalidation based on Cache_system.md
+    revalidatePath(`/id/p/${owner.username}/${userId}`, "page");
+    revalidatePath(`/en/p/${owner.username}/${userId}`, "page");
+    // Also revalidate the legacy path if used
+    revalidatePath(`/${owner.username}`, "page");
+  }
 };
 
 // KASTA 1 (Global Cache): avatar, cover, biodata, privacy settings, social links.

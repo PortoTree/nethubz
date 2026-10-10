@@ -1088,5 +1088,23 @@
     "downloadPWA": "Download PWA",
     "logout": "Keluar akun",
     "addAccount": "Tambah akun"
+  },
+  "profileSuggestion": {
+    "title": "Lengkapi Profil Anda",
+    "subtitle": "Selesaikan profil Anda agar lebih mudah ditemukan oleh teman dan komunitas.",
+    "wajib": "Wajib",
+    "action": "Isi Sekarang",
+    "addAction": "Tambahkan",
+    "labels": {
+      "location": "Lokasi",
+      "birthDate": "Tanggal Lahir",
+      "avatar": "Avatar",
+      "cover": "Sampul/Cover",
+      "profession": "Profesi Pekerjaan",
+      "education": "Pendidikan",
+      "social": "Social Media",
+      "hobby": "Hobby",
+      "interests": "Minat"
+    }
   }
 }

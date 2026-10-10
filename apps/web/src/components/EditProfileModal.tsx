@@ -97,6 +97,7 @@ interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: any;
+  initialTab?: string;
 }
 
 function SkillInput({ title, options, selected, onChange, tPlaceholder }: { title: string, options: string[], selected: string[], onChange: (val: string[]) => void, tPlaceholder?: string }) {
@@ -192,10 +193,16 @@ function SkillInput({ title, options, selected, onChange, tPlaceholder }: { titl
   );
 }
 
-export default function EditProfileModal({ isOpen, onClose, currentUser }: EditProfileModalProps) {
+export default function EditProfileModal({ isOpen, onClose, currentUser, initialTab }: EditProfileModalProps) {
   const t = useTranslations("editProfile");
   const router = useRouter();
-    const [activeTab, setActiveTab] = useState("intro");
+  const [activeTab, setActiveTab] = useState(initialTab || "intro");
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   const [displayNameChangesRemaining, setDisplayNameChangesRemaining] = useState(2);
   const [currentDisplayName, setCurrentDisplayName] = useState(currentUser?.username || "User");

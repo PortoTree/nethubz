@@ -15,6 +15,7 @@ import { useUser } from "@/contexts/UserContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import PostFeed from "@/components/PostFeed";
 import HomeNavSidebar from "@/components/HomeNavSidebar";
+import ProfileSuggestion from "@/components/ProfileSuggestion";
 
 const ChatStatusMark = ({ status }: { status?: string }) => {
   if (!status) return null;
@@ -710,8 +711,9 @@ export default function Beranda() {
           className={`flex w-full pt-6 ${activeTab === "chat" ? "hidden" : ""}`}
         >
           {/* Left Sidebar */}
-          <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[240px] xl:w-[280px] h-[calc(100vh-56px)] border-r border-gray-300 dark:border-gray-600">
+          <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[240px] xl:w-[280px] h-[calc(100vh-56px)]">
             <div className="flex-1 overscroll-contain overflow-y-auto pt-6 px-4 pb-4 sidebar-scrollbar">
+              <ProfileSuggestion profile={currentUser?.profile} username={currentUser?.username} userId={currentUser?.id} />
               <div className="space-y-4">
               {activeTab === "friend" ? (
                 <div ref={friendSearchRef} className="relative z-10">

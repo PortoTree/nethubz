@@ -73,7 +73,7 @@ function ProfilePageContent({
   const [currentUser, setCurrentUser] = useState<any>({ username: "Guest", id: "1" });
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [themeLoaded, setThemeLoaded] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(searchParams.get("edit") === "true");
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
@@ -2474,8 +2474,13 @@ function ProfilePageContent({
 
       <EditProfileModal
         isOpen={isEditModalOpen}
+        initialTab={searchParams.get("editTab") || "intro"}
         onClose={async () => {
           setIsEditModalOpen(false);
+          // Clean up URL if edit params are present
+          if (searchParams.has("edit") || searchParams.has("editTab")) {
+            router.replace(`/${locale}/p/${username}/${id}`);
+          }
           // Re-fetch profile so privacy changes take effect immediately
           const res = await getProfile(id);
           if (res.success && res.profile) {

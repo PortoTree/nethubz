@@ -647,14 +647,14 @@ export default function Navbar({
             >
               <button className="w-11 h-11 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0">
                 {isProfileLoading ? (
-  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
-) : (
-  <img
-    src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
-    alt="Profile"
-    className="w-full h-full object-cover"
-  />
-)}
+                  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
+                ) : (
+                  <img
+                    src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </button>
               {/* Arrow Down Badge */}
               <div className="absolute -bottom-0.5 -right-0.5 w-[16px] h-[16px] bg-[#E4E6EB] dark:bg-[#3A3B3C] rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526]">
@@ -686,14 +686,14 @@ export default function Navbar({
                 >
                   <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-emerald-600 dark:border-emerald-400">
                     {isProfileLoading ? (
-  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
-) : (
-  <img
-    src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
-    alt="Profile"
-    className="w-full h-full object-cover"
-  />
-)}
+                      <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
+                    ) : (
+                      <img
+                        src={navAvatar ? getOptimizedUrl(navAvatar, "avatar") : "/default-avatar.svg"}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-[16px] text-black dark:text-[#E4E6EB] leading-tight">
@@ -1037,11 +1037,11 @@ export default function Navbar({
                         <div className="relative shrink-0">
                           <img src={notif.sender ? (notif.sender.profile?.avatarUrl || "/default-avatar.svg") : "/navigasi/giveaway.svg"} className="w-14 h-14 rounded-full border border-gray-200 dark:border-[#3E4042] object-cover p-2 bg-gray-100 dark:bg-[#3A3B3C]" />
                           <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-[#242526] overflow-hidden ${notif.type === "FOLLOW" ? "bg-emerald-500" :
-                              notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
-                                (notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") ? (notif.reactionType ? "bg-transparent" : "bg-red-500") :
-                                  notif.type === "POST_TAG" ? "bg-emerald-600" :
-                                    notif.type === "COMMENT_MENTION" ? "bg-purple-500" :
-                                      "bg-[#2D88FF]"
+                            notif.type === "FRIEND_REQUEST" || notif.type === "FRIEND_ACCEPT" || notif.type === "FRIEND_NOW" ? "bg-blue-500" :
+                              (notif.type === "POST_LIKE" || notif.type === "PROJECT_LIKE" || notif.type === "COMMENT_LIKE") ? (notif.reactionType ? "bg-transparent" : "bg-red-500") :
+                                notif.type === "POST_TAG" ? "bg-emerald-600" :
+                                  notif.type === "COMMENT_MENTION" ? "bg-purple-500" :
+                                    "bg-[#2D88FF]"
                             }`}>
                             {notif.type === "FOLLOW" && (
                               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
