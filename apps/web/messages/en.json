@@ -255,7 +255,8 @@
         "language": "Language",
         "wait": "Please wait",
         "edit": "Edit",
-        "seeMore": "See More"
+        "seeMore": "See More",
+        "seeLess": "See Less"
     },
     "dropdown": {
         "viewAllProfiles": "See all profiles",

@@ -255,7 +255,8 @@
         "language": "Bahasa",
         "wait": "Tunggu sebentar",
         "edit": "Edit",
-        "seeMore": "Lihat Selengkapnya"
+        "seeMore": "Lihat Selengkapnya",
+        "seeLess": "Lebih Sedikit"
     },
     "dropdown": {
         "viewAllProfiles": "Lihat semua profil",

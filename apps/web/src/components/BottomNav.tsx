@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useUser } from "@/contexts/UserContext";
@@ -12,6 +12,35 @@ export default function BottomNav() {
   const locale = useLocale();
   const t = useTranslations();
   const { currentUser } = useUser();
+
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Prevent bizarre behavior on mobile bounce scrolling (Safari)
+      if (currentScrollY <= 0) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        // Scrolling down
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Hide on certain pages if needed, e.g. login/register
   if (pathname.includes("/login") || pathname.includes("/register")) return null;
@@ -27,7 +56,7 @@ export default function BottomNav() {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-white dark:bg-[#242526] border-t border-gray-200 dark:border-[#3E4042] z-50 flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
+    <div className={`md:hidden fixed bottom-0 left-0 right-0 h-14 bg-white dark:bg-[#242526] border-t border-gray-200 dark:border-[#3E4042] z-50 flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : 'translate-y-[calc(100%+env(safe-area-inset-bottom))]'}`}>
       <div onClick={() => handleNav('home')} className={`flex flex-col items-center justify-center w-16 h-full cursor-pointer ${activeTab === 'home' ? 'text-emerald-500' : 'text-gray-500 dark:text-[#B0B3B8]'}`}>
         <div className="w-6 h-6 bg-current" style={{ WebkitMask: `url(/navigasi/home${activeTab === 'home' ? '-aktif' : ''}.svg) center/contain no-repeat`, mask: `url(/navigasi/home${activeTab === 'home' ? '-aktif' : ''}.svg) center/contain no-repeat` }} />
         <span className="text-[10px] font-medium mt-0.5">{t("tabs.home")}</span>

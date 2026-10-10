@@ -977,7 +977,7 @@ export default function Navbar({
           {/* Popup Panel */}
           <div
             ref={notifPanelRef}
-            className={`fixed top-[56px] right-4 w-[380px] max-w-[calc(100vw-2rem)] min-h-[560px] max-h-[calc(100vh-72px)] bg-white dark:bg-[#242526] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] z-[10201] flex flex-col overflow-hidden transition-all duration-200 origin-top-right ${isNotifPanelOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`}
+            className={`fixed top-[56px] right-2 sm:right-4 w-[380px] max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] sm:min-h-[560px] max-h-[75vh] sm:max-h-[calc(100vh-80px)] bg-white dark:bg-[#242526] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] z-[10201] flex flex-col overflow-hidden transition-all duration-200 origin-top-right ${isNotifPanelOpen ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">

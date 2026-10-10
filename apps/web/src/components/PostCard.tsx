@@ -48,6 +48,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   const locale = useLocale();
   const router = useRouter();
   const [activePostMenu, setActivePostMenu] = useState<boolean>(false);
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -208,7 +209,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
     return parts.map((part, i) => {
       if (part.match(/^https?:\/\/[^\s]+$/)) {
         return (
-          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent font-medium hover:opacity-80 transition-opacity" onClick={(e) => e.stopPropagation()}>
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-green-500 to-emerald-400 bg-clip-text text-transparent font-medium hover:opacity-80 transition-opacity break-all" onClick={(e) => e.stopPropagation()}>
             {part}
           </a>
         );
@@ -456,9 +457,27 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       </div>
       
       {/* Content */}
-      <p className="text-black dark:text-[#E4E6EB] text-[15px] mb-3 px-4 whitespace-pre-wrap break-words">
-        {renderContentWithLinks(post.content)}
-      </p>
+      <div className="mb-3 px-4">
+        <p className="text-black dark:text-[#E4E6EB] text-[15px] whitespace-pre-wrap break-words inline">
+          {renderContentWithLinks((!isContentExpanded && post.content?.length > 185) ? post.content.slice(0, 185) + "..." : post.content)}
+        </p>
+        {!isContentExpanded && post.content?.length > 185 && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsContentExpanded(true); }}
+            className="text-gray-500 dark:text-[#B0B3B8] font-semibold underline ml-1 inline-block"
+          >
+            {t("common.seeMore") || "Lihat Selengkapnya"}
+          </button>
+        )}
+        {isContentExpanded && post.content?.length > 185 && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsContentExpanded(false); }}
+            className="text-gray-500 dark:text-[#B0B3B8] font-semibold underline ml-1 inline-block"
+          >
+            {t("common.seeLess") || "Lebih Sedikit"}
+          </button>
+        )}
+      </div>
 
       {/* Link Preview (If any) */}
       {post.linkMetadata && (
