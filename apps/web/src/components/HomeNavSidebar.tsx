@@ -83,7 +83,7 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
         {/* Obrolan */}
         <button
           onClick={() => {
-            router.push(`/${locale}/obrolan`);
+            router.push(`/${locale}/chatting`);
           }}
           className={`flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors`}
         >

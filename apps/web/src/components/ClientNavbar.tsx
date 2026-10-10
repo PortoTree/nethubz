@@ -11,7 +11,7 @@ export default function ClientNavbar() {
   let activeTab = "home";
   if (pathname.includes("/project")) activeTab = "project";
   else if (pathname.includes("/product")) activeTab = "product";
-  else if (pathname.includes("/obrolan") || pathname.includes("/chat")) activeTab = "chat";
+  else if (pathname.includes("/chatting") || pathname.includes("/obrolan") || pathname.includes("/chat")) activeTab = "chat";
   else if (pathname.includes("/friend")) activeTab = "friend";
   else if (pathname.includes("/community")) activeTab = "community";
   else if (pathname.includes("/search")) activeTab = "search";

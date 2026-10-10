@@ -208,7 +208,7 @@ const MessageDropdownMenu = ({ isIncoming, t }: { isIncoming?: boolean, t: any }
   );
 };
 
-export default function Beranda() {
+export default function ClientChatPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
@@ -262,7 +262,7 @@ export default function Beranda() {
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const activeTab: string = "home";
+  const activeTab: string = "chat";
   const setActiveTab = (tab: string) => {};
 
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(true);

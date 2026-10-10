@@ -159,7 +159,7 @@ export default function RegisterPage() {
           </div>
           <div
             onClick={() => {
-              router.push(`/${locale}/obrolan`);
+              router.push(`/${locale}/chatting`);
             }}
             className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "chat" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
           >
