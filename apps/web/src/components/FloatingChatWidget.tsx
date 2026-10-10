@@ -34,7 +34,7 @@ export default function FloatingChatWidget({
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
   const [isTempMessageOn, setIsTempMessageOn] = useState(false);
   const [isChatFilterOpen, setIsChatFilterOpen] = useState(false);
-  const [chatListFilter, setChatListFilter] = useState<'semua' | 'belum_dibaca' | 'grup'>('semua');
+  const [chatListFilter, setChatListFilter] = useState<string>('semua');
   const [activeChatMenu, setActiveChatMenu] = useState<number | null>(null);
   const [activeFloatingChatIdx, setActiveFloatingChatIdx] = useState<number | null>(null);
   const floatingChatFilterRef = useRef<HTMLDivElement>(null);
