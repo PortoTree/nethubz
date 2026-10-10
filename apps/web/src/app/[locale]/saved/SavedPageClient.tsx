@@ -598,18 +598,6 @@ export default function SavedPageClient() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-white dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#B0B3B8] mb-1">
-                  {t("collectionDescLabel")}
-                </label>
-                <textarea
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder={t("collectionDescPlaceholder")}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-[#3A3B3C] rounded-lg bg-white dark:bg-[#18191A] text-gray-900 dark:text-[#E4E6EB] focus:outline-none focus:ring-2 focus:ring-[#0866FF] transition-all resize-none"
-                />
-              </div>
             </div>
             <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end gap-2">
               <button
@@ -853,7 +841,7 @@ export default function SavedPageClient() {
                         
                         <div className="flex items-center gap-2">
                           <button 
-                            disabled={isUpdatingMember}
+                            disabled={isUpdatingMember || (allowUserFolder.members?.length || 0) >= 5}
                             onClick={() => handleAddMember(user, "VIEWER")} 
                             className="px-2 py-1 text-xs font-medium text-[#0866FF] bg-blue-50 dark:bg-[#0866FF]/10 rounded-md hover:bg-blue-100 dark:hover:bg-[#0866FF]/20 transition-colors disabled:opacity-50"
                           >
@@ -975,7 +963,10 @@ export default function SavedPageClient() {
               )}
             </div>
             {allowUserFolder.userId === user?.id && (
-              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
+              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-between items-center">
+                <div className="text-sm font-medium text-red-500">
+                  {(allowUserFolder.members?.length || 0) >= 5 && (t("maxMemberLimit") || "Member anda sudah maximal")}
+                </div>
                 <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
                   {t("done") || "Selesai"}
                 </button>

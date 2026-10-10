@@ -1023,6 +1023,7 @@
                       "btnCancel":  "Cancel",
                       "btnCreate":  "Create",
                       "allowUser":  "Allow user",
+                      "maxMemberLimit": "Your members are at maximum capacity",
                       "rename":  "Rename",
                       "pin":  "Pin",
                       "folderInfo":  "Folder Info",

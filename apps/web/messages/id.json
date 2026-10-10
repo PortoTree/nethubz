@@ -1029,6 +1029,7 @@
                       "btnCancel":  "Batal",
                       "btnCreate":  "Buat",
                       "allowUser":  "Izinkan pengguna",
+                      "maxMemberLimit": "Member anda sudah maximal",
                       "rename":  "Ganti Nama",
                       "pin":  "Sematkan",
                       "folderInfo":  "Informasi Folder",

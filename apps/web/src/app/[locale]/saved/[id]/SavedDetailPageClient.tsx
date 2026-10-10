@@ -575,7 +575,7 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
                         
                         <div className="flex items-center gap-2">
                           <button 
-                            disabled={isUpdatingMember}
+                            disabled={isUpdatingMember || (allowUserFolder.members?.length || 0) >= 5}
                             onClick={() => handleAddMember(user, "VIEWER")} 
                             className="px-2 py-1 text-xs font-medium text-[#0866FF] bg-blue-50 dark:bg-[#0866FF]/10 rounded-md hover:bg-blue-100 dark:hover:bg-[#0866FF]/20 transition-colors disabled:opacity-50"
                           >
@@ -697,7 +697,10 @@ export default function SavedDetailPageClient({ folderId }: { folderId: string }
               )}
             </div>
             {allowUserFolder.userId === user?.id && (
-              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-end">
+              <div className="p-4 border-t border-gray-200 dark:border-[#3A3B3C] flex justify-between items-center">
+                <div className="text-sm font-medium text-red-500">
+                  {(allowUserFolder.members?.length || 0) >= 5 && (t("maxMemberLimit") || "Member anda sudah maximal")}
+                </div>
                 <button onClick={() => setAllowUserFolder(null)} className="px-4 py-2 font-medium text-sm text-white bg-[#0866FF] hover:bg-blue-600 rounded-lg transition-colors">
                   {t("done") || "Selesai"}
                 </button>
