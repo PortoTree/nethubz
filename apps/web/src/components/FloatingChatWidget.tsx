@@ -2,29 +2,24 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+import { dummyChats, formatChatDate, ChatStatusMark, MessageDropdownMenu } from "@/components/chat/chatHelpers";
+
+// ─── Props Interface ─────────────────────────────────────────────────────────
 
 interface FloatingChatWidgetProps {
   currentUser: any;
-  dummyChats: any[];
-  formatChatDate: (ts: number, locale: string) => string;
-  ChatStatusMark: React.FC<{status?: string}>;
-  MessageDropdownMenu: React.FC<{isIncoming?: boolean, t: any}>;
   t: any;
   locale: string;
   activeTab?: string;
 }
 
-import { useRouter } from "next/navigation";
-
 export default function FloatingChatWidget({
   currentUser,
-  dummyChats,
-  formatChatDate,
-  ChatStatusMark,
-  MessageDropdownMenu,
   t,
   locale,
-  activeTab
+  activeTab,
 }: FloatingChatWidgetProps) {
   const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(true);

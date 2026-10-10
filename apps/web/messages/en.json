@@ -101,7 +101,8 @@
     "product": "Product",
     "search": "Search",
     "project": "Project",
-    "explore": "Explore"
+    "explore": "Explore",
+    "profile": "Profile"
   },
   "sidebar": {
     "friends": "Friends",

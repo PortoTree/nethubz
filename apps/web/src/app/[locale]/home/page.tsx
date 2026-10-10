@@ -18,34 +18,7 @@ import HomeNavSidebar from "@/components/HomeNavSidebar";
 import ProfileSuggestion from "@/components/ProfileSuggestion";
 import SidebarShortcuts from "@/components/SidebarShortcuts";
 import FloatingChatWidget from "@/components/FloatingChatWidget";
-
-const ChatStatusMark = ({ status }: { status?: string }) => {
-  if (!status) return null;
-  let src = "";
-  let colorClass = "";
-  switch (status) {
-    case 'failed': src = "/mark/tidak-terkirim.svg"; colorClass = "bg-red-500"; break;
-    case 'sending': src = "/mark/pending.svg"; colorClass = "bg-orange-500"; break;
-    case 'sent': src = "/mark/terkirim.svg"; colorClass = "bg-[#2D88FF]"; break;
-    case 'read': src = "/mark/diliat.svg"; colorClass = "bg-[#31A24C]"; break;
-  }
-  if (!src) return null;
-  return (
-    <span
-      className={`w-[14px] h-[14px] shrink-0 inline-block align-text-bottom mr-1 ${colorClass}`}
-      style={{
-        maskImage: `url('${src}')`,
-        WebkitMaskImage: `url('${src}')`,
-        maskSize: "contain",
-        WebkitMaskSize: "contain",
-        maskRepeat: "no-repeat",
-        WebkitMaskRepeat: "no-repeat",
-        maskPosition: "center",
-        WebkitMaskPosition: "center"
-      }}
-    />
-  );
-};
+import { dummyChats, formatChatDate, ChatStatusMark, MessageDropdownMenu } from "@/components/chat/chatHelpers";
 
 function formatPostTime(timestamp: number, t: any, locale: string) {
   const now = Date.now();
@@ -73,143 +46,7 @@ function formatPostTime(timestamp: number, t: any, locale: string) {
   }
 }
 
-const dummyChats = [
-  {
-    name: "Budi Santoso",
-    ts: Date.now() - 15 * 86400000,
-    msg: "Halo bro, apa kabar? Udah la...",
-    isOnline: false,
-    status: "read",
-  },
-  {
-    name: "Siti Aminah",
-    ts: Date.now() - 3 * 86400000,
-    msg: "Project kemarin gimana kelanjutannya?",
-    isOnline: true,
-    status: "sent",
-  },
-  {
-    name: "Agus Pratama",
-    ts: Date.now() - 2 * 86400000,
-    msg: "Wkwk siap bro ntar malam ya",
-    isOnline: true,
-    status: "failed",
-  },
-  {
-    name: "Dewi Lestari",
-    ts: Date.now() - 6 * 86400000,
-    msg: "Oke, dokumennya udah aku kirim ke email.",
-    isOnline: false,
-    status: "sending",
-  },
-  {
-    name: "Andi Wijaya",
-    ts: Date.now() - 4 * 86400000,
-    msg: "Jadi nongkrong nggak nih hari ini?",
-    isOnline: true,
-  },
-  {
-    name: "Rina Kusuma",
-    ts: Date.now() - 5 * 86400000,
-    msg: "Thanks ya buat bantuannya kemarin!",
-    isOnline: false,
-  },
-  {
-    name: "Fajar Nugroho",
-    ts: Date.now() - 3 * 86400000,
-    msg: "Jangan lupa meeting jam 2 siang bro.",
-    isOnline: true,
-  },
-  {
-    name: "Maya Indah",
-    ts: Date.now() - 1 * 86400000,
-    msg: "Sipp, nanti aku kabarin lagi.",
-    isOnline: false,
-  },
-  {
-    name: "Reza Pahlevi",
-    ts: Date.now() - 1 * 86400000,
-    msg: "Tugas bagian backend udah aman?",
-    isOnline: true,
-  },
-  {
-    name: "Nina Marlina",
-    ts: Date.now() - 16 * 86400000,
-    msg: "Wah mantap tuh idenya, boleh dicoba.",
-    isOnline: false,
-  },
-  {
-    name: "Eko Susilo",
-    ts: Date.now() - 17 * 86400000,
-    msg: "Kirim aja linknya kesini bro",
-    isOnline: true,
-  },
-  {
-    name: "Fitri Yani",
-    ts: Date.now() - 18 * 86400000,
-    msg: "Haha bener banget",
-    isOnline: false,
-  },
-];
 
-// Format tanggal chat sesuai locale (seperti WhatsApp/Facebook):
-// - Hari ini: tampilkan jam (e.g., "14:30")
-// - Dalam 7 hari: nama hari singkat (e.g., "Wed" / "Rab")
-// - Lebih lama: tanggal singkat (e.g., "1 Jun" / "Jun 1")
-function formatChatDate(ts: number, locale: string): string {
-  const now = Date.now();
-  const diff = now - ts;
-  const oneDay = 86400000;
-  const sevenDays = 7 * oneDay;
-
-  const date = new Date(ts);
-
-  if (diff < oneDay && new Date(now).getDate() === date.getDate()) {
-    // Hari ini: tampilkan jam
-    return new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  } else if (diff < sevenDays) {
-    // Dalam 7 hari: nama hari singkat
-    return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date);
-  } else {
-    // Lebih dari 7 hari: tanggal + bulan singkat
-    return new Intl.DateTimeFormat(locale, {
-      day: "numeric",
-      month: "short",
-    }).format(date);
-  }
-}
-
-const MessageDropdownMenu = ({ isIncoming, t }: { isIncoming?: boolean, t: any }) => {
-  return (
-    <div className={`w-48 bg-white dark:bg-[#242526] rounded-xl shadow-lg border border-gray-100 dark:border-[#3E4042] py-2 flex flex-col z-50`}>
-      <button className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left text-[15px] font-medium text-black dark:text-[#E4E6EB] transition-colors">
-        <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-        {t("chat.reply")}
-      </button>
-      <button className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left text-[15px] font-medium text-black dark:text-[#E4E6EB] transition-colors">
-        <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-        {t("chat.copy")}
-      </button>
-      <button className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left text-[15px] font-medium text-black dark:text-[#E4E6EB] transition-colors">
-        <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
-        {t("chat.forward")}
-      </button>
-      <div className="h-[1px] bg-gray-200 dark:bg-[#3E4042] my-1"></div>
-      <button className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left text-[15px] font-medium text-black dark:text-[#E4E6EB] transition-colors">
-        <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m2 7H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2z" /></svg>
-        {t("chat.select")}
-      </button>
-      <div className="h-[1px] bg-gray-200 dark:bg-[#3E4042] my-1"></div>
-      <button className="flex items-center gap-3 px-4 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left text-[15px] font-medium text-black dark:text-[#E4E6EB] transition-colors">
-        <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-        {t("chat.delete")}
-      </button>
-    </div>
-  );
-};
 
 export default function Beranda() {
   const router = useRouter();
@@ -1910,7 +1747,7 @@ export default function Beranda() {
             </div>
           )}
 
-              <FloatingChatWidget currentUser={currentUser} dummyChats={dummyChats} formatChatDate={formatChatDate} ChatStatusMark={ChatStatusMark} MessageDropdownMenu={MessageDropdownMenu} t={t} locale={locale} activeTab={activeTab} />
+              <FloatingChatWidget currentUser={currentUser} t={t} locale={locale} activeTab={activeTab} />
         </>
         {/* Product Detail Right Sidebar */}
         <div

@@ -60,6 +60,7 @@ export default function Navbar({
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [isNotifFilterOpen, setIsNotifFilterOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isMobileLangOpen, setIsMobileLangOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -319,6 +320,22 @@ export default function Navbar({
             alt="NetHubz"
             className="h-[50px] w-auto object-contain hidden dark:sm:block"
           />
+          
+          {/* Mobile Search Box */}
+          <div 
+            className="flex sm:hidden items-center bg-gray-100 dark:bg-[#3A3B3C] rounded-full px-3 py-1.5 h-[36px] ml-1 cursor-pointer"
+            onClick={() => router.push(`/${locale}/search`)}
+          >
+            <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder={t("tabs.search")}
+              className="bg-transparent border-none outline-none text-[14px] text-black dark:text-[#E4E6EB] w-[90px] ml-2 pointer-events-none"
+              readOnly
+            />
+          </div>
         </div>
 
         {/* Center: Tabs */}
@@ -386,8 +403,8 @@ export default function Navbar({
         </div>
 
         {/* Right: Icons & Avatar */}
-        <div className="flex items-center gap-2 relative">
-          <div className="relative group" ref={searchNavRef}>
+        <div className="flex items-center gap-1 sm:gap-2 relative">
+          <div className="relative group hidden sm:block" ref={searchNavRef}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -486,6 +503,17 @@ export default function Navbar({
               </div>
             )}
           </div>
+
+          {/* Chat Icon - Mobile Only */}
+          <div className="relative group flex sm:hidden">
+            <button
+              onClick={() => router.push(`/${locale}/chatting`)}
+              className={`w-[38px] h-[38px] rounded-full flex items-center justify-center transition-colors bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]`}
+            >
+              <img src="/navigasi/chat.svg" alt="Chat" className="w-[20px] h-[20px] object-contain" />
+            </button>
+          </div>
+
           <div className="relative group">
             <button
               ref={notifBtnRef}
@@ -511,53 +539,32 @@ export default function Navbar({
           </div>
 
           {/* Vertical Separator */}
-          <div className="w-[1px] h-6 bg-gray-300 dark:bg-[#3E4042] mx-1"></div>
+          <div className="w-[1px] h-6 bg-gray-300 dark:bg-[#3E4042] mx-1 hidden sm:block"></div>
 
-          {/* Language Switcher */}
-          <div className="relative group mx-1" ref={langRef}>
+          {/* Language Switcher (Desktop Only) */}
+          <div className="relative group mx-1 hidden sm:flex" ref={langRef}>
             <button
               onClick={() => setIsLangOpen(!isLangOpen)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#D8D9DB] dark:hover:bg-[#4E4F50] transition-colors text-black dark:text-[#E4E6EB] text-[13px] font-semibold"
             >
               {locale === "id" ? (
-                <svg
-                  className="w-5 h-5 rounded-[2px] shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]"
-                  viewBox="0 0 36 36"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg className="w-5 h-5 rounded-[2px] shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#ED2939" d="M0 0h36v18H0z" />
                   <path fill="#fff" d="M0 18h36v18H0z" />
                 </svg>
               ) : (
-                <svg
-                  className="w-5 h-5 rounded-[2px] shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]"
-                  viewBox="0 0 36 36"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg className="w-5 h-5 rounded-[2px] shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#0A3161" d="M0 0h36v36H0z" />
-                  <path
-                    fill="#B31942"
-                    d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z"
-                  />
-                  <path
-                    fill="#fff"
-                    d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z"
-                  />
+                  <path fill="#B31942" d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                  <path fill="#fff" d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
                   <path fill="#0A3161" d="M0 0h18v18H0z" />
-                  <path
-                    fill="#fff"
-                    d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"
-                  />
+                  <path fill="#fff" d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
                 </svg>
               )}
               {locale === "id" ? "ID" : "EN"}
             </button>
 
-            <div
-              className={`absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[13px] rounded-lg opacity-0 ${!isLangOpen ? "group-hover:opacity-100" : ""} transition-opacity duration-150 pointer-events-none whitespace-nowrap z-[60]`}
-            >
+            <div className={`absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[13px] rounded-lg opacity-0 ${!isLangOpen ? "group-hover:opacity-100" : ""} transition-opacity duration-150 pointer-events-none whitespace-nowrap z-[60]`}>
               {t("common.language")}
             </div>
 
@@ -568,73 +575,42 @@ export default function Navbar({
                     document.cookie = `NEXT_LOCALE=id; path=/; max-age=31536000; SameSite=Lax`;
                     localStorage.setItem("NEXT_LOCALE", "id");
                     const currentPath = window.location.pathname;
-                    const pathWithoutLocale = currentPath.replace(
-                      /^\/(id|en)/,
-                      "",
-                    );
-                    window.location.href =
-                      "/id" + (pathWithoutLocale || "/home");
+                    const pathWithoutLocale = currentPath.replace(/^\/(id|en)/, "");
+                    window.location.href = "/id" + (pathWithoutLocale || "/home");
                   }}
                   className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${locale === "id" ? "bg-[#E4E6EB] dark:bg-[#3A3B3C]" : "hover:bg-gray-200 dark:hover:bg-[#3A3B3C]"}`}
                 >
-                  <svg
-                    className="w-[18px] h-[18px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]"
-                    viewBox="0 0 36 36"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                  <svg className="w-[18px] h-[18px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#ED2939" d="M0 0h36v18H0z" />
                     <path fill="#fff" d="M0 18h36v18H0z" />
                   </svg>
-                  <span className="font-semibold text-[14px] text-black dark:text-[#E4E6EB]">
-                    Indonesia
-                  </span>
+                  <span className="font-semibold text-[14px] text-black dark:text-[#E4E6EB]">Indonesia</span>
                 </button>
                 <button
                   onClick={() => {
                     document.cookie = `NEXT_LOCALE=en; path=/; max-age=31536000; SameSite=Lax`;
                     localStorage.setItem("NEXT_LOCALE", "en");
                     const currentPath = window.location.pathname;
-                    const pathWithoutLocale = currentPath.replace(
-                      /^\/(id|en)/,
-                      "",
-                    );
-                    window.location.href =
-                      "/en" + (pathWithoutLocale || "/home");
+                    const pathWithoutLocale = currentPath.replace(/^\/(id|en)/, "");
+                    window.location.href = "/en" + (pathWithoutLocale || "/home");
                   }}
                   className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors mt-1 ${locale === "en" ? "bg-[#E4E6EB] dark:bg-[#3A3B3C]" : "hover:bg-gray-200 dark:hover:bg-[#3A3B3C]"}`}
                 >
-                  <svg
-                    className="w-[18px] h-[18px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]"
-                    viewBox="0 0 36 36"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
+                  <svg className="w-[18px] h-[18px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill="#0A3161" d="M0 0h36v36H0z" />
-                    <path
-                      fill="#B31942"
-                      d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z"
-                    />
-                    <path
-                      fill="#fff"
-                      d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z"
-                    />
+                    <path fill="#B31942" d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                    <path fill="#fff" d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
                     <path fill="#0A3161" d="M0 0h18v18H0z" />
-                    <path
-                      fill="#fff"
-                      d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"
-                    />
+                    <path fill="#fff" d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
                   </svg>
-                  <span className="font-semibold text-[14px] text-black dark:text-[#E4E6EB]">
-                    English
-                  </span>
+                  <span className="font-semibold text-[14px] text-black dark:text-[#E4E6EB]">English</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* MENU ICON - NO CIRCLE */}
-          <div className="relative group flex items-center justify-center mr-2 ml-1">
+          {/* MENU ICON - NO CIRCLE (Desktop Only) */}
+          <div className="relative group hidden sm:flex items-center justify-center mr-2 ml-1">
             <button className="flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
               <img
                 src="/menu.svg"
@@ -648,8 +624,9 @@ export default function Navbar({
           </div>
 
           <div className="relative ml-1" ref={dropdownRef}>
+            {/* Desktop Avatar Button */}
             <div
-              className="relative cursor-pointer group"
+              className="relative cursor-pointer group hidden sm:block"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <button className="w-11 h-11 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0">
@@ -682,16 +659,28 @@ export default function Navbar({
               </div>
             </div>
 
+            {/* Mobile Hamburger Button */}
+            <div
+              className="relative cursor-pointer group sm:hidden flex items-center justify-center"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              <button className={`w-[38px] h-[38px] flex items-center justify-center transition-colors rounded-full ${isDropdownOpen ? "bg-[#D8F0E2] dark:bg-[#203D2E] text-emerald-600 dark:text-emerald-400" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A] text-black dark:text-[#E4E6EB]"}`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+
             {/* Dropdown Profile Panel */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-3 w-[340px] bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] p-4 z-[10200]">
-                <div className="bg-[#F2F2F2] dark:bg-[#3A3B3C] rounded-xl p-3 flex items-center gap-3 mb-2 hover:bg-[#E4E6EB] dark:hover:bg-[#4E4F50] cursor-pointer transition-colors shadow-sm border border-gray-100 dark:border-[#3E4042]"
+              <div className="absolute right-0 mt-3 w-[260px] sm:w-[340px] bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] p-3 sm:p-4 z-[10200]">
+                <div className="bg-[#F2F2F2] dark:bg-[#3A3B3C] rounded-xl p-2 sm:p-3 flex items-center gap-3 mb-2 hover:bg-[#E4E6EB] dark:hover:bg-[#4E4F50] cursor-pointer transition-colors shadow-sm border border-gray-100 dark:border-[#3E4042]"
                   onClick={() => {
                     setIsDropdownOpen(false);
                     router.push(`/${locale}/p/${currentUser.username}/${currentUser.id}`);
                   }}
                 >
-                  <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-emerald-600 dark:border-emerald-400">
+                  <div className="w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-emerald-600 dark:border-emerald-400">
                     {isProfileLoading ? (
                       <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
                     ) : (
@@ -702,11 +691,11 @@ export default function Navbar({
                       />
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-[16px] text-black dark:text-[#E4E6EB] leading-tight">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[14px] sm:text-[16px] text-black dark:text-[#E4E6EB] leading-tight truncate">
                       {navDisplayName || currentUser.displayName || currentUser.username}
                     </h3>
-                    <p className="text-[13px] text-gray-500 dark:text-[#B0B3B8]">
+                    <p className="text-[12px] sm:text-[13px] text-gray-500 dark:text-[#B0B3B8] truncate">
                       @{currentUser.username}
                     </p>
                   </div>
@@ -714,12 +703,12 @@ export default function Navbar({
 
                 <div className="w-full h-[1px] bg-gray-200 dark:bg-[#3A3B3C] my-3"></div>
 
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors group/item">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
                         <svg
-                          className="w-[20px] h-[20px] text-black dark:text-[#E4E6EB]"
+                          className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB]"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -730,12 +719,12 @@ export default function Navbar({
                           />
                         </svg>
                       </div>
-                      <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">
+                      <span className="font-semibold text-[13px] sm:text-[15px] text-black dark:text-[#E4E6EB]">
                         {t("dropdown.settings")}
                       </span>
                     </div>
                     <svg
-                      className="w-6 h-6 text-gray-500 dark:text-[#B0B3B8] group-hover/item:text-black dark:text-[#E4E6EB] transition-colors"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 dark:text-[#B0B3B8] group-hover/item:text-black dark:text-[#E4E6EB] transition-colors"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -748,10 +737,10 @@ export default function Navbar({
                   </button>
 
                   <button className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors group/item">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
                         <svg
-                          className="w-[20px] h-[20px] text-black dark:text-[#E4E6EB]"
+                          className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB]"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -762,12 +751,12 @@ export default function Navbar({
                           />
                         </svg>
                       </div>
-                      <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">
+                      <span className="font-semibold text-[13px] sm:text-[15px] text-black dark:text-[#E4E6EB]">
                         {t("dropdown.help")}
                       </span>
                     </div>
                     <svg
-                      className="w-6 h-6 text-gray-500 dark:text-[#B0B3B8] group-hover/item:text-black dark:text-[#E4E6EB] transition-colors"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500 dark:text-[#B0B3B8] group-hover/item:text-black dark:text-[#E4E6EB] transition-colors"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -779,10 +768,10 @@ export default function Navbar({
                     </svg>
                   </button>
 
-                  <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors">
-                    <div className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                  <button className="w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
                       <svg
-                        className="w-[20px] h-[20px] text-black dark:text-[#E4E6EB]"
+                        className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB]"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -793,19 +782,96 @@ export default function Navbar({
                         />
                       </svg>
                     </div>
-                    <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">
+                    <span className="font-semibold text-[13px] sm:text-[15px] text-black dark:text-[#E4E6EB]">
                       {t("dropdown.report")}
                     </span>
                   </button>
 
+                  {/* Language Switcher in Dropdown (Mobile Only) */}
+                  <div className="relative group sm:hidden w-full">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setIsMobileLangOpen(!isMobileLangOpen);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                          {locale === "id" ? (
+                            <svg className="w-4 h-4 rounded-[2px]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="#ED2939" d="M0 0h36v18H0z" />
+                              <path fill="#fff" d="M0 18h36v18H0z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4 rounded-[2px]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="#0A3161" d="M0 0h36v36H0z" />
+                              <path fill="#B31942" d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                              <path fill="#fff" d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                              <path fill="#0A3161" d="M0 0h18v18H0z" />
+                              <path fill="#fff" d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="font-semibold text-[13px] text-black dark:text-[#E4E6EB]">
+                          {t("common.language")}
+                        </span>
+                      </div>
+                      <svg className={`w-4 h-4 text-gray-500 transition-transform ${isMobileLangOpen ? "rotate-180" : ""}`} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    {isMobileLangOpen && (
+                      <div className="flex flex-col gap-1 px-2 pb-2 pl-[42px]">
+                        <button
+                          onClick={() => {
+                            document.cookie = `NEXT_LOCALE=id; path=/; max-age=31536000; SameSite=Lax`;
+                            localStorage.setItem("NEXT_LOCALE", "id");
+                            const currentPath = window.location.pathname;
+                            const pathWithoutLocale = currentPath.replace(/^\/(id|en)/, "");
+                            window.location.href = "/id" + (pathWithoutLocale || "/home");
+                          }}
+                          className={`w-full flex items-center gap-2 p-1.5 rounded-lg transition-colors ${locale === "id" ? "bg-[#E4E6EB] dark:bg-[#3A3B3C]" : "hover:bg-gray-200 dark:hover:bg-[#3A3B3C]"}`}
+                        >
+                          <svg className="w-[16px] h-[16px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#ED2939" d="M0 0h36v18H0z" />
+                            <path fill="#fff" d="M0 18h36v18H0z" />
+                          </svg>
+                          <span className="font-semibold text-[13px] text-black dark:text-[#E4E6EB]">Indonesia</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            document.cookie = `NEXT_LOCALE=en; path=/; max-age=31536000; SameSite=Lax`;
+                            localStorage.setItem("NEXT_LOCALE", "en");
+                            const currentPath = window.location.pathname;
+                            const pathWithoutLocale = currentPath.replace(/^\/(id|en)/, "");
+                            window.location.href = "/en" + (pathWithoutLocale || "/home");
+                          }}
+                          className={`w-full flex items-center gap-2 p-1.5 rounded-lg transition-colors ${locale === "en" ? "bg-[#E4E6EB] dark:bg-[#3A3B3C]" : "hover:bg-gray-200 dark:hover:bg-[#3A3B3C]"}`}
+                        >
+                          <svg className="w-[16px] h-[16px] rounded-sm shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#0A3161" d="M0 0h36v36H0z" />
+                            <path fill="#B31942" d="M0 4.5h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                            <path fill="#fff" d="M0 9h36v4.5H0zm0 9h36v4.5H0zm0 9h36v4.5H0z" />
+                            <path fill="#0A3161" d="M0 0h18v18H0z" />
+                            <path fill="#fff" d="M3 3h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 7h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
+                          </svg>
+                          <span className="font-semibold text-[13px] text-black dark:text-[#E4E6EB]">English</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+                    className="w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
                       {isDarkMode ? (
                         <svg
-                          className="w-[20px] h-[20px] text-black dark:text-[#E4E6EB]"
+                          className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB]"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -813,7 +879,7 @@ export default function Navbar({
                         </svg>
                       ) : (
                         <svg
-                          className="w-[20px] h-[20px] text-black dark:text-[#E4E6EB]"
+                          className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB]"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -825,7 +891,7 @@ export default function Navbar({
                         </svg>
                       )}
                     </div>
-                    <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">
+                    <span className="font-semibold text-[13px] sm:text-[15px] text-black dark:text-[#E4E6EB]">
                       {isDarkMode
                         ? t("dropdown.lightMode")
                         : t("dropdown.darkMode")}
@@ -839,11 +905,11 @@ export default function Navbar({
                         "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                       window.location.href = `/login`;
                     }}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+                    className="w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E4E6EB] dark:bg-[#3A3B3C] flex items-center justify-center shrink-0 overflow-hidden">
                       <svg
-                        className="w-5 h-5 text-black dark:text-[#E4E6EB] ml-1"
+                        className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] text-black dark:text-[#E4E6EB] ml-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -857,7 +923,7 @@ export default function Navbar({
                         />
                       </svg>
                     </div>
-                    <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">
+                    <span className="font-semibold text-[13px] sm:text-[15px] text-black dark:text-[#E4E6EB]">
                       {t("dropdown.logout")}
                     </span>
                   </button>

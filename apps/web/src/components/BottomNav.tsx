@@ -2,12 +2,16 @@
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useUser } from "@/contexts/UserContext";
+import { getOptimizedUrl } from "@/utils/cloudinary";
+import { profileCache } from "@/utils/cache";
 
 export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations();
+  const { currentUser } = useUser();
 
   // Hide on certain pages if needed, e.g. login/register
   if (pathname.includes("/login") || pathname.includes("/register")) return null;
@@ -16,6 +20,7 @@ export default function BottomNav() {
   if (pathname.includes("/product")) activeTab = "product";
   else if (pathname.includes("/project")) activeTab = "project";
   else if (pathname.includes("/search") || pathname.includes("/explore")) activeTab = "explore";
+  else if (pathname.includes("/profile") || pathname.includes("/p/")) activeTab = "profile";
 
   const handleNav = (path: string) => {
     router.push(`/${locale}/${path}`);
@@ -38,6 +43,15 @@ export default function BottomNav() {
       <div onClick={() => handleNav('explore')} className={`flex flex-col items-center justify-center w-16 h-full cursor-pointer ${activeTab === 'explore' ? 'text-emerald-500' : 'text-gray-500 dark:text-[#B0B3B8]'}`}>
         <div className="w-6 h-6 bg-current" style={{ WebkitMask: `url(/navigasi/explore${activeTab === 'explore' ? '-aktif' : ''}.svg) center/contain no-repeat`, mask: `url(/navigasi/explore${activeTab === 'explore' ? '-aktif' : ''}.svg) center/contain no-repeat` }} />
         <span className="text-[10px] font-medium mt-0.5">{t("tabs.explore")}</span>
+      </div>
+      <div onClick={() => {
+        if (currentUser) {
+          router.push(`/${locale}/p/${currentUser.username || currentUser.id}/${currentUser.id}`);
+        } else {
+          handleNav('profile');
+        }
+      }} className={`flex flex-col items-center justify-center w-16 h-full cursor-pointer ${activeTab === 'profile' ? 'text-emerald-500' : 'text-gray-500 dark:text-[#B0B3B8]'}`}>
+        <img src={(currentUser?.profile?.avatarUrl || profileCache.get(currentUser?.id)?.avatarUrl) ? getOptimizedUrl((currentUser?.profile?.avatarUrl || profileCache.get(currentUser?.id)?.avatarUrl), "avatar") : "/default-avatar.png"} alt="Profile" className={`w-9 h-9 rounded-full object-cover ${activeTab === 'profile' ? 'border-2 border-emerald-500' : 'border border-transparent'}`} />
       </div>
     </div>
   );
