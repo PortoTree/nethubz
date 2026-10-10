@@ -19,12 +19,17 @@ function GlobalPostModalContent() {
 
   useEffect(() => {
     if (postId) {
-      getPostById(postId).then(res => {
-        if (res.success && res.post) {
-          setModalPost(res.post);
-          setIsOpen(true);
-        }
-      });
+      if (typeof window !== 'undefined' && (window as any).__NethubzPrefetchedPost?.id === postId) {
+        setModalPost((window as any).__NethubzPrefetchedPost);
+        setIsOpen(true);
+      } else {
+        getPostById(postId).then(res => {
+          if (res.success && res.post) {
+            setModalPost(res.post);
+            setIsOpen(true);
+          }
+        });
+      }
     } else {
       setIsOpen(false);
       // We don't nullify modalPost immediately to allow close animation

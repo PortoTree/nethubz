@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/actions/posts";
 import { toggleLike, toggleSave, incrementShareCount } from "@/app/actions/interactions";
 import CreatePostModal from "./CreatePostModal";
-import PostDetailModal from "./PostDetailModal";
 import { MediaRenderer } from "./MediaRenderer";
 import GiveawayCard from "./GiveawayCard";
 import { ReactionSummaryPopup } from "./ReactionSummaryPopup";
@@ -56,7 +55,6 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [modalViewMode, setModalViewMode] = useState<"GRID" | "CAROUSEL">("GRID");
   const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
-  const [isPostDetailModalOpen, setIsPostDetailModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const [isLiked, setIsLiked] = useState<ReactionType | null>(post.myReaction || null);
@@ -727,11 +725,21 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
               </ReactionSummaryPopup>
             ) : null}
           </div>
-          {likeCount > 0 && <span onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}>{likeCount}</span>}
+          {likeCount > 0 && <span onClick={() => { if (!disableClicks) {
+                  (window as any).__NethubzPrefetchedPost = post;
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('postId', post.id);
+                  router.push(`${window.location.pathname}?${searchParams.toString()}`, { scroll: false });
+                } }}>{likeCount}</span>}
         </div>
         <div className="flex items-center gap-3">
           {post._count?.comments > 0 && (
-            <span className="cursor-pointer hover:underline" onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}>
+            <span className="cursor-pointer hover:underline" onClick={() => { if (!disableClicks) {
+                  (window as any).__NethubzPrefetchedPost = post;
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('postId', post.id);
+                  router.push(`${window.location.pathname}?${searchParams.toString()}`, { scroll: false });
+                } }}>
               {post._count.comments} Komentar
             </span>
           )}
@@ -743,7 +751,12 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         <div className="flex items-center gap-1 pt-1 border-t border-gray-100 dark:border-[#3E4042]">
           <ReactionButton myReaction={isLiked} onReact={handleLike} count={0} />
           <button 
-            onClick={() => { if (!disableClicks) setIsPostDetailModalOpen(true); }}
+            onClick={() => { if (!disableClicks) {
+                  (window as any).__NethubzPrefetchedPost = post;
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('postId', post.id);
+                  router.push(`${window.location.pathname}?${searchParams.toString()}`, { scroll: false });
+                } }}
             className="flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] transition-colors bg-transparent"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -926,15 +939,6 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
         document.body
       )}
 
-      {/* Post Detail & Comment Modal */}
-      {isPostDetailModalOpen && (
-        <PostDetailModal
-          isOpen={isPostDetailModalOpen}
-          onClose={() => setIsPostDetailModalOpen(false)}
-          post={post}
-          currentUser={currentUser}
-        />
-      )}
 
       {/* Save to Folder Modal */}
       <SaveToFolderModal
