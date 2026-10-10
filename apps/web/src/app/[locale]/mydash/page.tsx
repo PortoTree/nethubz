@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { flushSync, createPortal } from "react-dom";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import Navbar from "@/components/Navbar";
+
 import RichTextEditor from "./RichTextEditor";
 
 function useScrollLock(isLocked: boolean) {

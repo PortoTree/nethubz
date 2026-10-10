@@ -15,7 +15,7 @@ import { getOptimizedUrl } from "@/utils/cloudinary";
 import { profileCache, connectionCache } from "@/utils/cache";
 import React from "react";
 import { useUser } from "@/contexts/UserContext";
-import Navbar from "@/components/Navbar";
+
 import CreatePostModal from "@/components/CreatePostModal";
 import PostFeed from "@/components/PostFeed";
 

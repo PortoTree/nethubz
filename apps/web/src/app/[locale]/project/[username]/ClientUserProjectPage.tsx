@@ -8,7 +8,7 @@ import { uploadToCloudinary } from "@/utils/uploadImage";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import ProjectCard from "@/components/ProjectCard";
-import Navbar from "@/components/Navbar";
+
 import FloatingUserMenu from "@/components/FloatingUserMenu";
 import FloatingProjectHubBtn from "@/components/FloatingProjectHubBtn";
 import { deleteProject, createProject, updateProject } from "@/app/actions/projects";

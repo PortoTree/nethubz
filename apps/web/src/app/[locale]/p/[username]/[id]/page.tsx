@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+
 import PostFeed from "@/components/PostFeed";
 import HorizontalProjectCard from "@/components/HorizontalProjectCard";
 import EditProfileModal from "@/components/EditProfileModal";

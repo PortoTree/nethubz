@@ -24,7 +24,7 @@ Karena user sudah bisa saling follow, mereka butuh pemberitahuan secara real-tim
 ## Phase 2: Sistem Konten Utama (Core)
 Setelah user saling terkoneksi, mereka butuh media untuk berinteraksi dan berbagi.
 - [x] **Database Postingan**: Skema Prisma, API, dan UI untuk membuat (*create*), membaca (*read*), mengedit (*update*), dan menghapus (*delete*) postingan.
-- [ ] **Interaksi Postingan**: Logika untuk Like, Comment, Share, dan Save (Simpan) postingan.
+- [x] **Interaksi Postingan**: Logika untuk Like, Comment, Share, dan Save (Simpan) postingan.
 - [x] **Privacy post**: privasi setiap postingan untuk user (public, friends only, private).
 - [x] **UI/UX postingan**: Tampilan postingan di halaman utama /home, halaman teman ke teman /friend, dan halaman profil user. termasuk juga ui/ux untuk interaksi postingan, seperti like, comment, share, dan save.
 
@@ -38,7 +38,7 @@ note: nanti akan ada postingan khusus only komunitas, apakah di kerjakan logikan
 - [x] **Update Showcase & Detail**: Badge kategori di komponen `ProjectCard`, perbarui filter pencarian backend agar membaca `customCategory` dan status *For Sale*.
 
 ## Phase 2.2
-- [ ] **Optimasi Navbar**: Refactor Navbar ke dalam file `layout.tsx` supaya setiap kali pindah halaman, navbar tidak perlu merender ulang terus-menerus.
+- [x] **Optimasi Navbar**: Refactor Navbar ke dalam file `layout.tsx` supaya setiap kali pindah halaman, navbar tidak perlu merender ulang terus-menerus.
 - [ ] **Pecah Kode (Code Splitting) Halaman Utama**: Refactor file raksasa `app/[locale]/home/page.tsx` (5000+ baris) menjadi komponen-komponen kecil yang terpisah (seperti komponen tab, modal, dan helper) agar *maintenance* jauh lebih mudah tanpa merubah alur routing.
 
 ## Phase 2.2: Mobile Responsive
