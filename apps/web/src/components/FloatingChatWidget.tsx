@@ -14,6 +14,8 @@ interface FloatingChatWidgetProps {
   activeTab?: string;
 }
 
+import { useRouter } from "next/navigation";
+
 export default function FloatingChatWidget({
   currentUser,
   dummyChats,
@@ -46,6 +48,8 @@ export default function FloatingChatWidget({
   const chatMenuRef = useRef<HTMLDivElement>(null);
   const chatMoreMenuRef = useRef<HTMLDivElement>(null);
   const [isFloatingAttachmentMenuOpen, setIsFloatingAttachmentMenuOpen] = useState(false);
+  const router = useRouter();
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

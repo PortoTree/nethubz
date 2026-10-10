@@ -290,9 +290,16 @@ export default function Beranda() {
   useEffect(() => {
     localStorage.setItem('selectedFriendsToAdd', JSON.stringify(selectedFriendsToAdd));
   }, [selectedFriendsToAdd]);
-    "all" | "unread" | "favorite" | "community" | "archive" | "requests"
-  >("all");
   const [activeChatIdx, setActiveChatIdx] = useState<number | null>(null);
+
+  const [isChatListSettingsOpen, setIsChatListSettingsOpen] = useState(false);
+  const [chatListFilter, setChatListFilter] = useState("semua");
+  const [isChatFilterOpen, setIsChatFilterOpen] = useState(false);
+  const [isChatInfoOpen, setIsChatInfoOpen] = useState(false);
+  const [activeChatMenu, setActiveChatMenu] = useState<number | null>(null);
+  const [isTempMessageOn, setIsTempMessageOn] = useState(false);
+  const [isChatMoreMenuOpen, setIsChatMoreMenuOpen] = useState(false);
+
 
   useEffect(() => {
 
