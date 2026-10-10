@@ -1,0 +1,11 @@
+60: return () => document.removeEventListener("mousedown", handleGlobalClick);
+125: if (!user || !formName.trim()) return;
+139: if (!renameFolderState?.name.trim() || !user?.id) return;
+158: if (!user?.id || !deleteFolderId) return;
+192: return () => clearTimeout(delayDebounceFn);
+196: if (!user?.id || !allowUserFolder) return;
+217: if (!user?.id || !allowUserFolder) return;
+236: if (!user?.id || !allowUserFolder) return;
+254: return (
+395: return viewMode === "grid" ? (
+894: if (user?.id !== allowUserFolder.userId || isUpdatingMember) return;

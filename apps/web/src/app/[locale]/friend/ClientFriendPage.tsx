@@ -208,7 +208,7 @@ const MessageDropdownMenu = ({ isIncoming, t }: { isIncoming?: boolean, t: any }
   );
 };
 
-export default function Beranda() {
+export default function ClientFriendPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
@@ -262,17 +262,8 @@ export default function Beranda() {
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<
-    "home" | "search" | "friend" | "community" | "community" | "chat" | "product"
-  >(() => {
-    if (pathname.includes("/obrolan")) return "chat";
-    if (pathname.includes("/search")) return "search";
-    if (pathname.includes("/friend")) return "friend";
-    if (pathname.includes("/product")) return "product";
-    if (pathname.includes("/community")) return "community";
-    if (pathname.includes("/communitys")) return "community";
-    return "home";
-  });
+  const activeTab = "friend";
+  const setActiveTab = (tab: string) => {};
 
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(true);
   const [isChatMoreMenuOpen, setIsChatMoreMenuOpen] = useState(false);
