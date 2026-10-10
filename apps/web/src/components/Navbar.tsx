@@ -56,6 +56,7 @@ export default function Navbar({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchNavOpen, setIsSearchNavOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isNotifPanelOpen, setIsNotifPanelOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [isNotifFilterOpen, setIsNotifFilterOpen] = useState(false);
@@ -259,6 +260,7 @@ export default function Navbar({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchNavRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
   const notifBtnRef = useRef<HTMLButtonElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
@@ -269,6 +271,9 @@ export default function Navbar({
     function handleClickOutside(event: MouseEvent) {
       if (searchNavRef.current && !searchNavRef.current.contains(event.target as Node)) {
         setIsSearchNavOpen(false);
+      }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsMobileSearchOpen(false);
       }
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
@@ -297,6 +302,86 @@ export default function Navbar({
     };
   }, []);
 
+  const renderSearchDropdown = (isMobile: boolean = false) => (
+    <div className="p-3">
+      <div className="flex items-center gap-3">
+        <div className="relative group/visit">
+          <button
+            onClick={() => {
+              if (isMobile) setIsMobileSearchOpen(false);
+              else setIsSearchNavOpen(false);
+              handleTabNavigation("search", "search");
+            }}
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-gray-100 dark:bg-[#3A3B3C] hover:bg-emerald-50 dark:hover:bg-[#203D2E] transition-colors shrink-0 border border-gray-200 dark:border-[#4E4F50]"
+          >
+            <img
+              src="/navigasi/mencari-online.png"
+              alt="Mencari Online"
+              className="w-8 h-8 object-contain group-hover/visit:scale-110 transition-transform"
+            />
+          </button>
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[13px] rounded-lg opacity-0 group-hover/visit:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-[60]">
+            {t("search.visit")}
+          </div>
+        </div>
+        <div className="flex-1 flex items-center gap-2 bg-gray-100 dark:bg-[#3A3B3C] rounded-full px-4 py-2 border border-gray-200 dark:border-[#4E4F50] focus-within:border-emerald-500 transition-colors">
+          <svg className="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Pencarian..."
+            className="w-full bg-transparent border-none outline-none text-[15px] text-black dark:text-[#E4E6EB] placeholder-gray-500 min-w-0"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setActiveTab("search");
+                if (isMobile) setIsMobileSearchOpen(false);
+                else setIsSearchNavOpen(false);
+                window.history.pushState(null, "", `/${locale}/search`);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Dummy Recent Searches */}
+      <div className="mt-4 px-1 pb-1">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-[15px] font-semibold text-black dark:text-[#E4E6EB]">
+            {t("search.recent") || "Pencarian Terakhir"}
+          </h4>
+          <button className="text-[14px] text-emerald-600 dark:text-emerald-400 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1 rounded-md transition-colors">
+            {t("search.edit") || "Edit"}
+          </button>
+        </div>
+        <div className="flex flex-col">
+          {[
+            "Villa murah di Bali",
+            "Lowongan kerja Jakarta",
+            "Jasa desain grafis",
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-center gap-3 p-2 -mx-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] rounded-lg cursor-pointer group transition-colors">
+              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-[#4E4F50] flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-gray-600 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="flex-1 text-[15px] font-medium text-black dark:text-[#E4E6EB] truncate">
+                {item}
+              </span>
+              <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-[#4E4F50] text-gray-500 opacity-0 group-hover:opacity-100 transition-all" title="Hapus">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <nav className="bg-white dark:bg-[#242526] shadow-sm fixed top-0 w-full z-[10100] h-[56px] px-4 flex items-center justify-between border-b border-gray-200 dark:border-[#3E4042]">
@@ -321,20 +406,32 @@ export default function Navbar({
             className="h-[50px] w-auto object-contain hidden dark:sm:block"
           />
           
-          {/* Mobile Search Box */}
-          <div 
-            className="flex sm:hidden items-center bg-gray-100 dark:bg-[#3A3B3C] rounded-full px-3 py-1.5 h-[36px] ml-1 cursor-pointer"
-            onClick={() => router.push(`/${locale}/search`)}
-          >
-            <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder={t("tabs.search")}
-              className="bg-transparent border-none outline-none text-[14px] text-black dark:text-[#E4E6EB] w-[90px] ml-2 pointer-events-none"
-              readOnly
-            />
+          {/* Mobile Search Box Wrapper */}
+          <div className="relative sm:hidden ml-1" ref={mobileSearchRef}>
+            <div 
+              className={`flex items-center bg-gray-100 dark:bg-[#3A3B3C] rounded-full px-3 py-1.5 h-[36px] cursor-pointer transition-colors ${isMobileSearchOpen ? "border-emerald-500 border" : "border-transparent border"}`}
+              onClick={() => setIsMobileSearchOpen(true)}
+            >
+              <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder={t("tabs.search")}
+                className="bg-transparent border-none outline-none text-[14px] text-black dark:text-[#E4E6EB] w-[90px] ml-2 pointer-events-none"
+                readOnly
+              />
+            </div>
+            
+            {/* Mobile Search Dropdown Popup */}
+            {isMobileSearchOpen && (
+              <div
+                className="fixed top-[56px] left-4 right-4 bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] border border-gray-100 dark:border-[#3E4042] z-[10200]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {renderSearchDropdown(true)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -428,78 +525,7 @@ export default function Navbar({
                 className="absolute top-[52px] right-0 w-[300px] sm:w-[360px] bg-white dark:bg-[#242526] rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.2)] border border-gray-100 dark:border-[#3E4042] z-[10200]"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="relative group/visit">
-                      <button
-                        onClick={() => { setIsSearchNavOpen(false); handleTabNavigation("search", "search"); }}
-                        className="w-11 h-11 rounded-full flex items-center justify-center bg-gray-100 dark:bg-[#3A3B3C] hover:bg-emerald-50 dark:hover:bg-[#203D2E] transition-colors shrink-0 border border-gray-200 dark:border-[#4E4F50]"
-                      >
-                        <img
-                          src="/navigasi/mencari-online.png"
-                          alt="Mencari Online"
-                          className="w-8 h-8 object-contain group-hover/visit:scale-110 transition-transform"
-                        />
-                      </button>
-                      <div className="absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[13px] rounded-lg opacity-0 group-hover/visit:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-[60]">
-                        {t("search.visit")}
-                      </div>
-                    </div>
-                    <div className="flex-1 flex items-center gap-2 bg-gray-100 dark:bg-[#3A3B3C] rounded-full px-4 py-2 border border-gray-200 dark:border-[#4E4F50] focus-within:border-emerald-500 transition-colors">
-                      <svg className="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Pencarian..."
-                        className="w-full bg-transparent border-none outline-none text-[15px] text-black dark:text-[#E4E6EB] placeholder-gray-500 min-w-0"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            setActiveTab("search");
-                            setIsSearchNavOpen(false);
-                            window.history.pushState(null, "", `/${locale}/search`);
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Dummy Recent Searches */}
-                  <div className="mt-4 px-1 pb-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-[15px] font-semibold text-black dark:text-[#E4E6EB]">
-                        {t("search.recent") || "Pencarian Terakhir"}
-                      </h4>
-                      <button className="text-[14px] text-emerald-600 dark:text-emerald-400 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] px-2 py-1 rounded-md transition-colors">
-                        {t("search.edit") || "Edit"}
-                      </button>
-                    </div>
-                    <div className="flex flex-col">
-                      {[
-                        "Villa murah di Bali",
-                        "Lowongan kerja Jakarta",
-                        "Jasa desain grafis",
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-2 -mx-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] rounded-lg cursor-pointer group transition-colors">
-                          <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-[#4E4F50] flex items-center justify-center shrink-0">
-                            <svg className="w-5 h-5 text-gray-600 dark:text-[#B0B3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <span className="flex-1 text-[15px] font-medium text-black dark:text-[#E4E6EB] truncate">
-                            {item}
-                          </span>
-                          <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-[#4E4F50] text-gray-500 opacity-0 group-hover:opacity-100 transition-all" title="Hapus">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                {renderSearchDropdown(false)}
               </div>
             )}
           </div>
@@ -510,7 +536,13 @@ export default function Navbar({
               onClick={() => router.push(`/${locale}/chatting`)}
               className={`w-[38px] h-[38px] rounded-full flex items-center justify-center transition-colors bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]`}
             >
-              <img src="/navigasi/chat.svg" alt="Chat" className="w-[20px] h-[20px] object-contain" />
+              <div 
+                className="w-[20px] h-[20px] bg-sky-500 dark:bg-sky-400"
+                style={{
+                  WebkitMask: `url(/navigasi/chat-aktif.svg) center/contain no-repeat`,
+                  mask: `url(/navigasi/chat-aktif.svg) center/contain no-repeat`
+                }}
+              />
             </button>
           </div>
 
@@ -518,12 +550,12 @@ export default function Navbar({
             <button
               ref={notifBtnRef}
               onClick={() => setIsNotifPanelOpen(!isNotifPanelOpen)}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isNotifPanelOpen ? "bg-[#D8F0E2] dark:bg-[#203D2E]" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]"}`}
+              className={`w-[38px] h-[38px] sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isNotifPanelOpen ? "bg-[#D8F0E2] dark:bg-[#203D2E]" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]"}`}
             >
               <img
                 src="/pemberitahuan.svg"
                 alt={t("nav.notifications")}
-                className="w-[26px] h-[26px] object-contain"
+                className="w-[20px] h-[20px] sm:w-[26px] sm:h-[26px] object-contain"
               />
             </button>
             <div className="absolute top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/80 text-white text-[13px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-[60]">

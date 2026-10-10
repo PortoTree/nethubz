@@ -1843,8 +1843,8 @@ function ProfilePageContent({
                   <div className={activeTab === 'posts' ? 'block' : 'hidden'}>
                     {/* Create Post Input */}
                     {isOwnProfile && (
-                      <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4 w-full mb-4">
-                        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-[#3E4042]">
+                      <div className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100 sm:dark:border-[#3E4042] p-4 w-full mb-4">
+                        <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100">
                           <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
                             <img
                               src={avatarPreview ? getOptimizedUrl(avatarPreview, "avatar") : "/default-avatar.svg"}
@@ -1855,7 +1855,7 @@ function ProfilePageContent({
                           <input
                             type="text"
                             placeholder={tFeed("createPost")}
-                            className="w-full bg-[#F0F2F5] dark:bg-[#3A3B3C] hover:bg-[#E4E6EB] dark:hover:bg-[#4E4F50] transition-colors rounded-full px-4 py-2.5 focus:outline-none cursor-pointer text-gray-600 dark:text-[#B0B3B8] text-[17px]"
+                            className="w-full bg-white sm:bg-[#F0F2F5] dark:bg-[#242526] sm:dark:bg-[#3A3B3C] hover:bg-gray-50 sm:hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] sm:dark:hover:bg-[#4E4F50] transition-colors rounded-full px-4 py-2.5 focus:outline-none cursor-pointer text-gray-600 dark:text-[#B0B3B8] text-[17px] shadow-sm sm:shadow-none"
                             readOnly
                             onClick={() => { setStartWithGalleryModal(false); setIsCreatePostModalOpen(true); }}
                           />
