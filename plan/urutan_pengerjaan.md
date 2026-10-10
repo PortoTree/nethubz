@@ -39,10 +39,10 @@ note: nanti akan ada postingan khusus only komunitas, apakah di kerjakan logikan
 
 ## Phase 2.2
 - [x] **Optimasi Navbar**: Refactor Navbar ke dalam file `layout.tsx` supaya setiap kali pindah halaman, navbar tidak perlu merender ulang terus-menerus.
-- [ ] **Pecah Kode (Code Splitting) Halaman Utama**: Refactor file raksasa `app/[locale]/home/page.tsx` (5000+ baris) menjadi komponen-komponen kecil yang terpisah (seperti komponen tab, modal, dan helper) agar *maintenance* jauh lebih mudah tanpa merubah alur routing.
+- [x] **Pecah Kode (Code Splitting) Halaman Utama**: Refactor file raksasa `app/[locale]/home/page.tsx` (5000+ baris) menjadi komponen-komponen kecil yang terpisah (seperti komponen tab, modal, dan helper) agar *maintenance* jauh lebih mudah tanpa merubah alur routing.
 
 ## Phase 2.2: Mobile Responsive
-- [ ] **Navigasi & Sidebar**: Menyembunyikan sidebar dan membuat *bottom navigation*.
+- [x] **Navigasi & Sidebar**: Menyembunyikan sidebar dan membuat *bottom navigation*.
 - [ ] **Layout Responsif**: Menyesuaikan layout grid dari desktop ke versi kolom tunggal untuk *mobile*.
 - [ ] **Optimasi Komponen UX**: Memastikan ukuran modal, padding, dan tombol sesuai untuk navigasi layar sentuh.
 
