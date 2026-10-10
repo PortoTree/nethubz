@@ -69,9 +69,10 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
     e.stopPropagation();
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      let left = rect.left;
-      if (left + 420 > window.innerWidth) left = window.innerWidth - 420;
-      setPopupPos({ top: rect.top - 55, left: Math.max(10, left) });
+      setPopupPos({ 
+        top: rect.top + rect.height / 2, 
+        left: rect.left + rect.width / 2 
+      });
     }
     setIsOpen((prev) => !prev);
   };
@@ -109,12 +110,22 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
       {isOpen && mounted && createPortal(
         <div 
           ref={popupRef}
-          className="fixed bg-white dark:bg-[#242526] border border-gray-200 dark:border-[#3E4042] rounded-full shadow-lg p-1.5 flex gap-1 animate-in fade-in slide-in-from-bottom-2 duration-200"
-          style={{ top: popupPos.top, left: popupPos.left, zIndex: 999999 }}
+          className="fixed w-0 h-0 z-[999999]"
+          style={{ top: popupPos.top, left: popupPos.left }}
           onClick={(e) => e.stopPropagation()}
         >
-          {REACTIONS.map((type) => {
+          {/* Overlay to catch clicks and close, optional but helps on mobile */}
+          <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
+          
+          {REACTIONS.map((type, index) => {
             const config = REACTION_CONFIG[type];
+            // Calculate position on a circle
+            const radius = 85;
+            const angle = (index * 360) / REACTIONS.length;
+            const radian = (angle - 90) * (Math.PI / 180);
+            const x = radius * Math.cos(radian);
+            const y = radius * Math.sin(radian);
+
             return (
               <button
                 key={type}
@@ -123,12 +134,22 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
                   onReact(type);
                   setIsOpen(false);
                 }}
-                className="w-10 h-10 relative hover:scale-125 hover:-translate-y-3 transition-all duration-300 origin-bottom flex-shrink-0 group/emoji"
+                onContextMenu={(e) => e.preventDefault()}
+                className="absolute w-[56px] h-[56px] -ml-[28px] -mt-[28px] rounded-full bg-white dark:bg-[#242526] shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.4)] border border-gray-100 dark:border-[#3E4042] hover:scale-125 hover:z-50 active:scale-125 active:z-50 transition-all duration-300 flex items-center justify-center group/emoji animate-in zoom-in duration-200 select-none"
+                style={{ 
+                  left: `${x}px`, 
+                  top: `${y}px`,
+                  animationFillMode: 'both',
+                  animationDelay: `${index * 20}ms`,
+                  WebkitTouchCallout: 'none'
+                }}
               >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[11px] font-bold px-2 py-1 rounded-full opacity-0 invisible group-hover/emoji:opacity-100 group-hover/emoji:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[12px] font-bold px-2.5 py-1 rounded-full opacity-0 invisible group-hover/emoji:opacity-100 group-hover/emoji:visible group-active/emoji:opacity-100 group-active/emoji:visible transition-all duration-200 pointer-events-none whitespace-nowrap shadow-sm z-50">
                   {config.label}
                 </div>
-                <Image src={config.src} alt={config.label} fill unoptimized priority className="object-contain drop-shadow-sm transition-transform duration-300 group-hover:drop-shadow-md" />
+                <div className="relative w-10 h-10 pointer-events-none">
+                  <Image src={config.src} alt={config.label} fill unoptimized priority className="object-contain drop-shadow-sm" />
+                </div>
               </button>
             );
           })}
