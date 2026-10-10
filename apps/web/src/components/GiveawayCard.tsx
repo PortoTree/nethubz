@@ -193,13 +193,13 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
     <div className="px-4 mb-3">
       <div className="rounded-xl overflow-hidden border border-amber-400/80 dark:border-amber-500/30 bg-gradient-to-br from-amber-100/70 to-orange-100/70 dark:from-amber-500/10 dark:to-orange-500/5">
         {/* Header */}
-        <div className="relative flex items-center gap-3 px-4 pb-5 pt-4 border-b border-amber-200 dark:border-amber-500/20">
-          <img src="/navigasi/giveaway.svg" alt="" className="w-9 h-9" />
+        <div className="relative flex items-start gap-3 px-4 pb-7 pt-4 border-b border-amber-200 dark:border-amber-500/20">
+          <img src="/navigasi/giveaway.svg" alt="" className="w-10 h-10 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-[16px] text-amber-900 dark:text-amber-200">
+            <p className="font-bold text-[16px] sm:text-[17px] leading-tight text-amber-900 dark:text-amber-200 line-clamp-2">
               {t("badge")}{giveaway.title ? ` - ${giveaway.title}` : ""}
             </p>
-            <p className="text-[12px] text-amber-800 dark:text-amber-300/80">
+            <p className="text-[12px] sm:text-[13px] text-amber-800 dark:text-amber-300/80 mt-1 leading-snug">
               {giveaway.mode === "RANDOM_DRAW" ? (
                 <>
                   {t("winnersLabel", { count: giveaway.winnerCount || 1 })}
@@ -214,20 +214,20 @@ export default function GiveawayCard({ giveaway, currentUser }: { giveaway: any;
             </p>
           </div>
           
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10">
-            <div className={`px-4 py-1.5 rounded-full text-[13px] font-bold tabular-nums shadow-md border-[3px] border-[#FFF8EE] dark:border-[#2a2722] ${isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white" : "bg-gray-300 dark:bg-[#4E4F50] text-gray-700 dark:text-[#E4E6EB]"}`}>
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-1/2 z-10 w-[90%] max-w-max flex justify-center">
+            <div className={`px-4 py-1.5 rounded-full text-[12px] sm:text-[13px] leading-none font-bold tabular-nums shadow-md border-[3px] border-[#FFF8EE] dark:border-[#2a2722] whitespace-nowrap overflow-hidden text-ellipsis ${isActive ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white" : "bg-gray-300 dark:bg-[#4E4F50] text-gray-700 dark:text-[#E4E6EB]"}`}>
               {isActive ? t("endsIn", { time: countdown }) : status === "CANCELLED" ? t("cancelled") : t("ended")}
             </div>
           </div>
         </div>
 
         {!isExpanded ? (
-          <div className="px-4 pt-6 pb-4">
+          <div className="px-4 pt-7 pb-4">
             <button 
               onClick={() => setIsExpanded(true)}
-              className="w-full py-2.5 rounded-lg font-bold text-[15px] text-amber-900 dark:text-amber-100 bg-amber-200/50 hover:bg-amber-300/50 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors"
+              className="w-full py-2.5 rounded-lg font-bold text-[14px] sm:text-[15px] text-amber-900 dark:text-amber-100 bg-amber-200/50 hover:bg-amber-300/50 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 transition-colors"
             >
-              Lihat Giveaway
+              {t("viewGiveaway") || "Lihat Giveaway"}
             </button>
           </div>
         ) : (
