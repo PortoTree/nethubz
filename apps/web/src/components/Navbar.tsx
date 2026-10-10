@@ -386,7 +386,7 @@ export default function Navbar({
                 e.stopPropagation();
                 setIsSearchNavOpen(!isSearchNavOpen);
               }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isSearchNavOpen || activeTab === "search" ? "bg-[#D8F0E2] dark:bg-[#203D2E] text-emerald-600 dark:text-emerald-400" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A] text-black dark:text-[#E4E6EB]"}`}
+              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isSearchNavOpen || activeTab === "search" ? "bg-[#D8F0E2] dark:bg-[#203D2E] text-emerald-600 dark:text-emerald-400" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A] text-black dark:text-[#E4E6EB]"}`}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -409,7 +409,7 @@ export default function Navbar({
                     <div className="relative group/visit">
                       <button
                         onClick={() => { setIsSearchNavOpen(false); handleTabNavigation("search", "search"); }}
-                        className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-[#3A3B3C] hover:bg-emerald-50 dark:hover:bg-[#203D2E] transition-colors shrink-0 border border-gray-200 dark:border-[#4E4F50]"
+                        className="w-11 h-11 rounded-full flex items-center justify-center bg-gray-100 dark:bg-[#3A3B3C] hover:bg-emerald-50 dark:hover:bg-[#203D2E] transition-colors shrink-0 border border-gray-200 dark:border-[#4E4F50]"
                       >
                         <img
                           src="/navigasi/mencari-online.png"
@@ -483,7 +483,7 @@ export default function Navbar({
             <button
               ref={notifBtnRef}
               onClick={() => setIsNotifPanelOpen(!isNotifPanelOpen)}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isNotifPanelOpen ? "bg-[#D8F0E2] dark:bg-[#203D2E]" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]"}`}
+              className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors overflow-hidden ${isNotifPanelOpen ? "bg-[#D8F0E2] dark:bg-[#203D2E]" : "bg-[#E4E6EB] dark:bg-[#3A3B3C] hover:bg-[#F3F2EF] dark:hover:bg-[#18191A]"}`}
             >
               <img
                 src="/pemberitahuan.svg"
@@ -645,7 +645,7 @@ export default function Navbar({
               className="relative cursor-pointer group"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <button className="w-10 h-10 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0">
+              <button className="w-11 h-11 rounded-full hover:brightness-95 transition-all flex items-center justify-center overflow-hidden border border-emerald-600 dark:border-emerald-400 shrink-0">
                 {isProfileLoading ? (
   <div className="w-full h-full bg-gray-300 dark:bg-gray-700 animate-pulse rounded-full" />
 ) : (
