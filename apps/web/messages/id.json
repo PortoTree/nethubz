@@ -110,7 +110,8 @@
     "groups": "Komunitas",
     "marketplace": "Pasar",
     "events": "Acara",
-    "viewProfile": "Lihat profil"
+    "viewProfile": "Lihat profil",
+    "shortcuts": "Pintasan Anda"
   },
   "chat": {
     "title": "Obrolan",
@@ -250,7 +251,9 @@
   "common": {
     "loading": "Memuat...",
     "language": "Bahasa",
-    "wait": "Tunggu sebentar"
+    "wait": "Tunggu sebentar",
+    "edit": "Edit",
+    "seeMore": "Lihat Selengkapnya"
   },
   "dropdown": {
     "viewAllProfiles": "Lihat semua profil",

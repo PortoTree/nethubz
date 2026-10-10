@@ -110,7 +110,8 @@
     "groups": "Community",
     "marketplace": "Marketplace",
     "events": "Events",
-    "viewProfile": "View profile"
+    "viewProfile": "View profile",
+    "shortcuts": "Your Shortcuts"
   },
   "chat": {
     "title": "Chatting",
@@ -250,7 +251,9 @@
   "common": {
     "loading": "Loading...",
     "language": "Language",
-    "wait": "Please wait"
+    "wait": "Please wait",
+    "edit": "Edit",
+    "seeMore": "See More"
   },
   "dropdown": {
     "viewAllProfiles": "See all profiles",
