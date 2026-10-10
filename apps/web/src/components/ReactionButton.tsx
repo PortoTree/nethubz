@@ -96,7 +96,7 @@ export function ReactionButton({ myReaction, onReact, count, className, containe
     }
     return (
       <>
-        <div className="w-5 h-5 relative mr-1.5 shrink-0 opacity-70">
+        <div className="w-5 h-5 relative mr-0 sm:mr-1.5 shrink-0 opacity-70">
           <Image src="/react.svg" alt="React" fill unoptimized priority className="object-contain dark:invert" />
         </div>
         {!hideText && <span className="text-[#65676B] dark:text-[#B0B3B8] font-semibold">{t("feed.react") || "Reaksi"}</span>}

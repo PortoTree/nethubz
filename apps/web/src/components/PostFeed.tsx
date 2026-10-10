@@ -141,9 +141,9 @@ const activeRequests = new Map<string, Promise<any>>();
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2 sm:gap-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4 flex flex-col gap-3">
+          <div key={i} className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-100 dark:border-[#3E4042] p-4 flex flex-col gap-3">
             {/* Header */}
             <div className="flex items-center gap-3">
               <div className="w-[40px] h-[40px] rounded-full bg-gray-200 dark:bg-white/10 animate-pulse shrink-0"></div>
@@ -163,12 +163,12 @@ const activeRequests = new Map<string, Promise<any>>();
               <div className="h-48 w-full bg-gray-200 dark:bg-white/10 rounded-xl mt-2 animate-pulse"></div>
             )}
             {/* Actions */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+            <div className="flex items-center justify-between mt-3 pt-0 sm:pt-3 border-t-0 sm:border-t border-gray-100 dark:border-white/5">
               <div className="flex gap-4">
-                <div className="h-4 w-12 bg-gray-200 dark:bg-white/10 rounded animate-pulse"></div>
-                <div className="h-4 w-12 bg-gray-200 dark:bg-white/10 rounded animate-pulse"></div>
+                <div className="h-8 w-20 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
+                <div className="h-8 w-24 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
               </div>
-              <div className="h-4 w-10 bg-gray-200 dark:bg-white/10 rounded animate-pulse"></div>
+              <div className="h-8 w-8 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
             </div>
           </div>
         ))}
