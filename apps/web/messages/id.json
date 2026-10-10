@@ -1078,5 +1078,13 @@
                             "successSave":  "Tersimpan di folder!",
                             "errorSave":  "Gagal memindahkan ke folder",
                             "savedToast":  "Tersimpan"
-                        }
+                        },
+    "profileMenu": {
+        "profile": "Profil",
+        "settings": "Pengaturan",
+        "helpCenter": "Pusat Bantuan",
+        "downloadPWA": "Download PWA",
+        "logout": "Keluar akun",
+        "addAccount": "Tambah akun"
+    }
 }

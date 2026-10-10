@@ -1072,5 +1072,13 @@
                             "successSave":  "Saved to folder!",
                             "errorSave":  "Failed to save to folder",
                             "savedToast":  "Saved"
-                        }
+                        },
+    "profileMenu": {
+        "profile": "Profile",
+        "settings": "Settings",
+        "helpCenter": "Help Center",
+        "downloadPWA": "Download PWA",
+        "logout": "Logout",
+        "addAccount": "Add account"
+    }
 }

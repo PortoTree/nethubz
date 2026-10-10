@@ -219,6 +219,9 @@ export default function Beranda() {
   console.log("[Beranda] locale:", locale);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
   
   const { currentUser, isProfileLoading } = useUser();
   const [isChatExpanded, setIsChatExpanded] = useState(false);
@@ -658,6 +661,13 @@ export default function Beranda() {
       ) {
         setIsPrivacyDropdownOpen(false);
       }
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+        setIsAccountSwitcherOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -725,9 +735,9 @@ export default function Beranda() {
           className={`flex w-full pt-6 ${activeTab === "chat" ? "hidden" : ""}`}
         >
           {/* Left Sidebar */}
-          <div className="hidden lg:block fixed left-0 top-[56px] w-[280px] xl:w-[320px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
-            <div className="space-y-4">
-              {/* Profile Card / Bookmarks Area */}
+          <div className="hidden lg:flex flex-col fixed left-0 top-[56px] w-[280px] xl:w-[320px] h-[calc(100vh-56px)] border-r border-gray-200 dark:border-[#3E4042]">
+            <div className="flex-1 overscroll-contain overflow-y-auto pt-6 px-4 pb-4 sidebar-scrollbar">
+              <div className="space-y-4">
               {activeTab === "search" ? (
                 <>
                   {/* CTA moved to center */}
@@ -1003,88 +1013,6 @@ export default function Beranda() {
                       )}
                     </div>
                   </div>
-                </div>
-              ) : activeTab !== "product" ? (
-                <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] overflow-hidden">
-                  {isProfileLoading ? (
-                    <>
-                      {/* Cover skeleton */}
-                      <div className="h-20 bg-gray-200 dark:bg-[#3A3B3C] animate-pulse w-full relative">
-                        {/* Avatar skeleton overlapping */}
-                        <div className="absolute -bottom-8 left-4 w-[72px] h-[72px] bg-white dark:bg-[#242526] rounded-full p-1 shadow-sm">
-                          <div className="w-full h-full rounded-full bg-gray-300 dark:bg-[#4E4F50] animate-pulse" />
-                        </div>
-                      </div>
-                      <div className="pt-10 pb-4 px-4">
-                        {/* Display name skeleton */}
-                        <div className="h-4 w-3/5 bg-gray-200 dark:bg-[#3A3B3C] rounded-full animate-pulse mb-3" />
-                        {/* Location skeleton */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-[#3A3B3C] animate-pulse shrink-0" />
-                          <div className="h-3 w-2/5 bg-gray-200 dark:bg-[#3A3B3C] rounded-full animate-pulse" />
-                        </div>
-                        {/* Button skeleton */}
-                        <div className="flex justify-center">
-                          <div className="h-7 w-[70%] bg-gray-200 dark:bg-[#3A3B3C] rounded-full animate-pulse" />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div 
-                        className="h-20 bg-gray-200 dark:bg-[#3A3B3C] w-full relative bg-cover bg-center"
-                        style={currentUser?.profile?.coverUrl ? { backgroundImage: `url('${getOptimizedUrl(currentUser.profile.coverUrl, "cover")}')` } : {}}
-                      >
-                        {/* Profile image overlapping */}
-                        <div className="absolute -bottom-8 left-4 w-[72px] h-[72px] bg-white dark:bg-[#242526] rounded-full p-1 shadow-sm">
-                          <div className="w-full h-full rounded-full flex items-center justify-center overflow-hidden">
-                            <img
-                              src={currentUser?.profile?.avatarUrl ? getOptimizedUrl(currentUser.profile.avatarUrl, "avatar") : "/default-avatar.svg"}
-                              alt="Profile"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="pt-10 pb-4 px-4 text-left">
-                        <h3 className="font-bold text-[17px] text-black dark:text-[#E4E6EB]">
-                          {currentUser.profile?.displayName || currentUser.username}
-                        </h3>
-
-                        <div className="mt-1.5 mb-4 flex flex-col gap-1.5">
-                          <div className="flex items-center gap-2 text-gray-500 dark:text-[#B0B3B8] text-[13px]">
-                            <svg
-                              className="w-[16px] h-[16px] shrink-0"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                            </svg>
-                            <span className="truncate">{currentUser?.profile?.locationName || (t("profile.noLocation") || "Belum ada lokasi")}</span>
-                          </div>
-                        </div>
-
-                        {/* View Profile Badge */}
-                        <div className="flex justify-center w-full mt-2">
-                          <button onClick={() => router.push(`/${locale}/p/${currentUser?.username || "user"}/${currentUser?.id || "1"}`)} className="w-[70%] py-1.5 px-3 bg-gray-100 dark:bg-[#3A3B3C] hover:bg-gray-200 dark:hover:bg-[#4E4F50] text-black dark:text-[#E4E6EB] font-semibold text-[13.5px] rounded-full transition-colors truncate">
-                            {t("sidebar.viewProfile")}
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
               ) : activeTab === "product" ? (
                 <div className="space-y-4">
@@ -1389,6 +1317,168 @@ export default function Beranda() {
                     </span>
                   </button>
                 </div>
+              )}
+            </div>
+            </div>
+            
+            {/* Fixed Profile Card at Bottom */}
+            <div 
+              ref={profileMenuRef}
+              className="relative p-4 border-t border-gray-200 dark:border-[#3E4042] bg-[#F3F2EF] dark:bg-[#18191A] shrink-0 w-full mt-auto flex items-center justify-between" 
+            >
+              {isProfileLoading || !currentUser ? (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-[#4E4F50] animate-pulse shrink-0" />
+                  <div className="h-4 w-3/5 bg-gray-300 dark:bg-[#4E4F50] rounded-full animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={currentUser?.profile?.avatarUrl ? getOptimizedUrl(currentUser.profile.avatarUrl, "avatar") : "/default-avatar.svg"}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover shrink-0 bg-white dark:bg-[#242526]"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-[14px] text-black dark:text-[#E4E6EB] truncate">
+                        {currentUser?.profile?.displayName || currentUser?.username}
+                      </span>
+                      <span className="text-[12px] text-gray-500 dark:text-[#B0B3B8] truncate">
+                        @{currentUser?.username}
+                      </span>
+                    </div>
+                  </div>
+                  <div 
+                    className="shrink-0 p-2 rounded-full hover:bg-gray-300 dark:hover:bg-[#4E4F50] transition-colors text-gray-500 dark:text-[#B0B3B8] cursor-pointer" 
+                    onClick={(e) => { e.stopPropagation(); setIsProfileMenuOpen(!isProfileMenuOpen); }}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                  </div>
+                  
+                  {/* Profile Menu Dropdown */}
+                  {isProfileMenuOpen && currentUser && (
+                    <div 
+                      className="absolute bottom-full mb-2 left-4 w-[calc(100%-2rem)] bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-[#3E4042] py-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 cursor-default"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Header (Profile Info Account Switcher) */}
+                      <div className="relative mx-3 mt-3 mb-2">
+                        <div 
+                          className="flex items-center justify-between p-2 rounded-xl bg-gray-100 dark:bg-[#3A3B3C] shadow-sm cursor-pointer hover:bg-gray-200 dark:hover:bg-[#4E4F50] transition-colors"
+                          onClick={(e) => { e.stopPropagation(); setIsAccountSwitcherOpen(!isAccountSwitcherOpen); }}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={currentUser.profile?.avatarUrl ? getOptimizedUrl(currentUser.profile.avatarUrl, "avatar") : "/default-avatar.svg"}
+                              alt="Profile"
+                              className="w-10 h-10 rounded-full object-cover shrink-0 bg-white dark:bg-[#242526]"
+                            />
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-[14px] text-black dark:text-[#E4E6EB] truncate leading-tight">
+                                {currentUser.profile?.displayName || currentUser.username}
+                              </span>
+                              <span className="text-[12px] text-gray-500 dark:text-[#B0B3B8] truncate leading-tight mt-0.5">
+                                @{currentUser.username}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="shrink-0 pl-2 pr-1 text-gray-500 dark:text-[#B0B3B8]">
+                            <svg className={`w-5 h-5 transition-transform duration-200 ${isAccountSwitcherOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </div>
+                        </div>
+
+                        {/* Nested Dropdown for Account List */}
+                        {isAccountSwitcherOpen && (
+                          <div 
+                            className="absolute top-[calc(100%+4px)] left-0 w-full bg-white dark:bg-[#242526] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-[#3E4042] py-2 z-50 animate-in fade-in zoom-in-95 duration-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="max-h-[200px] overflow-y-auto">
+                              <div className="flex items-center justify-between px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 cursor-default">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <img
+                                    src={currentUser.profile?.avatarUrl ? getOptimizedUrl(currentUser.profile.avatarUrl, "avatar") : "/default-avatar.svg"}
+                                    alt="Profile"
+                                    className="w-8 h-8 rounded-full object-cover shrink-0 bg-white dark:bg-[#242526]"
+                                  />
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="font-bold text-[13px] text-emerald-700 dark:text-emerald-400 truncate leading-tight">
+                                      {currentUser.profile?.displayName || currentUser.username}
+                                    </span>
+                                    <span className="text-[11px] text-emerald-600 dark:text-emerald-500/80 truncate leading-tight mt-0.5">
+                                      @{currentUser.username}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="shrink-0 text-emerald-600 dark:text-emerald-400">
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
+                            <button 
+                              className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors"
+                              onClick={() => {
+                                setIsAccountSwitcherOpen(false);
+                                setIsProfileMenuOpen(false);
+                                // router.push(`/${locale}/login`);
+                              }}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#3A3B3C] flex items-center justify-center shrink-0">
+                                <svg className="w-5 h-5 text-gray-700 dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                              </div>
+                              <span className="font-medium text-[13px] text-black dark:text-[#E4E6EB]">{t("profileMenu.addAccount")}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
+
+                      {/* Profile Link */}
+                      <button 
+                        onClick={() => { setIsProfileMenuOpen(false); router.push(`/${locale}/p/${currentUser.username}/${currentUser.id}`); }}
+                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors"
+                      >
+                        <svg className="w-5 h-5 text-black dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.profile")}</span>
+                      </button>
+
+                      {/* Settings */}
+                      <button className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors">
+                        <svg className="w-5 h-5 text-black dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.settings")}</span>
+                      </button>
+
+                      {/* Help Center */}
+                      <button className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors">
+                        <svg className="w-5 h-5 text-black dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.helpCenter")}</span>
+                      </button>
+
+                      {/* Download PWA */}
+                      <button className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors">
+                        <svg className="w-5 h-5 text-black dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.downloadPWA")}</span>
+                      </button>
+
+                      <div className="h-[1px] w-full bg-gray-200 dark:bg-[#3E4042] my-1"></div>
+
+                      {/* Logout */}
+                      <button 
+                        onClick={() => {
+                          localStorage.removeItem("token");
+                          document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                          window.location.href = `/login`;
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#3A3B3C] text-left transition-colors"
+                      >
+                        <svg className="w-5 h-5 text-black dark:text-[#E4E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <span className="font-medium text-[14px] text-black dark:text-[#E4E6EB]">{t("profileMenu.logout")}</span>
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
