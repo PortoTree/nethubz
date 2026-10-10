@@ -77,13 +77,13 @@ function PlatformDropdown({ value, onChange }: { value: string; onChange: (v: st
       <button 
         type="button" 
         onClick={() => setOpen(!open)}
-        className="w-[140px] shrink-0 h-[42px] bg-[#F0F2F5] dark:bg-[#3A3B3C] border border-transparent focus:border-[#1877F2] rounded-lg px-3 flex items-center justify-between text-[14px] text-black dark:text-[#E4E6EB] outline-none transition-colors"
+        className="w-auto sm:w-[140px] shrink-0 h-[42px] bg-[#F0F2F5] dark:bg-[#3A3B3C] border border-transparent focus:border-[#1877F2] rounded-lg px-2 sm:px-3 flex items-center justify-between gap-1 sm:gap-0 text-[14px] text-black dark:text-[#E4E6EB] outline-none transition-colors"
       >
         <div className="flex items-center gap-2">
-          {PLATFORM_ICON[value] && <img src={PLATFORM_ICON[value]} alt="" className="w-5 h-5 object-contain" />}
-          <span className="font-medium">{PLATFORM_LABEL[value] || value}</span>
+          {PLATFORM_ICON[value] && <img src={PLATFORM_ICON[value]} alt="" className="w-9 h-9 sm:w-5 sm:h-5 object-contain" />}
+          <span className="hidden sm:block font-medium">{PLATFORM_LABEL[value] || value}</span>
         </div>
-        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        <svg className="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <div className="absolute top-[calc(100%+4px)] left-0 w-[180px] bg-white dark:bg-[#3A3B3C] border border-gray-200 dark:border-[#4E4F50] rounded-lg shadow-xl z-20 py-1 overflow-hidden">
@@ -417,7 +417,7 @@ export default function GiveawayFormModal({ isOpen, onClose, onSave, currentUser
             </div>
           </section>
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             {/* End date */}
             <section className="flex-1">
               <h3 className={sectionTitle}>{t("endSection")}</h3>

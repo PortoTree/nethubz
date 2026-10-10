@@ -467,18 +467,18 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 dark:bg-black/70 px-4">
-      <div className={`w-full max-w-[500px] bg-white dark:bg-[#242526] rounded-xl shadow-xl flex flex-col relative border border-gray-200 dark:border-[#3E4042] ${isPosting ? 'pointer-events-none select-none' : ''}`}>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center sm:bg-black/60 sm:dark:bg-black/70 sm:px-4">
+      <div className={`w-full h-full sm:h-auto sm:max-w-[500px] bg-white dark:bg-[#242526] sm:rounded-xl sm:shadow-xl flex flex-col relative sm:border border-gray-200 dark:border-[#3E4042] ${isPosting ? 'pointer-events-none select-none' : ''}`}>
         {/* Header */}
-        <div className="flex items-center justify-center p-4 border-b border-gray-200 dark:border-[#3E4042] relative">
-          <h2 className="text-[20px] font-bold text-black dark:text-[#E4E6EB]">{initialPost ? "Edit post" : "Create post"}</h2>
+        <div className="flex items-center max-sm:justify-start justify-center p-4 border-b border-gray-200 dark:border-[#3E4042] relative">
+          <h2 className="text-[20px] font-bold text-black dark:text-[#E4E6EB]">{initialPost ? t("feed.editPostModalTitle") : t("feed.createPostModalTitle")}</h2>
           <button onClick={isPosting ? undefined : onClose} disabled={isPosting} className={`absolute right-4 w-9 h-9 bg-gray-200 dark:bg-[#3A3B3C] rounded-full flex items-center justify-center hover:bg-gray-300 dark:hover:bg-[#4E4F50] transition-colors text-gray-600 dark:text-[#B0B3B8] ${isPosting ? 'opacity-40 cursor-not-allowed' : ''}`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-4 flex flex-col">
+        <div className="p-4 flex flex-col flex-1 overflow-y-auto">
           {/* User Info */}
           <div className="flex items-center gap-3 mb-4">
             <img src={currentUser?.profile?.avatarUrl || "/default-avatar.svg"} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-[#3E4042]" />
@@ -563,18 +563,18 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
                     ) : (
                       <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>
                     )}
-                    {postPrivacy === "PUBLIC" ? "Public" : postPrivacy === "FRIENDS" ? "Friends" : "Private"}
+                    {postPrivacy === "PUBLIC" ? t("feed.privacyPublic") : postPrivacy === "FRIENDS" ? t("feed.privacyFriends") : t("feed.privacyPrivate")}
                     <svg className="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                   </button>
                   {isPrivacyDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-40 bg-white dark:bg-[#242526] rounded-lg shadow-xl border border-gray-200 dark:border-[#3E4042] py-2 z-50">
+                    <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-1 w-40 bg-white dark:bg-[#242526] rounded-lg shadow-xl border border-gray-200 dark:border-[#3E4042] py-2 z-50">
                       <button onClick={() => { setPostPrivacy("PUBLIC"); setIsPrivacyDropdownOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left">
                         <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd" /></svg>
-                        <span className="text-[14px] font-semibold text-black dark:text-[#E4E6EB]">Public</span>
+                        <span className="text-[14px] font-semibold text-black dark:text-[#E4E6EB]">{t("feed.privacyPublic")}</span>
                       </button>
                       <button onClick={() => { setPostPrivacy("FRIENDS"); setIsPrivacyDropdownOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-200 dark:hover:bg-[#3A3B3C] text-left">
                         <svg className="w-5 h-5 text-gray-500 dark:text-[#B0B3B8]" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" /></svg>
-                        <span className="text-[14px] font-semibold text-black dark:text-[#E4E6EB]">Friends</span>
+                        <span className="text-[14px] font-semibold text-black dark:text-[#E4E6EB]">{t("feed.privacyFriends")}</span>
                       </button>
                     </div>
                   )}
@@ -798,35 +798,7 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
             )}
           </div>
 
-          {/* Extras */}
-          <div className="flex items-center justify-end mb-4 relative" ref={emojiPickerRef}>
-            <button 
-              onClick={() => setIsEmojiPickerOpen(prev => !prev)}
-              className="text-gray-400 hover:text-gray-500 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </button>
-            {isEmojiPickerOpen && (
-              <div className="absolute bottom-full right-0 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden picker-container">
-                <style>{`
-                  .picker-container em-emoji-picker {
-                    height: 280px !important;
-                    min-height: 280px !important;
-                    max-height: 280px !important;
-                  }
-                `}</style>
-                <Picker 
-                  data={data} 
-                  theme="auto" 
-                  previewPosition="none"
-                  skinTonePosition="search"
-                  onEmojiSelect={(emoji: any) => {
-                    setPostContent((prev: string) => prev + emoji.native);
-                  }}
-                />
-              </div>
-            )}
-          </div>
+
 
           
             {attachedProject && (
@@ -848,7 +820,39 @@ export default function CreatePostModal({ isOpen, onClose, currentUser, onSucces
                 </div>
               </div>
             )}
+        </div>
 
+        {/* Footer */}
+        <div className="px-4 pb-4 pt-2 mt-auto">
+          {/* Extras */}
+          <div className="flex items-center justify-end mb-4 relative" ref={emojiPickerRef}>
+            <button 
+              onClick={() => setIsEmojiPickerOpen(prev => !prev)}
+              className="text-gray-400 hover:text-gray-500 dark:text-[#B0B3B8] dark:hover:text-[#E4E6EB] transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
+            {isEmojiPickerOpen && (
+              <div className="absolute bottom-full right-0 max-sm:-right-2 mb-2 z-50 shadow-2xl rounded-2xl overflow-hidden picker-container max-sm:scale-[0.85] max-sm:origin-bottom-right">
+                <style>{`
+                  .picker-container em-emoji-picker {
+                    height: 280px !important;
+                    min-height: 280px !important;
+                    max-height: 280px !important;
+                  }
+                `}</style>
+                <Picker 
+                  data={data} 
+                  theme="auto" 
+                  previewPosition="none"
+                  skinTonePosition="search"
+                  onEmojiSelect={(emoji: any) => {
+                    setPostContent((prev: string) => prev + emoji.native);
+                  }}
+                />
+              </div>
+            )}
+          </div>
           {/* Add to your post */}
           <div className="relative flex items-center justify-between border border-gray-300 dark:border-[#4E4F50] rounded-xl p-3 mb-4 shadow-sm">
             <span className="font-semibold text-[15px] text-black dark:text-[#E4E6EB]">{t("feed.addToYourPost")}</span>

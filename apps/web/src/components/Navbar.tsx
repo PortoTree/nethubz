@@ -384,7 +384,7 @@ export default function Navbar({
 
   return (
     <>
-      <nav className="bg-white dark:bg-[#242526] shadow-sm fixed top-0 w-full z-[10100] h-[56px] px-4 flex items-center justify-between border-b border-gray-200 dark:border-[#3E4042]">
+      <nav className="bg-white/30 dark:bg-[#242526]/30 backdrop-blur-md sm:bg-white sm:dark:bg-[#242526] sm:backdrop-blur-none shadow-sm fixed top-0 w-full z-[10100] h-[56px] px-4 flex items-center justify-between border-b border-gray-200 dark:border-[#3E4042]">
         {/* Left: Logo & Search */}
         <div className="flex items-center gap-2">
           {/* Mobile Logo (semua tema) */}
@@ -1336,3 +1336,4 @@ export default function Navbar({
     </>
   );
 }
+

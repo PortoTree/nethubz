@@ -1860,7 +1860,7 @@ function ProfilePageContent({
                             onClick={() => { setStartWithGalleryModal(false); setIsCreatePostModalOpen(true); }}
                           />
                         </div>
-                        <div className="flex justify-between items-center pt-3 px-1">
+                        <div className="flex justify-between items-center sm:gap-3 pt-3 px-1">
                           <button onClick={() => { setStartWithGalleryModal(false); setIsCreatePostModalOpen(true); }} className="flex items-center gap-2 text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] p-2 rounded-lg flex-1 justify-center transition-colors">
                             <div className="w-[24px] h-[24px] bg-current text-[#8B4513]" style={{ WebkitMask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat", mask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat" }} />
                             {tFeed("product") || "Product"}

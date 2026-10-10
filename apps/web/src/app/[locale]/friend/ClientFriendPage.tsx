@@ -1037,7 +1037,7 @@ export default function ClientFriendPage() {
             {activeTab === "friend" && (
               <div className="space-y-4 max-w-[590px] w-full px-4">
                 {/* Create Post Input */}
-                <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4 w-full">
+                <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4 w-full mb-2 sm:mb-4">
                   <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-[#3E4042]">
                     <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
                       <img
@@ -1054,7 +1054,7 @@ export default function ClientFriendPage() {
                     onClick={() => { setStartWithMediaModal(false); setStartWithTagModal(false); setIsCreatePostModalOpen(true); setPostPrivacy(activeTab === "friend" ? "friends" : "public"); }}
                     />
                   </div>
-                  <div className="flex justify-between items-center pt-3 px-1">
+                  <div className="flex justify-between items-center sm:gap-3 pt-3 px-1">
                     <button className="flex items-center gap-2 text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] p-2 rounded-lg flex-1 justify-center transition-colors">
                       <div className="w-[24px] h-[24px] bg-current text-[#8B4513]" style={{ WebkitMask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat", mask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat" }} />
                       {t("feed.product") || "Product"}
@@ -1529,7 +1529,7 @@ export default function ClientFriendPage() {
               className={`space-y-4 max-w-[590px] w-full px-4 ${activeTab !== "home" ? "hidden" : ""}`}
             >
               {/* Create Post Input */}
-              <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4">
+              <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] p-4 mb-2 sm:mb-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-[#3E4042]">
                   <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
                     <img
@@ -1546,7 +1546,7 @@ export default function ClientFriendPage() {
                     readOnly
                   />
                 </div>
-                <div className="flex justify-between items-center pt-3 px-1">
+                <div className="flex justify-between items-center sm:gap-3 pt-3 px-1">
                   <button className="flex items-center gap-2 text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] p-2 rounded-lg flex-1 justify-center transition-colors">
                     <div className="w-[24px] h-[24px] bg-current text-[#8B4513]" style={{ WebkitMask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat", mask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat" }} />
                     {t("feed.product") || "Product"}

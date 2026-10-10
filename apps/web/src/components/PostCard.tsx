@@ -405,7 +405,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
                   <svg className={`w-6 h-6 ${isSaved ? 'text-orange-500' : 'text-gray-600 dark:text-[#B0B3B8]'}`} fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isSaved ? 0 : 2} d={isSaved ? "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" : "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"} />
                   </svg>
-                  {isSaved ? "Hapus dari Tersimpan" : (t("postMenu.savePost") || "Simpan Postingan")}
+                  {isSaved ? (t("postMenu.unsavePost") || "Hapus dari Tersimpan") : (t("postMenu.savePost") || "Simpan Postingan")}
                 </button>
                 <button
                   onClick={() => {
@@ -693,8 +693,8 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       )}
 
       {/* Reaction Summary & Counts */}
-      <div className="px-4 pb-2 flex items-center justify-end sm:justify-between text-[#65676B] dark:text-[#B0B3B8] text-[15px]">
-        <div className="hidden sm:flex items-center gap-1.5 cursor-pointer hover:underline">
+      <div className="px-4 pb-2 flex items-center justify-between text-[#65676B] dark:text-[#B0B3B8] text-[15px]">
+        <div className="flex items-center gap-1.5 cursor-pointer hover:underline">
           <div className="flex items-center -space-x-1 z-0">
             {topReactions.length > 0 ? (
               (showAllReactions ? topReactions : topReactions.slice(0, 3)).map((r, i) => (
@@ -729,7 +729,7 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
                   searchParams.set('postId', post.id);
                   router.push(`${window.location.pathname}?${searchParams.toString()}`, { scroll: false });
                 } }}>
-              {post._count.comments} Komentar
+              {post._count.comments} {t("feed.comment") || "Komentar"}
             </span>
           )}
         </div>
@@ -738,38 +738,9 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
       {/* Footer Actions */}
       <div className="px-4 pb-4 mt-2">
         <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-1 pt-0 sm:pt-1 border-t-0 sm:border-t border-gray-100 dark:border-[#3E4042]">
-          
-          {/* Mobile Reaction Summary */}
-<div className="flex sm:hidden items-center gap-1.5 cursor-pointer hover:underline">
-          <div className="flex items-center -space-x-1 z-0">
-            {topReactions.length > 0 ? (
-              (showAllReactions ? topReactions : topReactions.slice(0, 3)).map((r, i) => (
-                <ReactionSummaryPopup key={r} targetId={post.id} targetType="POST" likeCount={likeCount} topReactions={topReactions} filterReactionType={r}>
-                  <div className="w-[18px] h-[18px] rounded-full bg-white dark:bg-[#242526] relative z-10 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
-                     <Image src={REACTION_CONFIG[r].src} alt={r} fill className="object-contain" />
-                  </div>
-                </ReactionSummaryPopup>
-              ))
-            ) : likeCount > 0 ? (
-              <ReactionSummaryPopup targetId={post.id} targetType="POST" likeCount={likeCount} topReactions={topReactions}>
-                <div className="w-[18px] h-[18px] rounded-full bg-blue-500 flex items-center justify-center shadow-sm hover:z-20 hover:opacity-80 transition-opacity">
-                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                  </svg>
-                </div>
-              </ReactionSummaryPopup>
-            ) : null}
-          </div>
-          {likeCount > 0 && <span onClick={() => { if (!disableClicks) {
-                  (window as any).__NethubzPrefetchedPost = post;
-                  const searchParams = new URLSearchParams(window.location.search);
-                  searchParams.set('postId', post.id);
-                  router.push(`${window.location.pathname}?${searchParams.toString()}`, { scroll: false });
-                } }}>{likeCount}</span>}
-        </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end flex-1 sm:flex-none gap-3 sm:gap-1">
+          <div className="flex items-center justify-end sm:justify-between flex-1 sm:flex-auto sm:w-full gap-3 sm:gap-2">
             <ReactionButton myReaction={isLiked} onReact={handleLike} count={0} containerClassName="flex-none sm:flex-1" />
           <button 
             onClick={() => { if (!disableClicks) {
@@ -973,4 +944,5 @@ export default function PostCard({ post, currentUser, onProfileClick, isHighligh
     </>
   );
 }
+
 

@@ -426,6 +426,21 @@ export default function Beranda() {
         <style
           dangerouslySetInnerHTML={{
             __html: `
+        /* Hide scrollbar on mobile */
+        @media (max-width: 640px) {
+          ::-webkit-scrollbar {
+            display: none !important;
+          }
+          * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+          }
+          body, html {
+            overflow-x: hidden !important;
+            width: 100%;
+          }
+        }
+
         /* Firefox */
         .sidebar-scrollbar {
           scrollbar-width: thin;
@@ -437,6 +452,7 @@ export default function Beranda() {
         .dark .sidebar-scrollbar:hover {
           scrollbar-color: #4E4F50 transparent;
         }
+
 
         /* WebKit / Chrome / Edge */
         .sidebar-scrollbar::-webkit-scrollbar {
@@ -796,7 +812,7 @@ export default function Beranda() {
             {activeTab === "friend" && (
               <div className="space-y-0 sm:space-y-4 max-w-[590px] w-full px-0 sm:px-4">
                 {/* Create Post Input */}
-                <div className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100 sm:dark:border-[#3E4042] px-4 pt-4 pb-0 sm:p-4 mb-2 sm:mb-0 w-full">
+                <div className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100 sm:dark:border-[#3E4042] px-4 pt-4 pb-0 sm:p-4 mb-2 sm:mb-4 w-full">
                   <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100">
                     <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
                       <img
@@ -813,7 +829,7 @@ export default function Beranda() {
                       onClick={() => { setStartWithMediaModal(false); setStartWithTagModal(false); setIsCreatePostModalOpen(true); setPostPrivacy(activeTab === "friend" ? "friends" : "public"); }}
                     />
                   </div>
-                  <div className="flex justify-between items-center pt-3 px-1">
+                  <div className="flex justify-between items-center sm:gap-3 pt-3 px-1">
                     <button className="flex items-center gap-2 text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] p-2 rounded-lg flex-1 justify-center transition-colors">
                       <div className="w-[24px] h-[24px] bg-current text-[#8B4513]" style={{ WebkitMask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat", mask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat" }} />
                       {t("feed.product") || "Product"}
@@ -1288,7 +1304,7 @@ export default function Beranda() {
               className={`space-y-0 sm:space-y-4 max-w-[590px] w-full px-0 sm:px-4 ${activeTab !== "home" ? "hidden" : ""}`}
             >
               {/* Create Post Input */}
-              <div className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100 sm:dark:border-[#3E4042] px-4 pt-4 pb-0 sm:p-4 mb-2 sm:mb-0">
+              <div className="bg-transparent sm:bg-white sm:dark:bg-[#242526] rounded-none sm:rounded-xl shadow-none sm:shadow-sm border-0 sm:border border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100 sm:dark:border-[#3E4042] px-4 pt-4 pb-0 sm:p-4 mb-2 sm:mb-4">
                 <div className="flex items-center gap-3 pb-3 sm:pb-4 border-b border-gray-200 dark:border-[#3E4042] sm:border-gray-100">
                   <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
                     <img
@@ -1305,7 +1321,7 @@ export default function Beranda() {
                     readOnly
                   />
                 </div>
-                <div className="flex justify-between items-center pt-1 pb-1 sm:pt-3 sm:pb-0 px-1">
+                <div className="flex justify-between items-center sm:gap-3 pt-1 pb-1 sm:pt-3 sm:pb-0 px-1">
                   <button className="flex items-center gap-2 text-[15px] font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] p-2 rounded-lg flex-1 justify-center transition-colors">
                     <div className="w-[24px] h-[24px] bg-current text-[#8B4513]" style={{ WebkitMask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat", mask: "url(/navigasi/produk-aktif.svg) center/contain no-repeat" }} />
                     {t("feed.product") || "Product"}
