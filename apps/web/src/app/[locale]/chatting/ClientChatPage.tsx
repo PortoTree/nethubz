@@ -3751,7 +3751,7 @@ export default function ClientChatPage() {
                       onClick={() => setIsChatInfoOpen(true)}
                     >
                       <div className="relative w-10 h-10 shrink-0">
-                      <img src="/navigasi/chat-aktif.svg" alt="Chat" className="w-8 h-8 object-contain dark:invert" />
+                        <img src="/default-avatar.svg" alt="Avatar" className="w-full h-full rounded-full object-cover" />
                         {dummyChats[activeChatIdx]?.isOnline && (
                           <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#31A24C] rounded-full border-2 border-white dark:border-[#242526]"></div>
                         )}
