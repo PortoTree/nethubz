@@ -262,7 +262,7 @@ export default function ClientFriendPage() {
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const activeTab = "friend";
+  const activeTab: string = "friend";
   const setActiveTab = (tab: string) => {};
 
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(true);
