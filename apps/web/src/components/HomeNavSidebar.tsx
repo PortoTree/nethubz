@@ -38,6 +38,25 @@ export default function HomeNavSidebar({ activeTab, setActiveTab }: HomeNavSideb
           </span>
         </button>
 
+        {/* Jelajahi / Explore */}
+        <button 
+          onClick={() => router.push(`/${locale}/explore`)}
+          className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors"
+        >
+          <div className="w-6 h-6 flex items-center justify-center shrink-0">
+            <div
+              className={`w-full h-full bg-current ${activeTab === "explore" ? "text-emerald-500" : "text-gray-600 dark:text-[#B0B3B8]"}`}
+              style={{
+                WebkitMask: `url(/navigasi/explore${activeTab === "explore" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+                mask: `url(/navigasi/explore${activeTab === "explore" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+              }}
+            />
+          </div>
+          <span className="font-bold text-[15px] text-black dark:text-[#E4E6EB] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {t("tabs.explore")}
+          </span>
+        </button>
+
         {/* Beranda */}
         <button
           onClick={() => {

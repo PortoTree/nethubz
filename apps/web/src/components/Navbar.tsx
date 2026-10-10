@@ -347,48 +347,33 @@ export default function Navbar({
             </span>
           </div>
           <div
-            onClick={() => handleTabNavigation("chat", "obrolan")}
-            className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "chat" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
+            onClick={() => handleTabNavigation("project", "project")}
+            className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "project" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
           >
             <div
               className="w-7 h-7 bg-current"
               style={{
-                WebkitMask: `url(${activeTab === "chat" ? "/navigasi/chat-aktif.svg" : "/navigasi/chat.svg"}) center/contain no-repeat`,
-                mask: `url(${activeTab === "chat" ? "/navigasi/chat-aktif.svg" : "/navigasi/chat.svg"}) center/contain no-repeat`,
+                WebkitMask: `url(${activeTab === "project" ? "/navigasi/project.svg" : "/navigasi/project-outline.svg"}) center/contain no-repeat`,
+                mask: `url(${activeTab === "project" ? "/navigasi/project.svg" : "/navigasi/project-outline.svg"}) center/contain no-repeat`,
               }}
             />
             <span className="text-[11px] font-semibold mt-0.5">
-              {t("nav.chat")}
+              {t("tabs.project")}
             </span>
           </div>
           <div
-            onClick={() => handleTabNavigation("friend", "friend")}
-            className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "friend" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
+            onClick={() => handleTabNavigation("explore", "explore")}
+            className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "explore" || activeTab === "search" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
           >
             <div
               className="w-7 h-7 bg-current"
               style={{
-                WebkitMask: `url(${activeTab === "friend" ? "/navigasi/teman-aktif.svg" : "/navigasi/teman.svg"}) center/contain no-repeat`,
-                mask: `url(${activeTab === "friend" ? "/navigasi/teman-aktif.svg" : "/navigasi/teman.svg"}) center/contain no-repeat`,
+                WebkitMask: `url(${activeTab === "explore" || activeTab === "search" ? "/navigasi/explore-aktif.svg" : "/navigasi/explore.svg"}) center/contain no-repeat`,
+                mask: `url(${activeTab === "explore" || activeTab === "search" ? "/navigasi/explore-aktif.svg" : "/navigasi/explore.svg"}) center/contain no-repeat`,
               }}
             />
             <span className="text-[11px] font-semibold mt-0.5">
-              {t("tabs.friends")}
-            </span>
-          </div>
-          <div
-            onClick={() => handleTabNavigation("community", "community")}
-            className={`flex flex-col items-center justify-center w-[110px] h-full cursor-pointer transition-colors ${activeTab === "community" ? "border-b-[3px] border-emerald-500 text-emerald-500 dark:text-emerald-400 dark:border-emerald-400 my-0 h-full rounded-none" : "border-b-[3px] border-transparent text-gray-500 dark:text-[#B0B3B8] hover:bg-gray-200 dark:hover:bg-[#3A3B3C] rounded-lg my-1"}`}
-          >
-            <div
-              className="w-7 h-7 bg-current"
-              style={{
-                WebkitMask: `url(${activeTab === "community" ? "/navigasi/komunitas-aktif.svg" : "/navigasi/komunitas.svg"}) center/contain no-repeat`,
-                mask: `url(${activeTab === "community" ? "/navigasi/komunitas-aktif.svg" : "/navigasi/komunitas.svg"}) center/contain no-repeat`,
-              }}
-            />
-            <span className="text-[11px] font-semibold mt-0.5">
-              {t("tabs.groups")}
+              {t("tabs.explore")}
             </span>
           </div>
         </div>

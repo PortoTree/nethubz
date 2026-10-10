@@ -1,11 +1,18 @@
-60: return () => document.removeEventListener("mousedown", handleGlobalClick);
-125: if (!user || !formName.trim()) return;
-139: if (!renameFolderState?.name.trim() || !user?.id) return;
-158: if (!user?.id || !deleteFolderId) return;
-192: return () => clearTimeout(delayDebounceFn);
-196: if (!user?.id || !allowUserFolder) return;
-217: if (!user?.id || !allowUserFolder) return;
-236: if (!user?.id || !allowUserFolder) return;
-254: return (
-395: return viewMode === "grid" ? (
-894: if (user?.id !== allowUserFolder.userId || isUpdatingMember) return;
+31: WebkitMask: `url(/navigasi/mencari${activeTab === "search" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+32: mask: `url(/navigasi/mencari${activeTab === "search" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+54: WebkitMask: `url(/navigasi/home${activeTab === "home" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+55: mask: `url(/navigasi/home${activeTab === "home" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+75: WebkitMask: `url(/navigasi/chat${activeTab === "chat" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+76: mask: `url(/navigasi/chat${activeTab === "chat" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+97: `url(/navigasi/teman${activeTab === "friend" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+98: mask: `url(/navigasi/teman${activeTab === "friend" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+119: `url(/navigasi/komunitas${activeTab === "community" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+120: mask: `url(/navigasi/komunitas${activeTab === "community" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+135: WebkitMask: `url(/navigasi/yourpage${activeTab === "webpage" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+136: mask: `url(/navigasi/yourpage${activeTab === "webpage" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+156: WebkitMask: `url(/navigasi/produk${activeTab === "product" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+157: mask: `url(/navigasi/produk${activeTab === "product" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+175: WebkitMask: `url(/navigasi/project${activeTab === "project" ? "" : "-outline"}.svg) center/contain no-repeat`,
+176: mask: `url(/navigasi/project${activeTab === "project" ? "" : "-outline"}.svg) center/contain no-repeat`,
+194: WebkitMask: `url(/navigasi/saved${activeTab === "saved" ? "-aktif" : ""}.svg) center/contain no-repeat`,
+195: mask: `url(/navigasi/saved${activeTab === "saved" ? "-aktif" : ""}.svg) center/contain no-repeat`,

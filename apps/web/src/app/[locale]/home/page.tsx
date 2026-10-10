@@ -262,9 +262,7 @@ export default function Beranda() {
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<
-    "home" | "search" | "friend" | "community" | "community" | "chat" | "product"
-  >(() => {
+  const [activeTab, setActiveTab] = useState<string>(() => {
     if (pathname.includes("/obrolan")) return "chat";
     if (pathname.includes("/search")) return "search";
     if (pathname.includes("/friend")) return "friend";
@@ -273,6 +271,14 @@ export default function Beranda() {
     if (pathname.includes("/communitys")) return "community";
     return "home";
   });
+  useEffect(() => {
+    if (pathname.includes('/obrolan')) setActiveTab('chat');
+    else if (pathname.includes('/community')) setActiveTab('community');
+    else if (pathname.includes('/friend')) setActiveTab('friend');
+    else if (pathname.includes('/search')) setActiveTab('search');
+    else if (pathname.includes('/product')) setActiveTab('product');
+    else if (pathname.includes('/home')) setActiveTab('home');
+  }, [pathname]);
 
   const [isChatInfoOpen, setIsChatInfoOpen] = useState(true);
   const [isChatMoreMenuOpen, setIsChatMoreMenuOpen] = useState(false);

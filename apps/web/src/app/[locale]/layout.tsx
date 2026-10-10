@@ -20,6 +20,7 @@ import SplashScreen from "@/components/SplashScreen";
 import { UserProvider } from "@/contexts/UserContext";
 import GlobalPostModal from "@/components/GlobalPostModal";
 import ClientNavbar from "@/components/ClientNavbar";
+import BottomNav from "@/components/BottomNav";
 
 export default async function LocaleLayout({
   children,
@@ -43,8 +44,11 @@ export default async function LocaleLayout({
       <SplashScreen />
       <UserProvider>
         <ClientNavbar />
-        {children}
-        <GlobalPostModal />
+        <div className="pb-14 md:pb-0">
+          {children}
+          <GlobalPostModal />
+        </div>
+        <BottomNav />
       </UserProvider>
     </NextIntlClientProvider>
   );
