@@ -34,7 +34,7 @@ export default function ClientProductPage() {
       <HomeNavSidebar activeTab="product" />
       <div className="flex w-full pt-6">
         {/* Left Sidebar for Product */}
-        <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[280px] xl:w-[320px] h-[calc(100vh-56px)]">
+        <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[324px] h-[calc(100vh-56px)]">
           <div className="flex-1 overscroll-contain overflow-y-auto pt-6 px-4 pb-4 sidebar-scrollbar">
             <div className="space-y-4">
               {/* Store Profile Card */}

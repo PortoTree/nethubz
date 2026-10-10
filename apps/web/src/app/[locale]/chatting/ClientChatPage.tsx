@@ -710,7 +710,7 @@ export default function ClientChatPage() {
           className={`flex w-full pt-6 ${activeTab === "chat" ? "hidden" : ""}`}
         >
           {/* Left Sidebar */}
-          <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[240px] xl:w-[280px] h-[calc(100vh-56px)] border-r border-gray-300 dark:border-gray-600">
+          <div className="hidden lg:flex flex-col fixed left-[72px] top-[56px] w-[324px] h-[calc(100vh-56px)] border-r border-gray-300 dark:border-gray-600">
             <div className="flex-1 overscroll-contain overflow-y-auto pt-6 px-4 pb-4 sidebar-scrollbar">
               <div className="space-y-4">
               {activeTab === "friend" ? (
@@ -1030,7 +1030,7 @@ export default function ClientChatPage() {
           </div>
 
           {/* Center Main Feed */}
-          <div className="flex-1 flex justify-center lg:ml-[340px] xl:ml-[380px] lg:mr-[340px] xl:mr-[380px]">
+          <div className="flex-1 flex justify-center lg:ml-[424px] lg:mr-[340px] xl:mr-[380px]">
 
 
 
@@ -1685,7 +1685,7 @@ export default function ClientChatPage() {
         <>
           {/* Right Sidebar: Home Tab */}
           {activeTab === "home" && (
-            <div className="hidden lg:block fixed right-0 top-[56px] w-[280px] xl:w-[320px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
+            <div className="hidden lg:block fixed right-0 top-[56px] w-[324px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
               <div className="w-full bg-gradient-to-br from-green-800 to-green-950 rounded-xl shadow-sm border border-transparent overflow-hidden p-4 text-white relative">
                 {/* Decorative circles */}
                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
@@ -1803,7 +1803,7 @@ export default function ClientChatPage() {
 
           {/* Right Sidebar: Friend Tab - Permintaan Teman & Grup Bersama */}
           {activeTab === "friend" && (
-            <div className="hidden lg:block fixed right-0 top-[56px] w-[280px] xl:w-[320px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
+            <div className="hidden lg:block fixed right-0 top-[56px] w-[324px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
               <div className="space-y-4">
                 {/* Permintaan Teman */}
                 <div>
@@ -1869,7 +1869,7 @@ export default function ClientChatPage() {
 
           {/* Right Sidebar: Group Tab - Permintaan Bergabung */}
           {(activeTab === "community") && (
-            <div className="hidden lg:block fixed right-0 top-[56px] w-[280px] xl:w-[320px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
+            <div className="hidden lg:block fixed right-0 top-[56px] w-[324px] overscroll-contain h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-24 sidebar-scrollbar">
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold text-gray-500 dark:text-[#B0B3B8] text-[15px] mb-2 px-2">
@@ -1994,7 +1994,7 @@ export default function ClientChatPage() {
           >
             {/* Chat Bubble Fixed bottom right */}
             <div
-              className={`fixed bottom-0 right-[80px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex flex-col transition-all duration-300 ease-in-out ${isChatExpanded ? "h-[500px]" : "h-[48px]"}`}
+              className={`fixed bottom-0 left-[80px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex flex-col transition-all duration-300 ease-in-out ${isChatExpanded ? "h-[500px]" : "h-[48px]"}`}
             >
               {/* Header */}
               <div
@@ -2003,13 +2003,7 @@ export default function ClientChatPage() {
               >
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
-                      <img
-                        src="/default-avatar.svg"
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <img src="/navigasi/chat-aktif.svg" alt="Chat" className="w-6 h-6 shrink-0 object-contain" />
                     <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#31A24C] rounded-full border-2 border-white dark:border-[#242526]"></div>
                   </div>
                   <span className="font-semibold text-black dark:text-[#E4E6EB] text-[15px]">
@@ -2326,7 +2320,7 @@ export default function ClientChatPage() {
 
           {/* Floating Chat Room Panel */}
           <div
-            className={`hidden lg:flex fixed bottom-0 right-[396px] w-[380px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${activeFloatingChatIdx !== null ? "scale-y-100 opacity-100 h-[500px]" : "scale-y-0 opacity-0 h-0 pointer-events-none"}`}
+            className={`hidden lg:flex fixed bottom-0 left-[396px] w-[380px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${activeFloatingChatIdx !== null ? "scale-y-100 opacity-100 h-[500px]" : "scale-y-0 opacity-0 h-0 pointer-events-none"}`}
           >
             {!isFloatingChatInfoOpen ? (
               <>
@@ -2334,10 +2328,7 @@ export default function ClientChatPage() {
                 <div className="h-[60px] bg-white dark:bg-[#242526] border-b border-gray-200 dark:border-[#3E4042] flex items-center justify-between px-4 shadow-sm shrink-0 rounded-t-xl hover:bg-gray-200 dark:hover:bg-[#3A3B3C] transition-colors cursor-pointer" onClick={() => setIsFloatingChatInfoOpen(true)}>
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="relative w-10 h-10 shrink-0">
-                      <img
-                        src="/default-avatar.svg"
-                        className="w-full h-full rounded-full object-cover border border-emerald-600 dark:border-emerald-400"
-                      />
+                      <img src="/navigasi/chat-aktif.svg" alt="Chat" className="w-8 h-8 object-contain dark:invert" />
                       {activeFloatingChatIdx !== null && dummyChats[activeFloatingChatIdx]?.isOnline && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#31A24C] rounded-full border-2 border-white dark:border-[#242526]"></div>
                       )}
@@ -2735,7 +2726,7 @@ export default function ClientChatPage() {
           {/* New Message Panel */}
           <div
             style={{ right: activeFloatingChatIdx !== null ? "712px" : "396px" }}
-            className={`hidden lg:flex fixed bottom-0 w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${isNewMessageOpen ? "scale-y-100 opacity-100 h-[420px]" : "scale-y-0 opacity-0 h-0 pointer-events-none"}`}
+            className={`hidden lg:flex fixed bottom-0 left-[396px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${isNewMessageOpen ? "scale-y-100 opacity-100 h-[420px]" : "scale-y-0 opacity-0 h-0 pointer-events-none"}`}
           >
             {/* Header */}
             <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-[#3E4042] shrink-0 h-[48px]">
@@ -3760,10 +3751,7 @@ export default function ClientChatPage() {
                       onClick={() => setIsChatInfoOpen(true)}
                     >
                       <div className="relative w-10 h-10 shrink-0">
-                        <img
-                          src="/default-avatar.svg"
-                          className="w-full h-full rounded-full object-cover border border-emerald-600 dark:border-emerald-400"
-                        />
+                      <img src="/navigasi/chat-aktif.svg" alt="Chat" className="w-8 h-8 object-contain dark:invert" />
                         {dummyChats[activeChatIdx]?.isOnline && (
                           <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#31A24C] rounded-full border-2 border-white dark:border-[#242526]"></div>
                         )}

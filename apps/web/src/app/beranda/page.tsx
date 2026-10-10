@@ -246,7 +246,7 @@ export default function Beranda() {
       <div className="flex w-full pt-6">
         
         {/* Left Sidebar */}
-        <div className="hidden lg:block fixed left-0 top-[56px] w-[280px] xl:w-[320px] h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="hidden lg:block fixed left-0 top-[56px] w-[324px] h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="space-y-4">
             {/* Profile Card */}
             <div className="bg-white dark:bg-[#242526] rounded-xl shadow-sm border border-gray-100 dark:border-[#3E4042] overflow-hidden">
@@ -394,7 +394,7 @@ export default function Beranda() {
         {/* Right Sidebar (Chat Panel) */}
         <div className="hidden lg:block relative z-50">
            {/* Chat Bubble Fixed bottom right */}
-           <div className={`fixed bottom-0 right-[80px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex flex-col transition-all duration-300 ease-in-out ${isChatExpanded ? 'h-[500px]' : 'h-[48px]'}`}>
+           <div className={`fixed bottom-0 left-[80px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex flex-col transition-all duration-300 ease-in-out ${isChatExpanded ? 'h-[500px]' : 'h-[48px]'}`}>
              
              {/* Header */}
              <div 
@@ -403,9 +403,7 @@ export default function Beranda() {
              >
                <div className="flex items-center gap-2">
                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600 dark:border-emerald-400">
-                      <img src="/default-avatar.svg" alt="Profile" className="w-full h-full object-cover" />
-                    </div>
+                    <img src="/navigasi/chat-aktif.svg" alt="Chat" className="w-6 h-6 shrink-0 object-contain" />
                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#31A24C] rounded-full border-2 border-white dark:border-[#242526]"></div>
                  </div>
                  <span className="font-semibold text-black dark:text-[#E4E6EB] text-[15px]">Obrolan</span>
@@ -578,7 +576,7 @@ export default function Beranda() {
         </div>
 
         {/* New Message Panel */}
-        <div className={`hidden lg:flex fixed bottom-0 right-[396px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${isNewMessageOpen ? 'scale-y-100 opacity-100 h-[420px]' : 'scale-y-0 opacity-0 h-0 pointer-events-none'}`}>
+        <div className={`hidden lg:flex fixed bottom-0 left-[396px] w-[300px] bg-white dark:bg-[#242526] rounded-t-xl shadow-[0_0_15px_rgba(0,0,0,0.15)] border border-gray-200 dark:border-[#3E4042] flex-col z-50 transition-all duration-300 ease-in-out transform origin-bottom ${isNewMessageOpen ? 'scale-y-100 opacity-100 h-[420px]' : 'scale-y-0 opacity-0 h-0 pointer-events-none'}`}>
           {/* Header */}
           <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-[#3E4042] shrink-0 h-[48px]">
              <span className="font-semibold text-black dark:text-[#E4E6EB] text-[15px] pl-1">Pesan baru</span>
