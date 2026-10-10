@@ -301,16 +301,23 @@ export default function Navbar({
       <nav className="bg-white dark:bg-[#242526] shadow-sm fixed top-0 w-full z-[10100] h-[56px] px-4 flex items-center justify-between border-b border-gray-200 dark:border-[#3E4042]">
         {/* Left: Logo & Search */}
         <div className="flex items-center gap-2">
-          {/* Logo - dark text for light mode, white text for dark mode */}
+          {/* Mobile Logo (semua tema) */}
+          <img
+            src="/logo.png"
+            alt="NetHubz"
+            className="h-[40px] w-auto object-contain sm:hidden"
+          />
+          {/* Desktop Logo - Light Mode */}
           <img
             src="/logo-horizontal.png"
             alt="NetHubz"
-            className="h-[50px] w-auto object-contain dark:hidden"
+            className="h-[50px] w-auto object-contain hidden sm:block dark:hidden"
           />
+          {/* Desktop Logo - Dark Mode */}
           <img
             src="/logo-horizontal2.png"
             alt="NetHubz"
-            className="h-[50px] w-auto object-contain hidden dark:block"
+            className="h-[50px] w-auto object-contain hidden dark:sm:block"
           />
         </div>
 

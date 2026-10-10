@@ -12,7 +12,7 @@ export default function Login() {
   const [formData, setFormData] = useState({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [message, setMessage] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [isSuccessMessage, setIsSuccessMessage] = useState(false);
@@ -31,21 +31,21 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         console.log("[Login] Success, setting token in storage...");
         localStorage.setItem("token", data.access_token);
         document.cookie = `token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
-        
+
         showToast(t('successMsg'), true);
         setTimeout(() => {
           console.log("[Login] Redirecting to beranda...");
@@ -59,7 +59,7 @@ export default function Login() {
       console.error("[Login] Error:", err);
       showToast(t('errorServer'), false);
     }
-    
+
     setLoading(false);
   };
 
@@ -80,16 +80,16 @@ export default function Login() {
           <div className="hidden sm:flex justify-center mb-4 w-full -ml-4">
             <img src="/logo-horizontal.png" alt="Nethubz.com" className="h-14 object-contain" />
           </div>
-          
+
           <h2 className="text-center text-2xl font-extrabold text-gray-900 mb-1 tracking-tight">{t('title')}</h2>
           <p className="text-center text-gray-500 mb-6 text-sm">{t('subtitle')}</p>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-bold mb-1 text-gray-800">{t('emailLabel')}</label>
               <input type="text" placeholder={t('emailPlaceholder')} required
                 className="w-full border-2 border-gray-200 p-3.5 rounded-xl focus:outline-none focus:border-emerald-500 transition-colors"
-                value={formData.identifier} onChange={e => setFormData({...formData, identifier: e.target.value})} />
+                value={formData.identifier} onChange={e => setFormData({ ...formData, identifier: e.target.value })} />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1">
@@ -101,7 +101,7 @@ export default function Login() {
               <div className="relative">
                 <input type={showPassword ? "text" : "password"} placeholder="••••••••" required
                   className="w-full border-2 border-gray-200 p-3.5 pr-14 rounded-xl focus:outline-none focus:border-emerald-500 transition-colors"
-                  value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                  value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors">
                   {showPassword ? (
@@ -112,10 +112,10 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            
-            <button 
-              type="submit" 
-              disabled={loading || !formData.identifier.trim() || !formData.password.trim()} 
+
+            <button
+              type="submit"
+              disabled={loading || !formData.identifier.trim() || !formData.password.trim()}
               className="w-full bg-emerald-600 text-white p-3.5 rounded-xl font-bold tracking-wide hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200 disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
             >
               {loading ? t('loading') : t('submitBtn')}
@@ -129,7 +129,7 @@ export default function Login() {
             </Link>
           </p>
         </div>
-        
+
         {message && (
           <div className={`fixed bottom-10 sm:bottom-auto sm:top-10 left-1/2 transform -translate-x-1/2 z-50 px-8 py-4 min-w-[320px] rounded-xl shadow-2xl border text-sm font-semibold text-center transition-all duration-500 ease-in-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 sm:-translate-y-6'} ${isSuccessMessage ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-600'}`}>
             {message}
